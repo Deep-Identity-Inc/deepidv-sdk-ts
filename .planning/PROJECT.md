@@ -18,11 +18,10 @@ Developers pass images in and get typed verification results back — all presig
 - [x] Error classes: DeepIDVError, AuthenticationError (401), RateLimitError (429), ValidationError (400), NetworkError, TimeoutError — Validated in Phase 1: Core Infrastructure
 - [x] Retry logic with exponential backoff + jitter (429 and 5xx only, never 4xx) — Validated in Phase 1: Core Infrastructure
 - [x] Typed event emitter for request lifecycle events — Validated in Phase 1: Core Infrastructure
+- [x] Presigned URL upload handler — accepts Buffer, Uint8Array, ReadableStream, file path, base64; handles single and batch uploads — Validated in Phase 2: Presigned Upload Handler
+- [x] Zod-based runtime input validation on all public methods — Validated in Phase 2: Presigned Upload Handler
 
 ### Active
-
-- [ ] Presigned URL upload handler — accepts Buffer, Uint8Array, ReadableStream, file path, base64; handles single and batch uploads
-- [ ] Zod-based runtime input validation on all public methods
 - [ ] `client.sessions.create()` — create hosted verification session
 - [ ] `client.sessions.retrieve()` — retrieve full session with analysis data
 - [ ] `client.sessions.list()` — list sessions with filtering
