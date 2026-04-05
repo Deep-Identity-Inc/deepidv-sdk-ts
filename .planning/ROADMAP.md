@@ -50,10 +50,10 @@ Plans:
   3. Calling a public method with a missing required field throws a `ValidationError` with the parameter name and expected type in the message, before any network call is made
   4. A two-file batch presign issues one presign request (`count: 2`) and two parallel S3 PUTs, completing faster than two sequential uploads would
   5. The `FileUploader` imports and runs on Cloudflare Workers without referencing `fs`, `path`, or any Node-specific global
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 02-01-PLAN.md — Config extensions, event types, input normalization, content detection, Zod validation
+- [x] 02-01-PLAN.md — Config extensions, event types, input normalization, content detection, Zod validation
 - [ ] 02-02-PLAN.md — FileUploader class, presign + S3 PUT flow, barrel exports, integration tests
 
 ### Phase 3: Sessions Module
@@ -120,7 +120,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Infrastructure | 4/4 | Complete |  |
-| 2. Presigned Upload Handler | 0/2 | Not started | - |
+| 2. Presigned Upload Handler | 1/2 | In Progress|  |
 | 3. Sessions Module | 0/TBD | Not started | - |
 | 4. Document & Face Primitives | 0/TBD | Not started | - |
 | 5. Identity Module | 0/TBD | Not started | - |

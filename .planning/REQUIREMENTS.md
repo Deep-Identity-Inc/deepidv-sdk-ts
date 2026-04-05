@@ -33,19 +33,19 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Input Validation
 
-- [ ] **VAL-01**: Zod schemas validate all public method inputs before network calls
-- [ ] **VAL-02**: Clear error messages with param name and expected type (e.g., "expected Buffer, got string at param `image`")
-- [ ] **VAL-03**: Zod schemas infer TypeScript types (single source of truth for runtime + compile-time)
+- [x] **VAL-01**: Zod schemas validate all public method inputs before network calls
+- [x] **VAL-02**: Clear error messages with param name and expected type (e.g., "expected Buffer, got string at param `image`")
+- [x] **VAL-03**: Zod schemas infer TypeScript types (single source of truth for runtime + compile-time)
 
 ### File Uploads
 
 - [ ] **UPL-01**: Presigned URL upload handler: POST `/v1/uploads/presign` → PUT to S3 → return `fileKey`
-- [ ] **UPL-02**: Accept `Buffer`, `Uint8Array`, `ReadableStream`, file path string, and base64 string as file inputs
-- [ ] **UPL-03**: Content-type detection from input (JPEG, PNG, WebP) and alignment with presign request
+- [x] **UPL-02**: Accept `Buffer`, `Uint8Array`, `ReadableStream`, file path string, and base64 string as file inputs
+- [x] **UPL-03**: Content-type detection from input (JPEG, PNG, WebP) and alignment with presign request
 - [ ] **UPL-04**: Parallel batch presigned uploads for multi-file operations via `Promise.all`
-- [ ] **UPL-05**: Separate configurable timeout for S3 uploads (independent of API request timeout)
-- [ ] **UPL-06**: ReadableStream materialization before upload (prevent double-read zero-byte bug)
-- [ ] **UPL-07**: Zero AWS SDK dependency — all S3 interaction via native `fetch` with presigned URLs
+- [x] **UPL-05**: Separate configurable timeout for S3 uploads (independent of API request timeout)
+- [x] **UPL-06**: ReadableStream materialization before upload (prevent double-read zero-byte bug)
+- [x] **UPL-07**: Zero AWS SDK dependency — all S3 interaction via native `fetch` with presigned URLs
 
 ### Typed Event Emitter
 
@@ -174,16 +174,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COMPAT-02 | Phase 1 | Complete |
 | COMPAT-03 | Phase 1 | Complete |
 | COMPAT-04 | Phase 1 | Complete |
-| VAL-01 | Phase 2 | Pending |
-| VAL-02 | Phase 2 | Pending |
-| VAL-03 | Phase 2 | Pending |
+| VAL-01 | Phase 2 | Complete |
+| VAL-02 | Phase 2 | Complete |
+| VAL-03 | Phase 2 | Complete |
 | UPL-01 | Phase 2 | Pending |
-| UPL-02 | Phase 2 | Pending |
-| UPL-03 | Phase 2 | Pending |
+| UPL-02 | Phase 2 | Complete |
+| UPL-03 | Phase 2 | Complete |
 | UPL-04 | Phase 2 | Pending |
-| UPL-05 | Phase 2 | Pending |
-| UPL-06 | Phase 2 | Pending |
-| UPL-07 | Phase 2 | Pending |
+| UPL-05 | Phase 2 | Complete |
+| UPL-06 | Phase 2 | Complete |
+| UPL-07 | Phase 2 | Complete |
 | SESS-01 | Phase 3 | Pending |
 | SESS-02 | Phase 3 | Pending |
 | SESS-03 | Phase 3 | Pending |
