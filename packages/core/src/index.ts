@@ -40,3 +40,18 @@ export {
 
 export type { RequestOptions } from './client.js';
 export { HttpClient } from './client.js';
+
+export { DEFAULT_UPLOAD_TIMEOUT } from './config.js';
+
+export type {
+  FileInput,
+  SupportedContentType,
+  UploadOptions,
+  PresignResponse,
+} from './uploader.js';
+export {
+  toUint8Array,
+  detectContentType,
+  mapZodError,
+  validateUploadOptions,
+} from './uploader.js';
