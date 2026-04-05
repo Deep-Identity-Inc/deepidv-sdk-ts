@@ -13,6 +13,7 @@ export {
   DEFAULT_INITIAL_DELAY,
   DEFAULT_MAX_RETRIES,
   DEFAULT_TIMEOUT,
+  DEFAULT_UPLOAD_TIMEOUT,
   resolveConfig,
 } from './config.js';
 
@@ -41,8 +42,6 @@ export {
 export type { RequestOptions } from './client.js';
 export { HttpClient } from './client.js';
 
-export { DEFAULT_UPLOAD_TIMEOUT } from './config.js';
-
 export type {
   FileInput,
   SupportedContentType,
@@ -50,6 +49,7 @@ export type {
   PresignResponse,
 } from './uploader.js';
 export {
+  FileUploader,
   toUint8Array,
   detectContentType,
   mapZodError,

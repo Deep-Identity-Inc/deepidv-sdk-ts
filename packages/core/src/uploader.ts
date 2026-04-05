@@ -412,7 +412,9 @@ export class FileUploader {
         response = await this.config.fetch(url, {
           method: 'PUT',
           headers: { 'Content-Type': contentType },
-          body: bytes,
+          // Cast to ArrayBuffer for TypeScript 6 DTS compatibility (Uint8Array<ArrayBufferLike>
+          // is not directly assignable to BodyInit in strict mode — ArrayBuffer is safe)
+          body: bytes.buffer as ArrayBuffer,
           signal: controller.signal,
         });
       } catch (err) {
