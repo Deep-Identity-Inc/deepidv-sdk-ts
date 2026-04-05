@@ -153,13 +153,71 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| BUILD-01 | Phase 1 | Pending |
+| BUILD-02 | Phase 1 | Pending |
+| BUILD-03 | Phase 1 | Pending |
+| BUILD-04 | Phase 1 | Pending |
+| BUILD-05 | Phase 1 | Pending |
+| HTTP-01 | Phase 1 | Pending |
+| HTTP-02 | Phase 1 | Pending |
+| HTTP-03 | Phase 1 | Pending |
+| HTTP-04 | Phase 1 | Pending |
+| ERR-01 | Phase 1 | Pending |
+| ERR-02 | Phase 1 | Pending |
+| ERR-03 | Phase 1 | Pending |
+| ERR-04 | Phase 1 | Pending |
+| ERR-05 | Phase 1 | Pending |
+| ERR-06 | Phase 1 | Pending |
+| EVT-01 | Phase 1 | Pending |
+| EVT-02 | Phase 1 | Pending |
+| COMPAT-01 | Phase 1 | Pending |
+| COMPAT-02 | Phase 1 | Pending |
+| COMPAT-03 | Phase 1 | Pending |
+| COMPAT-04 | Phase 1 | Pending |
+| VAL-01 | Phase 2 | Pending |
+| VAL-02 | Phase 2 | Pending |
+| VAL-03 | Phase 2 | Pending |
+| UPL-01 | Phase 2 | Pending |
+| UPL-02 | Phase 2 | Pending |
+| UPL-03 | Phase 2 | Pending |
+| UPL-04 | Phase 2 | Pending |
+| UPL-05 | Phase 2 | Pending |
+| UPL-06 | Phase 2 | Pending |
+| UPL-07 | Phase 2 | Pending |
+| SESS-01 | Phase 3 | Pending |
+| SESS-02 | Phase 3 | Pending |
+| SESS-03 | Phase 3 | Pending |
+| SESS-04 | Phase 3 | Pending |
+| DOC-01 | Phase 4 | Pending |
+| DOC-02 | Phase 4 | Pending |
+| DOC-03 | Phase 4 | Pending |
+| FACE-01 | Phase 4 | Pending |
+| FACE-02 | Phase 4 | Pending |
+| FACE-03 | Phase 4 | Pending |
+| FACE-04 | Phase 4 | Pending |
+| IDV-01 | Phase 5 | Pending |
+| IDV-02 | Phase 5 | Pending |
+| IDV-03 | Phase 5 | Pending |
+| API-01 | Phase 6 | Pending |
+| API-02 | Phase 6 | Pending |
+| API-03 | Phase 6 | Pending |
+| API-04 | Phase 6 | Pending |
+| API-05 | Phase 6 | Pending |
+| TEST-01 | Phase 7 | Pending |
+| TEST-02 | Phase 7 | Pending |
+| TEST-03 | Phase 7 | Pending |
+| PUB-01 | Phase 7 | Pending |
+| PUB-02 | Phase 7 | Pending |
+| PUB-03 | Phase 7 | Pending |
+| PUB-04 | Phase 7 | Pending |
 
 **Coverage:**
-- v1 requirements: 46 total
-- Mapped to phases: 0
-- Unmapped: 46 ⚠️
+- v1 requirements: 57 total
+- Mapped to phases: 57
+- Unmapped: 0
+
+**Note:** The original coverage count of 46 in REQUIREMENTS.md was a miscalculation during initialization. The actual count is 57 requirements across 14 categories.
 
 ---
 *Requirements defined: 2026-04-05*
-*Last updated: 2026-04-05 after initial definition*
+*Last updated: 2026-04-05 — traceability populated after roadmap creation*
