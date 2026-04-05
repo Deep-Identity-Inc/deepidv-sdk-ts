@@ -50,7 +50,7 @@ Plans:
   3. Calling a public method with a missing required field throws a `ValidationError` with the parameter name and expected type in the message, before any network call is made
   4. A two-file batch presign issues one presign request (`count: 2`) and two parallel S3 PUTs, completing faster than two sequential uploads would
   5. The `FileUploader` imports and runs on Cloudflare Workers without referencing `fs`, `path`, or any Node-specific global
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans executed
 
 Plans:
 - [x] 02-01-PLAN.md — Config extensions, event types, input normalization, content detection, Zod validation
@@ -65,7 +65,11 @@ Plans:
   2. `client.sessions.retrieve(id)` returns the full session object including analysis data and presigned resource URLs
   3. `client.sessions.list({ limit, offset, status })` returns a paginated list of sessions, with TypeScript enforcing valid status filter values
   4. `client.sessions.updateStatus(id, "VERIFIED")` rejects non-enumerated status values at compile time and returns the updated session
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Zod schemas, Sessions class with HttpClient DI, barrel exports
+- [ ] 03-02-PLAN.md — msw test setup, comprehensive sessions test suite
 
 ### Phase 4: Document & Face Primitives
 **Goal**: Developers can call document.scan and all three face methods, passing image files in any supported format and receiving typed structured results
@@ -120,8 +124,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Infrastructure | 4/4 | Complete |  |
-| 2. Presigned Upload Handler | 1/2 | In Progress|  |
-| 3. Sessions Module | 0/TBD | Not started | - |
+| 2. Presigned Upload Handler | 2/2 | Complete |  |
+| 3. Sessions Module | 0/2 | Not started | - |
 | 4. Document & Face Primitives | 0/TBD | Not started | - |
 | 5. Identity Module | 0/TBD | Not started | - |
 | 6. Public Entry Point | 0/TBD | Not started | - |
