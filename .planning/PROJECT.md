@@ -12,17 +12,16 @@ Developers pass images in and get typed verification results back — all presig
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Monorepo scaffolding with pnpm workspace (`@deepidv/core` + `@deepidv/server`) — Validated in Phase 1: Core Infrastructure
+- [x] TypeScript strict mode, ES2022 target, tsup dual ESM + CJS build — Validated in Phase 1: Core Infrastructure
+- [x] HTTP client using native fetch with base URL, auth (x-api-key header), JSON parsing — Validated in Phase 1: Core Infrastructure
+- [x] Error classes: DeepIDVError, AuthenticationError (401), RateLimitError (429), ValidationError (400), NetworkError, TimeoutError — Validated in Phase 1: Core Infrastructure
+- [x] Retry logic with exponential backoff + jitter (429 and 5xx only, never 4xx) — Validated in Phase 1: Core Infrastructure
+- [x] Typed event emitter for request lifecycle events — Validated in Phase 1: Core Infrastructure
 
 ### Active
 
-- [ ] Monorepo scaffolding with pnpm workspace (`@deepidv/core` + `@deepidv/server`)
-- [ ] TypeScript strict mode, ES2022 target, tsup dual ESM + CJS build
-- [ ] HTTP client using native fetch with base URL, auth (x-api-key header), JSON parsing
-- [ ] Error classes: DeepIDVError, AuthenticationError (401), RateLimitError (429), ValidationError (400), NetworkError, TimeoutError
-- [ ] Retry logic with exponential backoff + jitter (429 and 5xx only, never 4xx)
 - [ ] Presigned URL upload handler — accepts Buffer, Uint8Array, ReadableStream, file path, base64; handles single and batch uploads
-- [ ] Typed event emitter for request lifecycle events
 - [ ] Zod-based runtime input validation on all public methods
 - [ ] `client.sessions.create()` — create hosted verification session
 - [ ] `client.sessions.retrieve()` — retrieve full session with analysis data
@@ -76,10 +75,10 @@ Developers pass images in and get typed verification results back — all presig
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| pnpm monorepo with @deepidv/core + @deepidv/server | Core internals shared across future packages (web, react, etc.) without exposing to developers | — Pending |
-| Native fetch over axios/got | Universal runtime support (Node 18+, Deno, Bun, Workers) with zero HTTP deps | — Pending |
+| pnpm monorepo with @deepidv/core + @deepidv/server | Core internals shared across future packages (web, react, etc.) without exposing to developers | Validated Phase 1 |
+| Native fetch over axios/got | Universal runtime support (Node 18+, Deno, Bun, Workers) with zero HTTP deps | Validated Phase 1 |
 | Zod for runtime validation | Type inference from schemas + runtime validation in one library, zero-dep itself | — Pending |
-| tsup for bundling | Dual ESM + CJS output, .d.ts generation, tree-shaking — minimal config | — Pending |
+| tsup for bundling | Dual ESM + CJS output, .d.ts generation, tree-shaking — minimal config | Validated Phase 1 |
 | Presigned URL upload pattern | Keeps file uploads out of our API servers, leverages S3 directly, supports large files | — Pending |
 | Grouped module API (client.face.detect) over flat (client.detectFace) | Better discoverability, autocomplete groups related methods, matches API structure | — Pending |
 
@@ -101,4 +100,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-05 after initialization*
+*Last updated: 2026-04-05 after Phase 1 completion — core infrastructure validated*
