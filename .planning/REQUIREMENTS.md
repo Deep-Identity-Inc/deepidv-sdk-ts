@@ -9,11 +9,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Monorepo & Build
 
-- [ ] **BUILD-01**: pnpm monorepo with `@deepidv/core` (internal) and `@deepidv/server` (public) packages
-- [ ] **BUILD-02**: TypeScript strict mode, ES2022 target, path aliases via `tsconfig.base.json`
-- [ ] **BUILD-03**: tsup builds dual ESM + CJS output with `.d.ts` generation per package
-- [ ] **BUILD-04**: Package `exports` map correctly exposes `.mjs`, `.cjs`, and `.d.ts` for all entry points
-- [ ] **BUILD-05**: ESLint + Prettier configured at workspace root, shared by all packages
+- [x] **BUILD-01**: pnpm monorepo with `@deepidv/core` (internal) and `@deepidv/server` (public) packages
+- [x] **BUILD-02**: TypeScript strict mode, ES2022 target, path aliases via `tsconfig.base.json`
+- [x] **BUILD-03**: tsup builds dual ESM + CJS output with `.d.ts` generation per package
+- [x] **BUILD-04**: Package `exports` map correctly exposes `.mjs`, `.cjs`, and `.d.ts` for all entry points
+- [x] **BUILD-05**: ESLint + Prettier configured at workspace root, shared by all packages
 
 ### HTTP Client & Auth
 
@@ -153,11 +153,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BUILD-01 | Phase 1 | Pending |
-| BUILD-02 | Phase 1 | Pending |
-| BUILD-03 | Phase 1 | Pending |
-| BUILD-04 | Phase 1 | Pending |
-| BUILD-05 | Phase 1 | Pending |
+| BUILD-01 | Phase 1 | Complete |
+| BUILD-02 | Phase 1 | Complete |
+| BUILD-03 | Phase 1 | Complete |
+| BUILD-04 | Phase 1 | Complete |
+| BUILD-05 | Phase 1 | Complete |
 | HTTP-01 | Phase 1 | Pending |
 | HTTP-02 | Phase 1 | Pending |
 | HTTP-03 | Phase 1 | Pending |

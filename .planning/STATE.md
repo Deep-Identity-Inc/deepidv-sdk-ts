@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-04-05T20:33:03.083Z"
-last_activity: 2026-04-05 — Roadmap created
+status: executing
+stopped_at: Completed 01-core-infrastructure/01-01-PLAN.md
+last_updated: "2026-04-05T21:51:29.473Z"
+last_activity: 2026-04-05
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 4
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** Developers pass images in and get typed verification results back — all presigned URL orchestration, retry logic, and error handling is invisible.
-**Current focus:** Phase 1 — Core Infrastructure
+**Current focus:** Phase 01 — core-infrastructure
 
 ## Current Position
 
-Phase: 1 of 7 (Core Infrastructure)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-04-05 — Roadmap created
+Phase: 01 (core-infrastructure) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-04-05
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01-core-infrastructure P01 | 3 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -60,7 +61,9 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- None yet — see PROJECT.md Key Decisions for architectural decisions made during initialization.
+- — see PROJECT.md Key Decisions for architectural decisions made during initialization.
+- [Phase 01-core-infrastructure]: Used TypeScript 6.0.2 and Zod 4.3.6 (latest stable) per RESEARCH.md — TypeScript 6.0 is GA March 2026, Zod v4 is the latest tag; starting on these versions avoids future migrations
+- [Phase 01-core-infrastructure]: Added ignoreDeprecations:6.0 to tsconfig.base.json — TypeScript 6.0 deprecates baseUrl which tsup DTS builder injects; this is the TS-recommended migration path
 
 ### Pending Todos
 
@@ -74,6 +77,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-05T20:33:03.081Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-core-infrastructure/01-CONTEXT.md
+Last session: 2026-04-05T21:51:29.471Z
+Stopped at: Completed 01-core-infrastructure/01-01-PLAN.md
+Resume file: None
