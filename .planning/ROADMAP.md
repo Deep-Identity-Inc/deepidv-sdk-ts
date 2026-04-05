@@ -32,11 +32,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Throwing `new AuthenticationError(...)` produces an instance of `DeepIDVError` with `cause` chain intact and no API key in the serialized output
   4. The built `@deepidv/core` package imports without error in a Node 18 script, a Deno script, and a Cloudflare Workers `wrangler dev` session
   5. Lifecycle events (request start, retry, error) fire on an `EventEmitter` subscriber without blocking the return path
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 - [x] 01-01-PLAN.md — Monorepo scaffold, TypeScript configs, tsup build, ESLint + Prettier
-- [ ] 01-02-PLAN.md — Config types, error hierarchy, typed event emitter with tests
+- [x] 01-02-PLAN.md — Config types, error hierarchy, typed event emitter with tests
 - [ ] 01-03-PLAN.md — HTTP client with auth, retry logic, and tests
 - [ ] 01-04-PLAN.md — Barrel exports, server shell, build verification, runtime compat
 
@@ -115,7 +115,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Infrastructure | 1/4 | In Progress|  |
+| 1. Core Infrastructure | 2/4 | In Progress|  |
 | 2. Presigned Upload Handler | 0/TBD | Not started | - |
 | 3. Sessions Module | 0/TBD | Not started | - |
 | 4. Document & Face Primitives | 0/TBD | Not started | - |

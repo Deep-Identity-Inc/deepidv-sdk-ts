@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-core-infrastructure/01-01-PLAN.md
-last_updated: "2026-04-05T21:51:29.473Z"
+stopped_at: Completed 01-core-infrastructure/01-02-PLAN.md
+last_updated: "2026-04-05T21:59:51.869Z"
 last_activity: 2026-04-05
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 ## Current Position
 
 Phase: 01 (core-infrastructure) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-05
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01-core-infrastructure P01 | 3 | 2 tasks | 14 files |
+| Phase 01-core-infrastructure P02 | 5 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,8 @@ Recent decisions affecting current work:
 - — see PROJECT.md Key Decisions for architectural decisions made during initialization.
 - [Phase 01-core-infrastructure]: Used TypeScript 6.0.2 and Zod 4.3.6 (latest stable) per RESEARCH.md — TypeScript 6.0 is GA March 2026, Zod v4 is the latest tag; starting on these versions avoids future migrations
 - [Phase 01-core-infrastructure]: Added ignoreDeprecations:6.0 to tsconfig.base.json — TypeScript 6.0 deprecates baseUrl which tsup DTS builder injects; this is the TS-recommended migration path
+- [Phase 01-core-infrastructure]: Added lib:[ES2022, DOM] to core tsconfig for Web API types (fetch, URL, RequestInit, Response) — DOM lib is type-only, no runtime impact
+- [Phase 01-core-infrastructure]: Error hierarchy uses Object.setPrototypeOf(this, new.target.prototype) in every subclass for correct instanceof in CJS/ESM interop
 
 ### Pending Todos
 
@@ -77,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-05T21:51:29.471Z
-Stopped at: Completed 01-core-infrastructure/01-01-PLAN.md
+Last session: 2026-04-05T21:59:51.866Z
+Stopped at: Completed 01-core-infrastructure/01-02-PLAN.md
 Resume file: None

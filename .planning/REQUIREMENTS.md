@@ -24,12 +24,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Error Handling
 
-- [ ] **ERR-01**: `DeepIDVError` base class with status code, error code, and human-readable message
-- [ ] **ERR-02**: `AuthenticationError` (401) with API key redaction in error output
-- [ ] **ERR-03**: `RateLimitError` (429) with retry-after extraction
-- [ ] **ERR-04**: `ValidationError` (400) with field-level detail from Zod
-- [ ] **ERR-05**: `NetworkError` for connection failures and `TimeoutError` for request timeouts
-- [ ] **ERR-06**: All errors chain `cause` for stack trace preservation
+- [x] **ERR-01**: `DeepIDVError` base class with status code, error code, and human-readable message
+- [x] **ERR-02**: `AuthenticationError` (401) with API key redaction in error output
+- [x] **ERR-03**: `RateLimitError` (429) with retry-after extraction
+- [x] **ERR-04**: `ValidationError` (400) with field-level detail from Zod
+- [x] **ERR-05**: `NetworkError` for connection failures and `TimeoutError` for request timeouts
+- [x] **ERR-06**: All errors chain `cause` for stack trace preservation
 
 ### Input Validation
 
@@ -49,8 +49,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Typed Event Emitter
 
-- [ ] **EVT-01**: Typed event emitter for request lifecycle: request start, upload progress, response received, retry, error
-- [ ] **EVT-02**: Non-blocking (does not intercept return path), allows caller-controlled logging/APM
+- [x] **EVT-01**: Typed event emitter for request lifecycle: request start, upload progress, response received, retry, error
+- [x] **EVT-02**: Non-blocking (does not intercept return path), allows caller-controlled logging/APM
 
 ### Sessions Module
 
@@ -162,14 +162,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HTTP-02 | Phase 1 | Pending |
 | HTTP-03 | Phase 1 | Pending |
 | HTTP-04 | Phase 1 | Pending |
-| ERR-01 | Phase 1 | Pending |
-| ERR-02 | Phase 1 | Pending |
-| ERR-03 | Phase 1 | Pending |
-| ERR-04 | Phase 1 | Pending |
-| ERR-05 | Phase 1 | Pending |
-| ERR-06 | Phase 1 | Pending |
-| EVT-01 | Phase 1 | Pending |
-| EVT-02 | Phase 1 | Pending |
+| ERR-01 | Phase 1 | Complete |
+| ERR-02 | Phase 1 | Complete |
+| ERR-03 | Phase 1 | Complete |
+| ERR-04 | Phase 1 | Complete |
+| ERR-05 | Phase 1 | Complete |
+| ERR-06 | Phase 1 | Complete |
+| EVT-01 | Phase 1 | Complete |
+| EVT-02 | Phase 1 | Complete |
 | COMPAT-01 | Phase 1 | Pending |
 | COMPAT-02 | Phase 1 | Pending |
 | COMPAT-03 | Phase 1 | Pending |
