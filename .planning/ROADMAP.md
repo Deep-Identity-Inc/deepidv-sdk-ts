@@ -38,7 +38,7 @@ Plans:
 - [x] 01-01-PLAN.md — Monorepo scaffold, TypeScript configs, tsup build, ESLint + Prettier
 - [x] 01-02-PLAN.md — Config types, error hierarchy, typed event emitter with tests
 - [x] 01-03-PLAN.md — HTTP client with auth, retry logic, and tests
-- [ ] 01-04-PLAN.md — Barrel exports, server shell, build verification, runtime compat
+- [x] 01-04-PLAN.md — Barrel exports, server shell, build verification, runtime compat
 
 ### Phase 2: Presigned Upload Handler
 **Goal**: A `FileUploader` in `@deepidv/core` that accepts any supported input type, detects content type, requests presigned URLs, PUTs files to S3, and returns `fileKey`s — with Zod validation on all public method inputs

@@ -88,10 +88,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Runtime Compatibility
 
-- [ ] **COMPAT-01**: Works on Node 18+ without polyfills
-- [ ] **COMPAT-02**: Works on Deno and Bun using native web APIs
-- [ ] **COMPAT-03**: Works on Cloudflare Workers and edge runtimes (no Node-specific APIs in core)
-- [ ] **COMPAT-04**: File path input uses conditional runtime detection; edge runtimes must pass Buffer/Uint8Array
+- [x] **COMPAT-01**: Works on Node 18+ without polyfills
+- [x] **COMPAT-02**: Works on Deno and Bun using native web APIs
+- [x] **COMPAT-03**: Works on Cloudflare Workers and edge runtimes (no Node-specific APIs in core)
+- [x] **COMPAT-04**: File path input uses conditional runtime detection; edge runtimes must pass Buffer/Uint8Array
 
 ### Testing & Publishing
 
@@ -170,10 +170,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ERR-06 | Phase 1 | Complete |
 | EVT-01 | Phase 1 | Complete |
 | EVT-02 | Phase 1 | Complete |
-| COMPAT-01 | Phase 1 | Pending |
-| COMPAT-02 | Phase 1 | Pending |
-| COMPAT-03 | Phase 1 | Pending |
-| COMPAT-04 | Phase 1 | Pending |
+| COMPAT-01 | Phase 1 | Complete |
+| COMPAT-02 | Phase 1 | Complete |
+| COMPAT-03 | Phase 1 | Complete |
+| COMPAT-04 | Phase 1 | Complete |
 | VAL-01 | Phase 2 | Pending |
 | VAL-02 | Phase 2 | Pending |
 | VAL-03 | Phase 2 | Pending |
