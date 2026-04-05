@@ -28,3 +28,15 @@ export {
 
 export type { SDKEventMap } from './events.js';
 export { TypedEmitter } from './events.js';
+
+export { buildHeaders, buildUrl } from './auth.js';
+
+export {
+  withRetry,
+  isRetryable,
+  computeDelay,
+  extractRetryAfter,
+} from './retry.js';
+
+export type { RequestOptions } from './client.js';
+export { HttpClient } from './client.js';
