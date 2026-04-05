@@ -17,10 +17,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### HTTP Client & Auth
 
-- [ ] **HTTP-01**: Base HTTP client using native `fetch` with configurable base URL, JSON parsing, content-type handling
-- [ ] **HTTP-02**: API key authentication via `x-api-key` header on every request
-- [ ] **HTTP-03**: Configurable timeout per request using `AbortController` with global default override
-- [ ] **HTTP-04**: Retry logic with exponential backoff + jitter on 429 and 5xx only, never 4xx, configurable max retries
+- [x] **HTTP-01**: Base HTTP client using native `fetch` with configurable base URL, JSON parsing, content-type handling
+- [x] **HTTP-02**: API key authentication via `x-api-key` header on every request
+- [x] **HTTP-03**: Configurable timeout per request using `AbortController` with global default override
+- [x] **HTTP-04**: Retry logic with exponential backoff + jitter on 429 and 5xx only, never 4xx, configurable max retries
 
 ### Error Handling
 
@@ -158,10 +158,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BUILD-03 | Phase 1 | Complete |
 | BUILD-04 | Phase 1 | Complete |
 | BUILD-05 | Phase 1 | Complete |
-| HTTP-01 | Phase 1 | Pending |
-| HTTP-02 | Phase 1 | Pending |
-| HTTP-03 | Phase 1 | Pending |
-| HTTP-04 | Phase 1 | Pending |
+| HTTP-01 | Phase 1 | Complete |
+| HTTP-02 | Phase 1 | Complete |
+| HTTP-03 | Phase 1 | Complete |
+| HTTP-04 | Phase 1 | Complete |
 | ERR-01 | Phase 1 | Complete |
 | ERR-02 | Phase 1 | Complete |
 | ERR-03 | Phase 1 | Complete |

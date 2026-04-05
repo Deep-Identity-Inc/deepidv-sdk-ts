@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-core-infrastructure/01-02-PLAN.md
-last_updated: "2026-04-05T21:59:51.869Z"
+stopped_at: Completed 01-core-infrastructure/01-03-PLAN.md
+last_updated: "2026-04-05T22:07:03.559Z"
 last_activity: 2026-04-05
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 ## Current Position
 
 Phase: 01 (core-infrastructure) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-04-05
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01-core-infrastructure P01 | 3 | 2 tasks | 14 files |
 | Phase 01-core-infrastructure P02 | 5 | 2 tasks | 9 files |
+| Phase 01-core-infrastructure P03 | 8 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - [Phase 01-core-infrastructure]: Added ignoreDeprecations:6.0 to tsconfig.base.json — TypeScript 6.0 deprecates baseUrl which tsup DTS builder injects; this is the TS-recommended migration path
 - [Phase 01-core-infrastructure]: Added lib:[ES2022, DOM] to core tsconfig for Web API types (fetch, URL, RequestInit, Response) — DOM lib is type-only, no runtime impact
 - [Phase 01-core-infrastructure]: Error hierarchy uses Object.setPrototypeOf(this, new.target.prototype) in every subclass for correct instanceof in CJS/ESM interop
+- [Phase 01-core-infrastructure]: Per-attempt AbortController: create inside withRetry fn for each attempt, not outside the loop — ensures fresh timeout per retry (D-01)
+- [Phase 01-core-infrastructure]: error event emitted at HttpClient level after withRetry throws — has URL/method context that retry layer does not
+- [Phase 01-core-infrastructure]: extractRetryAfter exported as standalone function from retry.ts to avoid circular dependencies with client.ts
 
 ### Pending Todos
 
@@ -80,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-05T21:59:51.866Z
-Stopped at: Completed 01-core-infrastructure/01-02-PLAN.md
+Last session: 2026-04-05T22:07:03.556Z
+Stopped at: Completed 01-core-infrastructure/01-03-PLAN.md
 Resume file: None
