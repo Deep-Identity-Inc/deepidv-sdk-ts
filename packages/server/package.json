@@ -23,7 +23,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@deepidv/core": "workspace:*"
+    "@deepidv/core": "workspace:*",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "msw": "^2.12.14",
