@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-04-05T23:09:25.895Z"
+status: verifying
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-04-05T23:14:36.909Z"
 last_activity: 2026-04-05
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 Phase: 02 (presigned-upload-handler) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-05
 
 Progress: [░░░░░░░░░░] 0%
@@ -57,6 +57,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-core-infrastructure P03 | 8 | 2 tasks | 6 files |
 | Phase 01-core-infrastructure P04 | 1 | 2 tasks | 2 files |
 | Phase 02-presigned-upload-handler P01 | 215 | 2 tasks | 5 files |
+| Phase 02-presigned-upload-handler P02 | 196 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,8 @@ Recent decisions affecting current work:
 - [Phase 01-core-infrastructure]: Core barrel file was complete from Plan 03 — Task 1 verified but required no file changes
 - [Phase 02-presigned-upload-handler]: Used globalThis property access for process/Deno/Bun runtime detection to avoid requiring platform-specific type definitions in runtime-agnostic core package
 - [Phase 02-presigned-upload-handler]: Used dynamic import with string cast for conditional Node fs/promises import to prevent DTS type errors while preserving edge-runtime compatibility
+- [Phase 02-presigned-upload-handler]: Cast Uint8Array body to ArrayBuffer for TypeScript 6 DTS compatibility in S3 PUT fetch call
+- [Phase 02-presigned-upload-handler]: FileUploader uses raw config.fetch for S3 PUTs (not HttpClient) to ensure no x-api-key header reaches S3 (UPL-07)
 
 ### Pending Todos
 
@@ -90,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-05T23:09:25.893Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-04-05T23:14:36.906Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None

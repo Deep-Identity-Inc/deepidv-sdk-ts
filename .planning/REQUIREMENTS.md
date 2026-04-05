@@ -39,10 +39,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### File Uploads
 
-- [ ] **UPL-01**: Presigned URL upload handler: POST `/v1/uploads/presign` → PUT to S3 → return `fileKey`
+- [x] **UPL-01**: Presigned URL upload handler: POST `/v1/uploads/presign` → PUT to S3 → return `fileKey`
 - [x] **UPL-02**: Accept `Buffer`, `Uint8Array`, `ReadableStream`, file path string, and base64 string as file inputs
 - [x] **UPL-03**: Content-type detection from input (JPEG, PNG, WebP) and alignment with presign request
-- [ ] **UPL-04**: Parallel batch presigned uploads for multi-file operations via `Promise.all`
+- [x] **UPL-04**: Parallel batch presigned uploads for multi-file operations via `Promise.all`
 - [x] **UPL-05**: Separate configurable timeout for S3 uploads (independent of API request timeout)
 - [x] **UPL-06**: ReadableStream materialization before upload (prevent double-read zero-byte bug)
 - [x] **UPL-07**: Zero AWS SDK dependency — all S3 interaction via native `fetch` with presigned URLs
@@ -177,10 +177,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VAL-01 | Phase 2 | Complete |
 | VAL-02 | Phase 2 | Complete |
 | VAL-03 | Phase 2 | Complete |
-| UPL-01 | Phase 2 | Pending |
+| UPL-01 | Phase 2 | Complete |
 | UPL-02 | Phase 2 | Complete |
 | UPL-03 | Phase 2 | Complete |
-| UPL-04 | Phase 2 | Pending |
+| UPL-04 | Phase 2 | Complete |
 | UPL-05 | Phase 2 | Complete |
 | UPL-06 | Phase 2 | Complete |
 | UPL-07 | Phase 2 | Complete |

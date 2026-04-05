@@ -54,7 +54,7 @@ Plans:
 
 Plans:
 - [x] 02-01-PLAN.md — Config extensions, event types, input normalization, content detection, Zod validation
-- [ ] 02-02-PLAN.md — FileUploader class, presign + S3 PUT flow, barrel exports, integration tests
+- [x] 02-02-PLAN.md — FileUploader class, presign + S3 PUT flow, barrel exports, integration tests
 
 ### Phase 3: Sessions Module
 **Goal**: Developers can create, retrieve, list, and update verification sessions through `client.sessions` with fully typed inputs and outputs
