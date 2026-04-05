@@ -1,5 +1,6 @@
 /**
- * File input types, Zod schemas, and utility functions for the presigned upload handler.
+ * File input types, Zod schemas, utility functions, and FileUploader class
+ * for the presigned upload handler.
  *
  * Provides:
  * - `FileInput` — normalized input type accepted on all upload APIs
@@ -10,12 +11,17 @@
  * - `detectContentType` — magic-byte content-type detection
  * - `mapZodError` — maps ZodError to ValidationError with path info
  * - `validateUploadOptions` — validates raw upload options input
+ * - `FileUploader` — orchestrates presign + S3 PUT flow for all service modules
  *
  * @module uploader
  */
 
 import { z } from 'zod';
-import { ValidationError } from './errors.js';
+import { DeepIDVError, NetworkError, TimeoutError, ValidationError } from './errors.js';
+import { withRetry } from './retry.js';
+import type { ResolvedConfig } from './config.js';
+import type { HttpClient } from './client.js';
+import type { TypedEmitter, SDKEventMap } from './events.js';
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -281,5 +287,172 @@ export function validateUploadOptions(raw: unknown): UploadOptions {
   } catch (err) {
     if (err instanceof z.ZodError) throw mapZodError(err);
     throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// FileUploader class
+// ---------------------------------------------------------------------------
+
+/**
+ * Orchestrates the presigned upload flow for all service modules.
+ *
+ * Flow:
+ * 1. Normalize all inputs to `Uint8Array` (stream materialization happens here,
+ *    before the retry loop — no double-read bug, UPL-06).
+ * 2. Detect or accept caller-provided content type (D-06).
+ * 3. Call `POST /v1/uploads/presign` once for all files.
+ * 4. PUT each file to its S3 presigned URL in parallel (UPL-04).
+ * 5. Return `fileKey` strings in the same order as the inputs.
+ *
+ * S3 PUTs use raw `config.fetch` (not `HttpClient`) — no `x-api-key` header
+ * is sent to S3 (UPL-07). Each PUT uses `config.uploadTimeout` (120s default),
+ * not the API request timeout (30s) (UPL-05).
+ */
+export class FileUploader {
+  /**
+   * Creates a FileUploader instance.
+   *
+   * @param config - Resolved configuration with `uploadTimeout` and `fetch`.
+   * @param httpClient - HTTP client for calling the deepidv API (presign endpoint).
+   * @param emitter - Typed event emitter for `upload:start` / `upload:complete` events.
+   */
+  constructor(
+    private readonly config: ResolvedConfig,
+    private readonly httpClient: HttpClient,
+    private readonly emitter: TypedEmitter<SDKEventMap>,
+  ) {}
+
+  /**
+   * Uploads one or more files to S3 via the presigned upload flow.
+   *
+   * Accepts any `FileInput` (Uint8Array, ReadableStream, base64 string, file path).
+   * Batch uploads issue a single presign request and upload in parallel.
+   *
+   * @param inputs - Single file input or array of file inputs.
+   * @param options - Optional upload options (e.g. `contentType` override).
+   * @returns Array of `fileKey` strings in the same order as the inputs.
+   * @throws {ValidationError} If inputs fail validation.
+   * @throws {DeepIDVError} If the presign API call fails.
+   * @throws {DeepIDVError} With code `"upload_url_expired"` if S3 returns 403.
+   * @throws {TimeoutError} If an S3 PUT times out.
+   * @throws {NetworkError} If an S3 PUT fails at the network level.
+   */
+  async upload(
+    inputs: FileInput | FileInput[],
+    options?: UploadOptions,
+  ): Promise<string[]> {
+    const opts = validateUploadOptions(options ?? {});
+    const inputArray = Array.isArray(inputs) ? inputs : [inputs];
+
+    // 1. Normalize all inputs to Uint8Array (materialization happens here, before retry loop — UPL-06)
+    const byteArrays = await Promise.all(inputArray.map(toUint8Array));
+
+    // 2. Detect or use caller-provided content type
+    const contentTypes = byteArrays.map((bytes) =>
+      opts.contentType ?? detectContentType(bytes),
+    );
+
+    // 3. Request presigned URLs (one API call for all files)
+    const presignResponse = await this.httpClient.post<PresignResponse>(
+      '/v1/uploads/presign',
+      { contentType: contentTypes[0], count: inputArray.length },
+    );
+
+    // 4. PUT each file to S3 in parallel (UPL-04)
+    await Promise.all(
+      presignResponse.uploads.map((upload, i) =>
+        this._putToS3(upload.uploadUrl, byteArrays[i]!, contentTypes[i]!),
+      ),
+    );
+
+    // 5. Return fileKeys in same order as inputs
+    return presignResponse.uploads.map((u) => u.fileKey);
+  }
+
+  /**
+   * Wraps a single S3 PUT in retry logic.
+   *
+   * Bytes are already a `Uint8Array` at this point — stream materialization
+   * happened in `upload()` before this is called (UPL-06).
+   *
+   * @internal
+   */
+  private async _putToS3(url: string, bytes: Uint8Array, contentType: string): Promise<void> {
+    await withRetry(
+      () => this._attemptPut(url, bytes, contentType),
+      { maxRetries: this.config.maxRetries, initialDelayMs: this.config.initialRetryDelay },
+      this.emitter,
+    );
+  }
+
+  /**
+   * Performs a single S3 PUT attempt.
+   *
+   * Uses raw `config.fetch` (not `HttpClient`) — no `x-api-key` header is sent
+   * to S3 (UPL-07). Uses `config.uploadTimeout` (not `config.timeout`) (UPL-05).
+   *
+   * - HTTP 403 → throws `DeepIDVError` with code `"upload_url_expired"` immediately (D-08)
+   * - HTTP 5xx → throws `DeepIDVError` with `status >= 500` so `isRetryable` returns `true`
+   * - Network errors → wraps in `NetworkError` (retryable)
+   * - Abort (timeout) → wraps in `TimeoutError` (retryable, but upload timeout is long)
+   *
+   * @internal
+   */
+  private async _attemptPut(url: string, bytes: Uint8Array, contentType: string): Promise<void> {
+    const controller = new AbortController();
+    const timeoutMs = this.config.uploadTimeout;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    this.emitter.emit('upload:start', { url, bytes: bytes.length, contentType });
+
+    try {
+      let response: Response;
+      try {
+        response = await this.config.fetch(url, {
+          method: 'PUT',
+          headers: { 'Content-Type': contentType },
+          body: bytes,
+          signal: controller.signal,
+        });
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') {
+          throw new TimeoutError(`Upload timed out after ${timeoutMs}ms`, { cause: err });
+        }
+        throw new NetworkError(
+          err instanceof Error ? err.message : 'S3 upload network error',
+          { cause: err },
+        );
+      }
+
+      if (response.ok) {
+        this.emitter.emit('upload:complete', { url, contentType });
+        return;
+      }
+
+      // 403: expired presigned URL — throw immediately, never retry (D-08)
+      if (response.status === 403) {
+        throw new DeepIDVError('Presigned URL has expired or is invalid.', {
+          status: 403,
+          code: 'upload_url_expired',
+        });
+      }
+
+      // 5xx: wrap as DeepIDVError with status so isRetryable returns true
+      if (response.status >= 500) {
+        throw new DeepIDVError(`S3 upload failed: HTTP ${response.status}`, {
+          status: response.status,
+          code: 'upload_error',
+        });
+      }
+
+      // Other 4xx: throw immediately (non-retryable)
+      throw new DeepIDVError(`S3 upload failed: HTTP ${response.status}`, {
+        status: response.status,
+        code: 'upload_error',
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 }
