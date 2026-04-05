@@ -19,6 +19,9 @@ export const DEFAULT_MAX_RETRIES = 3;
 /** Default initial retry delay in milliseconds (D-03). */
 export const DEFAULT_INITIAL_DELAY = 500;
 
+/** Default per-attempt timeout for S3 uploads in milliseconds (D-07). */
+export const DEFAULT_UPLOAD_TIMEOUT = 120_000;
+
 /**
  * User-provided configuration for creating a DeepIDV client.
  */
@@ -38,6 +41,12 @@ export interface DeepIDVConfig {
    * bindings, and proxy setups (D-13).
    */
   fetch?: typeof globalThis.fetch;
+  /**
+   * Per-attempt timeout for S3 uploads in milliseconds.
+   * Separate from API request timeout. Defaults to 120_000 (2 minutes).
+   * (D-07)
+   */
+  uploadTimeout?: number;
 }
 
 /**
@@ -56,6 +65,8 @@ export interface ResolvedConfig {
   initialRetryDelay: number;
   /** Fetch implementation to use for HTTP requests. */
   fetch: typeof globalThis.fetch;
+  /** Per-attempt timeout for S3 uploads in milliseconds (D-07). */
+  uploadTimeout: number;
 }
 
 /**
@@ -72,5 +83,6 @@ export function resolveConfig(config: DeepIDVConfig): ResolvedConfig {
     maxRetries: config.maxRetries ?? DEFAULT_MAX_RETRIES,
     initialRetryDelay: config.initialRetryDelay ?? DEFAULT_INITIAL_DELAY,
     fetch: config.fetch ?? globalThis.fetch,
+    uploadTimeout: config.uploadTimeout ?? DEFAULT_UPLOAD_TIMEOUT,
   };
 }

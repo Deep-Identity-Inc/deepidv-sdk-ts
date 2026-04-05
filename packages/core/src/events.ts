@@ -25,6 +25,10 @@ export type SDKEventMap = {
   error: { error: unknown };
   /** Fired when a listener throws an exception (D-10). */
   warning: { message: string; error: unknown };
+  /** Fired when an S3 upload attempt starts. */
+  'upload:start': { url: string; bytes: number; contentType: string };
+  /** Fired when an S3 upload completes successfully. */
+  'upload:complete': { url: string; contentType: string };
 };
 
 /**
