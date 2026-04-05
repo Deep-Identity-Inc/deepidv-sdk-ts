@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Throwing `new AuthenticationError(...)` produces an instance of `DeepIDVError` with `cause` chain intact and no API key in the serialized output
   4. The built `@deepidv/core` package imports without error in a Node 18 script, a Deno script, and a Cloudflare Workers `wrangler dev` session
   5. Lifecycle events (request start, retry, error) fire on an `EventEmitter` subscriber without blocking the return path
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans executed
 
 Plans:
 - [x] 01-01-PLAN.md — Monorepo scaffold, TypeScript configs, tsup build, ESLint + Prettier
@@ -50,7 +50,11 @@ Plans:
   3. Calling a public method with a missing required field throws a `ValidationError` with the parameter name and expected type in the message, before any network call is made
   4. A two-file batch presign issues one presign request (`count: 2`) and two parallel S3 PUTs, completing faster than two sequential uploads would
   5. The `FileUploader` imports and runs on Cloudflare Workers without referencing `fs`, `path`, or any Node-specific global
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Config extensions, event types, input normalization, content detection, Zod validation
+- [ ] 02-02-PLAN.md — FileUploader class, presign + S3 PUT flow, barrel exports, integration tests
 
 ### Phase 3: Sessions Module
 **Goal**: Developers can create, retrieve, list, and update verification sessions through `client.sessions` with fully typed inputs and outputs
@@ -115,8 +119,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Infrastructure | 3/4 | In Progress|  |
-| 2. Presigned Upload Handler | 0/TBD | Not started | - |
+| 1. Core Infrastructure | 4/4 | Complete |  |
+| 2. Presigned Upload Handler | 0/2 | Not started | - |
 | 3. Sessions Module | 0/TBD | Not started | - |
 | 4. Document & Face Primitives | 0/TBD | Not started | - |
 | 5. Identity Module | 0/TBD | Not started | - |
