@@ -80,11 +80,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Public API Surface
 
-- [ ] **API-01**: `DeepIDV` client class as main entry point, takes config (apiKey, baseUrl, timeout, retries)
-- [ ] **API-02**: Grouped module access: `client.sessions`, `client.document`, `client.face`, `client.identity`
-- [ ] **API-03**: Full JSDoc on every public method, parameter, and return type
-- [ ] **API-04**: Zero `any` in the entire codebase
-- [ ] **API-05**: Explicit named exports (no wildcard re-exports)
+- [x] **API-01**: `DeepIDV` client class as main entry point, takes config (apiKey, baseUrl, timeout, retries)
+- [x] **API-02**: Grouped module access: `client.sessions`, `client.document`, `client.face`, `client.identity`
+- [x] **API-03**: Full JSDoc on every public method, parameter, and return type
+- [x] **API-04**: Zero `any` in the entire codebase
+- [x] **API-05**: Explicit named exports (no wildcard re-exports)
 
 ### Runtime Compatibility
 
@@ -198,11 +198,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IDV-01 | Phase 5 | Complete |
 | IDV-02 | Phase 5 | Complete |
 | IDV-03 | Phase 5 | Complete |
-| API-01 | Phase 6 | Pending |
-| API-02 | Phase 6 | Pending |
-| API-03 | Phase 6 | Pending |
-| API-04 | Phase 6 | Pending |
-| API-05 | Phase 6 | Pending |
+| API-01 | Phase 6 | Complete |
+| API-02 | Phase 6 | Complete |
+| API-03 | Phase 6 | Complete |
+| API-04 | Phase 6 | Complete |
+| API-05 | Phase 6 | Complete |
 | TEST-01 | Phase 7 | Pending |
 | TEST-02 | Phase 7 | Pending |
 | TEST-03 | Phase 7 | Pending |

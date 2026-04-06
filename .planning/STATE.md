@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Phase 6 context gathered
-last_updated: "2026-04-06T04:21:21.940Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-04-06T04:43:25.235Z"
 last_activity: 2026-04-06
 progress:
   total_phases: 7
-  completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
+  completed_phases: 6
+  total_plans: 14
+  completed_plans: 14
   percent: 0
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** Developers pass images in and get typed verification results back — all presigned URL orchestration, retry logic, and error handling is invisible.
-**Current focus:** Phase 05 — identity-module
+**Current focus:** Phase 06 — public-entry-point
 
 ## Current Position
 
-Phase: 6
-Plan: Not started
+Phase: 06 (public-entry-point) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-04-06
 
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-document-face-primitives P03 | 15 | 3 tasks | 3 files |
 | Phase 05-identity-module P01 | 4 | 2 tasks | 3 files |
 | Phase 05-identity-module P02 | 2 | 2 tasks | 1 files |
+| Phase 06-public-entry-point P01 | 256 | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,8 @@ Recent decisions affecting current work:
 - [Phase 05-identity-module]: Independent nested result schemas (D-03): identity sub-shapes in identity.types.ts are not reused from Phase 4 — verified against build guide shapes
 - [Phase 05-identity-module]: All sub-result fields (document, faceDetection, faceMatch) required not optional — API always returns full shape on 2xx (D-04)
 - [Phase 05-identity-module]: Barrel exports pre-completed by 05-01 Rule 2 auto-fix — Task 2 required only verification, no file changes
+- [Phase 06-public-entry-point]: DeepIDV class is the single public entry point; Sessions/Document/Face/Identity classes are internal implementation details not exported from the barrel
+- [Phase 06-public-entry-point]: DeepIDVConfigSchema exported for consumers who need schema-driven config validation
 
 ### Pending Todos
 
@@ -114,6 +117,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T04:21:21.932Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-public-entry-point/06-CONTEXT.md
+Last session: 2026-04-06T04:43:25.233Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: None

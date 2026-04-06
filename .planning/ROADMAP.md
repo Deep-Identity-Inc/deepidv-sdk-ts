@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Sessions Module** - First end-to-end HTTP integration: session CRUD with typed input/output
 - [x] **Phase 4: Document & Face Primitives** - document.scan, face.detect, face.compare, face.estimateAge (completed 2026-04-06)
 - [ ] **Phase 5: Identity Module** - Orchestrated compound call: document scan + face detect + face compare in one method
-- [ ] **Phase 6: Public Entry Point** - DeepIDV class assembly, explicit exports, full JSDoc on public surface
+- [x] **Phase 6: Public Entry Point** - DeepIDV class assembly, explicit exports, full JSDoc on public surface (completed 2026-04-06)
 - [ ] **Phase 7: Tests, Examples & Publishing** - Full test suite, example projects, changesets, CI/CD publish pipeline
 
 ## Phase Details
@@ -112,10 +112,10 @@ Plans:
   3. Every public method, parameter, and return type has JSDoc visible in IDE hover tooltips
   4. TypeScript reports zero errors with `strict: true` and `noImplicitAny: true` across the entire codebase, with no `any` in source or generated `.d.ts` files
   5. The `@deepidv/server` package index uses explicit named exports only — importing a non-exported internal symbol fails at compile time
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 06-01-PLAN.md — DeepIDV class, config validation, barrel rewrite, zero-any verification� DeepIDV class, config validation, barrel rewrite, zero-any verification
+- [x] 06-01-PLAN.md — DeepIDV class, config validation, barrel rewrite, zero-any verification� DeepIDV class, config validation, barrel rewrite, zero-any verification
 
 ### Phase 7: Tests, Examples & Publishing
 **Goal**: The SDK has a complete vitest + msw test suite, example projects demonstrating real usage, and a changesets CI/CD pipeline that publishes to npm on release
@@ -129,7 +129,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 06-01-PLAN.md — DeepIDV class, config validation, barrel rewrite, zero-any verification� DeepIDV class, config validation, barrel rewrite, zero-any verification
+- [ ] 06-01-PLAN.md — DeepIDV class, config validation, barrel rewrite, zero-any verification� DeepIDV class, config validation, barrel rewrite, zero-any verification
 
 ## Progress
 
@@ -143,5 +143,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 3. Sessions Module | 2/2 | Complete |  |
 | 4. Document & Face Primitives | 3/3 | Complete   | 2026-04-06 |
 | 5. Identity Module | 1/2 | In Progress|  |
-| 6. Public Entry Point | 0/TBD | Not started | - |
+| 6. Public Entry Point | 1/1 | Complete   | 2026-04-06 |
 | 7. Tests, Examples & Publishing | 0/TBD | Not started | - |
