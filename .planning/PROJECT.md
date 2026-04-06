@@ -31,8 +31,12 @@ Developers pass images in and get typed verification results back — all presig
 - [x] `client.identity.verify()` — orchestrated identity verification in one call — Validated in Phase 5: Identity Module
 
 ### Active
-- [ ] Full JSDoc on every public method and field, zero `any` in codebase
 - [ ] Tests (vitest + msw), examples, and npm publishing pipeline
+
+### Recently Validated
+- [x] Full JSDoc on every public method and field, zero `any` in codebase — Validated in Phase 6: Public Entry Point
+- [x] DeepIDV public entry class with Zod config validation, eager module wiring, event subscription — Validated in Phase 6: Public Entry Point
+- [x] Explicit named exports only (no wildcard re-exports, module classes not exported) — Validated in Phase 6: Public Entry Point
 
 ### Out of Scope
 
@@ -81,6 +85,7 @@ Developers pass images in and get typed verification results back — all presig
 | Presigned URL upload pattern | Keeps file uploads out of our API servers, leverages S3 directly, supports large files | Validated Phase 4 |
 | Grouped module API (client.face.detect) over flat (client.detectFace) | Better discoverability, autocomplete groups related methods, matches API structure | Validated Phase 4 |
 | Independent identity schemas over reusing Phase 4 types | Identity module decoupled from document/face modules — API can evolve response shapes independently | Validated Phase 5 |
+| DeepIDV class as single entry point over direct module instantiation | Consumers use `new DeepIDV({ apiKey })` — module classes are internal, config validation is centralized, shared infrastructure (HttpClient, FileUploader, emitter) is wired once | Validated Phase 6 |
 
 ## Evolution
 
@@ -100,4 +105,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-05 after Phase 5 completion — identity verification module validated, compound verify() orchestrating batch upload + single POST with independent Zod schemas*
+*Last updated: 2026-04-06 after Phase 6 completion — DeepIDV public entry point with Zod config validation, eager module wiring, full JSDoc on all 9 public methods, explicit named exports only*
