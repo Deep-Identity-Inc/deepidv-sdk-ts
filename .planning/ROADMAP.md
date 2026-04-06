@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Document & Face Primitives** - document.scan, face.detect, face.compare, face.estimateAge (completed 2026-04-06)
 - [ ] **Phase 5: Identity Module** - Orchestrated compound call: document scan + face detect + face compare in one method
 - [x] **Phase 6: Public Entry Point** - DeepIDV class assembly, explicit exports, full JSDoc on public surface (completed 2026-04-06)
-- [ ] **Phase 7: Tests, Examples & Publishing** - Full test suite, example projects, changesets, CI/CD publish pipeline
+- [x] **Phase 7: Tests, Examples & Publishing** - Full test suite, example projects, changesets, CI/CD publish pipeline (completed 2026-04-06)
 
 ## Phase Details
 
@@ -126,12 +126,12 @@ Plans:
   2. A consumer test project imports `@deepidv/server` from the built package (not source) and TypeScript resolves all types correctly under `moduleResolution: bundler`
   3. `examples/node-basic/index.ts` showcases every SDK method with descriptive comments
   4. A GitHub Actions workflow runs tests on every PR and publishes to npm via `pnpm publish` (not `npm publish`) when a release is cut via changesets
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 07-01-PLAN.md — Fill test gaps: error-path tests for all server modules, config edge cases, remove passWithNoTests
 - [x] 07-02-PLAN.md — Core bundling (noExternal), changesets init, consumer type-check, node-basic example
-- [ ] 07-03-PLAN.md — GitHub Actions CI + publish workflows
+- [x] 07-03-PLAN.md — GitHub Actions CI + publish workflows
 
 ## Progress
 
@@ -146,4 +146,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Document & Face Primitives | 3/3 | Complete   | 2026-04-06 |
 | 5. Identity Module | 2/2 | Complete   |  |
 | 6. Public Entry Point | 1/1 | Complete   | 2026-04-06 |
-| 7. Tests, Examples & Publishing | 2/3 | Executing |  |
+| 7. Tests, Examples & Publishing | 3/3 | Complete   | 2026-04-06 |

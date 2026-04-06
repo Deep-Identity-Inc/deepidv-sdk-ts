@@ -100,7 +100,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TEST-03**: Consumer declaration-file validation (import from built package in a test project)
 - [x] **PUB-01**: changesets for versioning and changelogs
 - [x] **PUB-02**: npm publish config with `"access": "public"` on `@deepidv/server`
-- [ ] **PUB-03**: GitHub Actions: test on PR, publish to npm on release
+- [x] **PUB-03**: GitHub Actions: test on PR, publish to npm on release
 - [x] **PUB-04**: Example projects: node-basic, express-app, nextjs-app
 
 ## v2 Requirements
@@ -208,7 +208,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TEST-03 | Phase 7 | Complete |
 | PUB-01 | Phase 7 | Complete |
 | PUB-02 | Phase 7 | Complete |
-| PUB-03 | Phase 7 | Pending |
+| PUB-03 | Phase 7 | Complete |
 | PUB-04 | Phase 7 | Complete |
 
 **Coverage:**
