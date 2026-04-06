@@ -1,0 +1,17 @@
+---
+title: "SDK Event Lifecycle"
+---
+flowchart TD
+    A["request<br/>{method, url}"] --> B{Response?}
+    B -->|Success| C["response<br/>{status, url, durationMs}"]
+    B -->|Retryable Error| D["retry<br/>{attempt, delayMs, error}"]
+    D --> A
+    B -->|Fatal Error| E["error<br/>{error}"]
+
+    C --> F{File upload?}
+    F -->|Yes| G["upload:start<br/>{url, bytes, contentType}"]
+    G --> H["upload:complete<br/>{url, contentType}"]
+    F -->|No| I[Done]
+    H --> I
+
+    E --> J["warning<br/>{message, error}<br/>(if listener threw)"]

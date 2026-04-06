@@ -1,0 +1,22 @@
+---
+title: Single-File Presigned Upload Flow
+---
+sequenceDiagram
+    participant Dev as Developer
+    participant SDK as SDK (FileUploader)
+    participant API as api.deepidv.com
+    participant S3 as S3 (presigned URL)
+
+    Dev->>SDK: document.scan({ image: buffer })
+    Note over SDK: 1. Validate input (Zod)
+    Note over SDK: 2. toUint8Array(input)
+    Note over SDK: 3. detectContentType(bytes)
+    SDK->>API: POST /v1/uploads/presign<br/>{ contentType: "image/jpeg", count: 1 }
+    API-->>SDK: { uploads: [{ uploadUrl, fileKey }] }
+    Note over SDK: emit("upload:start")
+    SDK->>S3: PUT uploadUrl<br/>Content-Type: image/jpeg<br/>(raw bytes)
+    S3-->>SDK: 200 OK
+    Note over SDK: emit("upload:complete")
+    SDK->>API: POST /v1/document/scan<br/>{ fileKey, documentType }
+    API-->>SDK: { fullName, dateOfBirth, ... }
+    SDK-->>Dev: DocumentScanResult

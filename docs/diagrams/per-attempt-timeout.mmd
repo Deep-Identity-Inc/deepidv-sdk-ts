@@ -1,0 +1,20 @@
+---
+title: "Per-Attempt Timeout (not cumulative)"
+---
+sequenceDiagram
+    participant SDK as HttpClient
+    participant API as api.deepidv.com
+
+    Note over SDK: Attempt 0: fresh AbortController (30s)
+    SDK->>API: POST /v1/document/scan
+    Note over SDK: ...28 seconds pass...
+    API-->>SDK: 500 Internal Server Error
+
+    Note over SDK: isRetryable(500) → true
+    Note over SDK: sleep(jittered delay)
+
+    Note over SDK: Attempt 1: fresh AbortController (30s)
+    SDK->>API: POST /v1/document/scan
+    API-->>SDK: 200 OK (in 5s)
+    Note over SDK: Total wall time: ~35s
+    Note over SDK: But each attempt had its own 30s budget

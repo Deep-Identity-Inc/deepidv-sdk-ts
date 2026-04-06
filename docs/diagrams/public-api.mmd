@@ -1,0 +1,38 @@
+---
+title: DeepIDV Client — Public API
+---
+classDiagram
+    class DeepIDV {
+        +sessions: Sessions
+        +document: Document
+        +face: Face
+        +identity: Identity
+        +on(event, listener) () => void
+        +constructor(config: DeepIDVConfig)
+    }
+
+    class Sessions {
+        +create(input) SessionCreateResult
+        +retrieve(sessionId) SessionRetrieveResult
+        +list(params?) PaginatedResponse~Session~
+        +updateStatus(sessionId, status) SessionRetrieveResult
+    }
+
+    class Document {
+        +scan(input) DocumentScanResult
+    }
+
+    class Face {
+        +detect(input) FaceDetectResult
+        +compare(input) FaceCompareResult
+        +estimateAge(input) FaceEstimateAgeResult
+    }
+
+    class Identity {
+        +verify(input) IdentityVerificationResult
+    }
+
+    DeepIDV *-- Sessions : sessions
+    DeepIDV *-- Document : document
+    DeepIDV *-- Face : face
+    DeepIDV *-- Identity : identity

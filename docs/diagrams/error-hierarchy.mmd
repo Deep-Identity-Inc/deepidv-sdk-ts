@@ -1,0 +1,45 @@
+---
+title: Error Class Hierarchy
+---
+classDiagram
+    class Error {
+        +message: string
+        +stack: string
+        +cause: unknown
+    }
+
+    class DeepIDVError {
+        +status: number | undefined
+        +code: string | undefined
+        +response: RawResponse | undefined
+        +toJSON() Record~string, unknown~
+    }
+
+    class AuthenticationError {
+        +redactedKey: string
+        +status: 401
+    }
+
+    class RateLimitError {
+        +retryAfter: number | undefined
+        +status: 429
+    }
+
+    class ValidationError {
+        +status: 400
+    }
+
+    class NetworkError {
+        +status: undefined
+    }
+
+    class TimeoutError {
+        +status: undefined
+    }
+
+    Error <|-- DeepIDVError
+    DeepIDVError <|-- AuthenticationError
+    DeepIDVError <|-- RateLimitError
+    DeepIDVError <|-- ValidationError
+    DeepIDVError <|-- NetworkError
+    DeepIDVError <|-- TimeoutError

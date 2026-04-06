@@ -1,0 +1,26 @@
+---
+title: "Custom Server-to-Server Verification Flow"
+---
+sequenceDiagram
+    participant App as Your Server
+    participant SDK as @deepidv/server
+    participant API as deepidv API
+    participant S3 as S3
+
+    App->>SDK: document.scan({ image })
+    SDK->>API: presign + upload + scan
+    API-->>SDK: DocumentScanResult
+    SDK-->>App: { fullName, dateOfBirth, ... }
+
+    App->>SDK: face.detect({ image: selfie })
+    SDK->>API: presign + upload + detect
+    API-->>SDK: FaceDetectResult
+    SDK-->>App: { faceDetected, confidence }
+
+    App->>SDK: face.compare({ source: idPhoto, target: selfie })
+    SDK->>API: presign + parallel upload + compare
+    API-->>SDK: FaceCompareResult
+    SDK-->>App: { isMatch, confidence }
+
+    Note over App: Apply your business logic
+    App->>App: Decision: approve / reject

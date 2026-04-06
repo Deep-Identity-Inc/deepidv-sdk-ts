@@ -1,0 +1,30 @@
+---
+title: Package Bundling
+---
+graph LR
+    subgraph "@deepidv/server (published to npm)"
+        subgraph "Bundled from @deepidv/core"
+            HC[HttpClient]
+            FU[FileUploader]
+            TE[TypedEmitter]
+            ERR[Error classes]
+            CFG[Config + resolveConfig]
+            RT[Retry logic]
+        end
+        DV[DeepIDV class]
+        SESS[Sessions]
+        DOC[Document]
+        FACE[Face]
+        IDV[Identity]
+    end
+
+    DV --> HC
+    DV --> FU
+    DV --> TE
+    SESS --> HC
+    DOC --> HC
+    DOC --> FU
+    FACE --> HC
+    FACE --> FU
+    IDV --> HC
+    IDV --> FU

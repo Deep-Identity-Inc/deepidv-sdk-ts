@@ -1,0 +1,12 @@
+---
+title: "Error Troubleshooting Flowchart"
+---
+flowchart TD
+    A[Caught an error] --> B{instanceof?}
+
+    B -->|AuthenticationError| C["Check your API key<br/>err.redactedKey shows last 4 chars"]
+    B -->|RateLimitError| D["You're over quota<br/>SDK already retried<br/>err.retryAfter has wait time"]
+    B -->|ValidationError| E["Check your input<br/>err.message shows which field<br/>and what was expected"]
+    B -->|TimeoutError| F["Request took too long<br/>Increase timeout or<br/>uploadTimeout in config"]
+    B -->|NetworkError| G["Connection failed<br/>Check internet, DNS,<br/>firewall, baseUrl"]
+    B -->|DeepIDVError| H["API returned an error<br/>Check err.status and<br/>err.response.body"]

@@ -1,0 +1,25 @@
+---
+title: Multi-File Batch Upload Flow (face.compare)
+---
+sequenceDiagram
+    participant Dev as Developer
+    participant SDK as SDK (FileUploader)
+    participant API as api.deepidv.com
+    participant S3 as S3 (presigned URLs)
+
+    Dev->>SDK: face.compare({ source: img1, target: img2 })
+    Note over SDK: 1. Validate both inputs (Zod)
+    Note over SDK: 2. toUint8Array(source), toUint8Array(target)
+    Note over SDK: 3. detectContentType for each
+    SDK->>API: POST /v1/uploads/presign<br/>{ contentType: "image/jpeg", count: 2 }
+    API-->>SDK: { uploads: [<br/>  { uploadUrl: url1, fileKey: key1 },<br/>  { uploadUrl: url2, fileKey: key2 }<br/>] }
+    par Parallel S3 PUTs (Promise.all)
+        SDK->>S3: PUT url1 (source bytes)
+        S3-->>SDK: 200 OK
+    and
+        SDK->>S3: PUT url2 (target bytes)
+        S3-->>SDK: 200 OK
+    end
+    SDK->>API: POST /v1/face/compare<br/>{ sourceFileKey: key1, targetFileKey: key2 }
+    API-->>SDK: { isMatch, confidence, threshold }
+    SDK-->>Dev: FaceCompareResult

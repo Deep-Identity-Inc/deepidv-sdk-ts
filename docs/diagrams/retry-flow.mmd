@@ -1,0 +1,23 @@
+---
+title: "Request with Retry (429 → Success)"
+---
+sequenceDiagram
+    participant App as Your Code
+    participant SDK as HttpClient
+    participant Retry as withRetry()
+    participant API as api.deepidv.com
+
+    App->>SDK: client.sessions.create(input)
+    SDK->>Retry: attempt 0
+    Retry->>API: POST /v1/sessions
+    API-->>Retry: 429 Too Many Requests<br/>Retry-After: 2
+
+    Note over Retry: isRetryable(429) → true
+    Note over Retry: extractRetryAfter → 2s
+    Note over SDK: emit("retry", { attempt: 1, delayMs: 2000 })
+    Note over Retry: sleep(2000ms)
+
+    Retry->>API: POST /v1/sessions (attempt 1)
+    API-->>Retry: 200 OK { id, sessionUrl }
+    Retry-->>SDK: response
+    SDK-->>App: SessionCreateResult

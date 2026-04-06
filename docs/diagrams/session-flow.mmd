@@ -1,0 +1,25 @@
+---
+title: "Hosted Verification Session Flow"
+---
+sequenceDiagram
+    participant Server as Your Server
+    participant SDK as @deepidv/server
+    participant API as deepidv API
+    participant User as User's Browser
+
+    Server->>SDK: client.sessions.create({ ... })
+    SDK->>API: POST /v1/sessions
+    API-->>SDK: { id, sessionUrl, links }
+    SDK-->>Server: SessionCreateResult
+
+    Server->>User: Redirect to sessionUrl
+    Note over User: User completes<br/>document upload,<br/>selfie capture,<br/>liveness check
+
+    User->>Server: Redirect back to redirectUrl<br/>?status=SUBMITTED
+
+    Server->>SDK: client.sessions.retrieve(sessionId)
+    SDK->>API: GET /v1/sessions/{id}
+    API-->>SDK: { sessionRecord, user, resourceLinks }
+    SDK-->>Server: SessionRetrieveResult
+
+    Note over Server: Process verification results

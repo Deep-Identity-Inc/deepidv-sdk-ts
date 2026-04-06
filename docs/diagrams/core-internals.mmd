@@ -1,0 +1,52 @@
+---
+title: "@deepidv/core — Internal Infrastructure"
+---
+classDiagram
+    class HttpClient {
+        +request~T~(method, path, options?) T
+        +get~T~(path, options?) T
+        +post~T~(path, body, options?) T
+        +patch~T~(path, body, options?) T
+        +put~T~(path, body, options?) T
+        +delete~T~(path, options?) T
+    }
+
+    class FileUploader {
+        +upload(inputs, options?) string[]
+    }
+
+    class TypedEmitter {
+        +on(event, listener) () => void
+        +once(event, listener) () => void
+        +emit(event, payload) void
+    }
+
+    class DeepIDVError {
+        +status: number?
+        +code: string?
+        +response: RawResponse?
+        +toJSON() Record
+    }
+
+    class AuthenticationError {
+        +redactedKey: string
+    }
+
+    class RateLimitError {
+        +retryAfter: number?
+    }
+
+    class ValidationError
+    class NetworkError
+    class TimeoutError
+
+    HttpClient --> TypedEmitter : emits events
+    HttpClient --> "withRetry()" : retry logic
+    FileUploader --> HttpClient : presign requests
+    FileUploader --> TypedEmitter : upload events
+
+    DeepIDVError <|-- AuthenticationError
+    DeepIDVError <|-- RateLimitError
+    DeepIDVError <|-- ValidationError
+    DeepIDVError <|-- NetworkError
+    DeepIDVError <|-- TimeoutError
