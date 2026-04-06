@@ -81,11 +81,11 @@ Plans:
   3. `client.face.compare({ image1: buffer, image2: buffer })` uploads both images in parallel and returns `matchConfidence`, `threshold`, and a boolean `passed`
   4. `client.face.estimateAge({ image: buffer })` returns `estimatedAge`, `ageRange`, `gender`, and `confidence`
   5. All four methods trigger the presigned upload flow internally — the caller never constructs a presigned URL or calls S3 directly
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 
 Plans:
-- [ ] 04-01-PLAN.md — Document Zod schemas and Document class with scan() method
-- [ ] 04-02-PLAN.md — Face Zod schemas and Face class with detect(), compare(), estimateAge() methods
+- [x] 04-01-PLAN.md — Document Zod schemas and Document class with scan() method
+- [x] 04-02-PLAN.md — Face Zod schemas and Face class with detect(), compare(), estimateAge() methods
 - [ ] 04-03-PLAN.md — Barrel exports, document test suite, face test suite
 
 ### Phase 5: Identity Module
@@ -131,7 +131,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Core Infrastructure | 4/4 | Complete |  |
 | 2. Presigned Upload Handler | 2/2 | Complete |  |
 | 3. Sessions Module | 2/2 | Complete |  |
-| 4. Document & Face Primitives | 0/3 | Not started | - |
+| 4. Document & Face Primitives | 2/3 | In Progress|  |
 | 5. Identity Module | 0/TBD | Not started | - |
 | 6. Public Entry Point | 0/TBD | Not started | - |
 | 7. Tests, Examples & Publishing | 0/TBD | Not started | - |

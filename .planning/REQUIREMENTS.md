@@ -61,9 +61,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Document Module
 
-- [ ] **DOC-01**: `client.document.scan()` — upload document image via presigned URL flow, return structured OCR data
-- [ ] **DOC-02**: Typed `DocumentScanResult` with fullName, dateOfBirth, documentNumber, expirationDate, issuingCountry, confidence, rawFields
-- [ ] **DOC-03**: Optional `documentType` parameter (passport, drivers_license, national_id, auto)
+- [x] **DOC-01**: `client.document.scan()` — upload document image via presigned URL flow, return structured OCR data
+- [x] **DOC-02**: Typed `DocumentScanResult` with fullName, dateOfBirth, documentNumber, expirationDate, issuingCountry, confidence, rawFields
+- [x] **DOC-03**: Optional `documentType` parameter (passport, drivers_license, national_id, auto)
 
 ### Face Module
 
@@ -188,9 +188,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SESS-02 | Phase 3 | Complete |
 | SESS-03 | Phase 3 | Complete |
 | SESS-04 | Phase 3 | Complete |
-| DOC-01 | Phase 4 | Pending |
-| DOC-02 | Phase 4 | Pending |
-| DOC-03 | Phase 4 | Pending |
+| DOC-01 | Phase 4 | Complete |
+| DOC-02 | Phase 4 | Complete |
+| DOC-03 | Phase 4 | Complete |
 | FACE-01 | Phase 4 | Pending |
 | FACE-02 | Phase 4 | Pending |
 | FACE-03 | Phase 4 | Pending |
