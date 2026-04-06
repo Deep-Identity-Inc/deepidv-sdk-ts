@@ -130,7 +130,7 @@ Plans:
 
 Plans:
 - [x] 07-01-PLAN.md — Fill test gaps: error-path tests for all server modules, config edge cases, remove passWithNoTests
-- [ ] 07-02-PLAN.md — Core bundling (noExternal), changesets init, consumer type-check, node-basic example
+- [x] 07-02-PLAN.md — Core bundling (noExternal), changesets init, consumer type-check, node-basic example
 - [ ] 07-03-PLAN.md — GitHub Actions CI + publish workflows
 
 ## Progress
@@ -146,4 +146,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Document & Face Primitives | 3/3 | Complete   | 2026-04-06 |
 | 5. Identity Module | 2/2 | Complete   |  |
 | 6. Public Entry Point | 1/1 | Complete   | 2026-04-06 |
-| 7. Tests, Examples & Publishing | 1/3 | In Progress|  |
+| 7. Tests, Examples & Publishing | 2/3 | Executing |  |

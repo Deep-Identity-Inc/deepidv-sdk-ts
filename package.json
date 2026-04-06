@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "clean": "pnpm -r clean"
+    "clean": "pnpm -r clean",
+    "test:types": "cd test/consumer && npx tsc --noEmit"
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",

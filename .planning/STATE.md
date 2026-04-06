@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-04-06T14:21:01.981Z"
+stopped_at: "Completed 07-01 and 07-02 plans"
+last_updated: "2026-04-06T14:43:18Z"
 last_activity: 2026-04-06
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 17
   completed_plans: 15
-  percent: 0
+  percent: 88
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 ## Current Position
 
 Phase: 07 (tests-examples-publishing) — EXECUTING
-Plan: 2 of 3
-Status: Ready to execute
+Plan: 3 of 3
+Status: 07-01 and 07-02 complete — proceeding to 07-03
 Last activity: 2026-04-06
 
 Progress: [░░░░░░░░░░] 0%
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-identity-module P02 | 2 | 2 tasks | 1 files |
 | Phase 06-public-entry-point P01 | 256 | 3 tasks | 7 files |
 | Phase 07-tests-examples-publishing P01 | 2 | 2 tasks | 6 files |
+| Phase 07-tests-examples-publishing P02 | 4 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,11 @@ Recent decisions affecting current work:
 - [Phase 06-public-entry-point]: DeepIDVConfigSchema exported for consumers who need schema-driven config validation
 - [Phase 07-tests-examples-publishing]: Overriding presign endpoint to 401 is the correct trigger for AuthenticationError in uploader-dependent methods
 - [Phase 07-tests-examples-publishing]: passWithNoTests removed from server vitest.config.ts — server package now has 59 tests
+- [Phase 07-tests-examples-publishing 02]: noExternal:['@deepidv/core'] in tsup.config.ts — core inlined; consumers install one package with no workspace dependency
+- [Phase 07-tests-examples-publishing 02]: Consumer tsconfig uses moduleResolution:bundler — exercises exports map the same way a bundler would
+- [Phase 07-tests-examples-publishing 02]: Consumer paths points to dist/index.d.ts not source — validates the publishing artifact
+- [Phase 07-tests-examples-publishing 02]: Changesets access:public, commit:false, ignore:[@deepidv/core] — core is internal, never published
+- [Phase 07-tests-examples-publishing 02]: SDKEventMap event key is 'request' not 'request:start' — plan template had wrong key; corrected after reading built d.ts
 
 ### Pending Todos
 
@@ -120,6 +126,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T14:21:01.979Z
-Stopped at: Completed 07-01-PLAN.md
-Resume file: None
+Last session: 2026-04-06T14:43:18Z
+Stopped at: Completed 07-01 and 07-02
+Resume file: .planning/phases/07-tests-examples-publishing/07-03-PLAN.md
