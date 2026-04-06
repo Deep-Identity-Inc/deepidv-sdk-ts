@@ -24,13 +24,13 @@ Developers pass images in and get typed verification results back — all presig
 - [x] `client.sessions.retrieve()` — retrieve full session with analysis data — Validated in Phase 3: Sessions Module
 - [x] `client.sessions.list()` — list sessions with filtering — Validated in Phase 3: Sessions Module
 - [x] `client.sessions.updateStatus()` — update session status — Validated in Phase 3: Sessions Module
-
-### Active
 - [x] `client.document.scan()` — upload document image, get structured OCR data — Validated in Phase 4: Document & Face Primitives
 - [x] `client.face.detect()` — upload image, get face detection confidence — Validated in Phase 4: Document & Face Primitives
 - [x] `client.face.compare()` — upload two images, get face match confidence (parallel presigned uploads) — Validated in Phase 4: Document & Face Primitives
 - [x] `client.face.estimateAge()` — upload image, get estimated age and gender — Validated in Phase 4: Document & Face Primitives
-- [ ] `client.identity.verify()` — orchestrated: document.scan + face.detect + face.compare in one call
+- [x] `client.identity.verify()` — orchestrated identity verification in one call — Validated in Phase 5: Identity Module
+
+### Active
 - [ ] Full JSDoc on every public method and field, zero `any` in codebase
 - [ ] Tests (vitest + msw), examples, and npm publishing pipeline
 
@@ -80,6 +80,7 @@ Developers pass images in and get typed verification results back — all presig
 | tsup for bundling | Dual ESM + CJS output, .d.ts generation, tree-shaking — minimal config | Validated Phase 1 |
 | Presigned URL upload pattern | Keeps file uploads out of our API servers, leverages S3 directly, supports large files | Validated Phase 4 |
 | Grouped module API (client.face.detect) over flat (client.detectFace) | Better discoverability, autocomplete groups related methods, matches API structure | Validated Phase 4 |
+| Independent identity schemas over reusing Phase 4 types | Identity module decoupled from document/face modules — API can evolve response shapes independently | Validated Phase 5 |
 
 ## Evolution
 
@@ -99,4 +100,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-05 after Phase 4 completion — document & face primitives validated, all 4 service methods working with Zod schemas + presigned uploads*
+*Last updated: 2026-04-05 after Phase 5 completion — identity verification module validated, compound verify() orchestrating batch upload + single POST with independent Zod schemas*
