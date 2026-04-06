@@ -54,4 +54,20 @@ describe('DeepIDV constructor', () => {
     // calling unsub should not throw
     expect(() => unsub()).not.toThrow();
   });
+
+  it('Test 9: accepts maxRetries: 0 without throwing', () => {
+    const client = new DeepIDV({ apiKey: 'sk-test', maxRetries: 0 });
+    expect(client.sessions).toBeDefined();
+    expect(client.document).toBeDefined();
+    expect(client.face).toBeDefined();
+    expect(client.identity).toBeDefined();
+  });
+
+  it('Test 10: accepts uploadTimeout config without throwing', () => {
+    const client = new DeepIDV({ apiKey: 'sk-test', uploadTimeout: 60000 });
+    expect(client.sessions).toBeDefined();
+    expect(client.document).toBeDefined();
+    expect(client.face).toBeDefined();
+    expect(client.identity).toBeDefined();
+  });
 });
