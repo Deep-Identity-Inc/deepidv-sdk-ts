@@ -65,7 +65,7 @@ Plans:
   2. `client.sessions.retrieve(id)` returns the full session object including analysis data and presigned resource URLs
   3. `client.sessions.list({ limit, offset, status })` returns a paginated list of sessions, with TypeScript enforcing valid status filter values
   4. `client.sessions.updateStatus(id, "VERIFIED")` rejects non-enumerated status values at compile time and returns the updated session
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans executed
 
 Plans:
 - [x] 03-01-PLAN.md — Zod schemas, Sessions class with HttpClient DI, barrel exports
@@ -81,7 +81,12 @@ Plans:
   3. `client.face.compare({ image1: buffer, image2: buffer })` uploads both images in parallel and returns `matchConfidence`, `threshold`, and a boolean `passed`
   4. `client.face.estimateAge({ image: buffer })` returns `estimatedAge`, `ageRange`, `gender`, and `confidence`
   5. All four methods trigger the presigned upload flow internally — the caller never constructs a presigned URL or calls S3 directly
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Document Zod schemas and Document class with scan() method
+- [ ] 04-02-PLAN.md — Face Zod schemas and Face class with detect(), compare(), estimateAge() methods
+- [ ] 04-03-PLAN.md — Barrel exports, document test suite, face test suite
 
 ### Phase 5: Identity Module
 **Goal**: Developers can run a full document + face identity verification in one method call, with parallel uploads and a single unified result
@@ -119,14 +124,14 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Infrastructure | 4/4 | Complete |  |
 | 2. Presigned Upload Handler | 2/2 | Complete |  |
-| 3. Sessions Module | 1/2 | In Progress|  |
-| 4. Document & Face Primitives | 0/TBD | Not started | - |
+| 3. Sessions Module | 2/2 | Complete |  |
+| 4. Document & Face Primitives | 0/3 | Not started | - |
 | 5. Identity Module | 0/TBD | Not started | - |
 | 6. Public Entry Point | 0/TBD | Not started | - |
 | 7. Tests, Examples & Publishing | 0/TBD | Not started | - |
