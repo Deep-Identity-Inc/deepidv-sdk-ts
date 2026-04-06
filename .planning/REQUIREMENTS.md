@@ -74,9 +74,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Identity Module
 
-- [ ] **IDV-01**: `client.identity.verify()` — orchestrated compound call: document.scan + face.detect + face.compare
-- [ ] **IDV-02**: Upload document + face images in parallel where possible
-- [ ] **IDV-03**: Return unified `IdentityVerificationResult` with document, faceDetection, faceMatch, overallConfidence, verified boolean
+- [x] **IDV-01**: `client.identity.verify()` — orchestrated compound call: document.scan + face.detect + face.compare
+- [x] **IDV-02**: Upload document + face images in parallel where possible
+- [x] **IDV-03**: Return unified `IdentityVerificationResult` with document, faceDetection, faceMatch, overallConfidence, verified boolean
 
 ### Public API Surface
 
@@ -195,9 +195,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FACE-02 | Phase 4 | Complete |
 | FACE-03 | Phase 4 | Complete |
 | FACE-04 | Phase 4 | Complete |
-| IDV-01 | Phase 5 | Pending |
-| IDV-02 | Phase 5 | Pending |
-| IDV-03 | Phase 5 | Pending |
+| IDV-01 | Phase 5 | Complete |
+| IDV-02 | Phase 5 | Complete |
+| IDV-03 | Phase 5 | Complete |
 | API-01 | Phase 6 | Pending |
 | API-02 | Phase 6 | Pending |
 | API-03 | Phase 6 | Pending |

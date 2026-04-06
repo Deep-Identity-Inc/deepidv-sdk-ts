@@ -96,10 +96,10 @@ Plans:
   1. `client.identity.verify({ documentImage: buffer, faceImage: buffer })` returns an `IdentityVerificationResult` containing `document`, `faceDetection`, `faceMatch`, `overallConfidence`, and a boolean `verified`
   2. The document and face image uploads are dispatched in parallel (single batch presign call with `count: 2`) rather than sequentially
   3. A failure in any sub-operation (document scan, face detect, or face compare) surfaces as a typed `DeepIDVError` subclass, not an untyped exception
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 05-01-PLAN.md — Identity Zod schemas, types, and Identity class with verify() method
+- [x] 05-01-PLAN.md — Identity Zod schemas, types, and Identity class with verify() method
 - [ ] 05-02-PLAN.md — Identity test suite and barrel exports
 
 ### Phase 6: Public Entry Point
@@ -136,6 +136,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 2. Presigned Upload Handler | 2/2 | Complete |  |
 | 3. Sessions Module | 2/2 | Complete |  |
 | 4. Document & Face Primitives | 3/3 | Complete   | 2026-04-06 |
-| 5. Identity Module | 0/2 | Planning complete | - |
+| 5. Identity Module | 1/2 | In Progress|  |
 | 6. Public Entry Point | 0/TBD | Not started | - |
 | 7. Tests, Examples & Publishing | 0/TBD | Not started | - |
