@@ -61,6 +61,11 @@ export class Document {
    * @throws {DeepIDVError} For other API errors (e.g., document unreadable).
    * @throws {NetworkError} If the upload or API call fails at the network level.
    * @throws {TimeoutError} If the upload or API call times out.
+   * @example
+   * ```typescript
+   * const result = await client.document.scan({ image: passportBuffer });
+   * console.log(result.fullName, result.confidence);
+   * ```
    */
   async scan(input: z.input<typeof DocumentScanInputSchema>): Promise<DocumentScanResult> {
     // Step 1: Zod-validate input (maps ZodError to ValidationError per D-12)

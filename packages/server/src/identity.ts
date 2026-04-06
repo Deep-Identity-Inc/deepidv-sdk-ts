@@ -78,6 +78,16 @@ export class Identity {
    * @throws {DeepIDVError} For other API errors (e.g., 400 document unreadable, 500 server error).
    * @throws {NetworkError} If the upload or API call fails at the network level.
    * @throws {TimeoutError} If the upload or API call exceeds the configured timeout.
+   * @example
+   * ```typescript
+   * const result = await client.identity.verify({
+   *   documentImage: passportBuffer,
+   *   faceImage: selfieBuffer,
+   * });
+   * if (result.verified) {
+   *   console.log('Identity verified:', result.document.fullName);
+   * }
+   * ```
    */
   async verify(input: z.input<typeof IdentityVerifyInputSchema>): Promise<IdentityVerificationResult> {
     // Step 1: Zod-validate input (maps ZodError to ValidationError per D-12)

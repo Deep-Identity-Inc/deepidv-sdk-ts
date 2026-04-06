@@ -91,12 +91,23 @@ export class Sessions {
    * Validates all input fields before making the network call. The returned
    * `sessionUrl` should be sent to your applicant to complete verification.
    *
-   * @param input - Session creation parameters.
+   * @param input - Session creation parameters including applicant name, email, and phone.
    * @returns Created session with ID, URL, and associated links.
    * @throws {ValidationError} If input fails schema validation.
    * @throws {AuthenticationError} If the API key is invalid (401).
    * @throws {RateLimitError} If the rate limit is exceeded (429).
    * @throws {DeepIDVError} For other API errors.
+   * @example
+   * ```typescript
+   * const session = await client.sessions.create({
+   *   firstName: 'Jane',
+   *   lastName: 'Doe',
+   *   email: 'jane@example.com',
+   *   phone: '+15192223333',
+   *   redirectUrl: 'https://app.com/callback',
+   * });
+   * console.log(session.sessionUrl); // send to applicant
+   * ```
    */
   async create(input: z.input<typeof SessionCreateInputSchema>): Promise<SessionCreateResult> {
     let validated: z.infer<typeof SessionCreateInputSchema>;
@@ -112,10 +123,17 @@ export class Sessions {
   /**
    * Retrieve full session details including analysis results and presigned resource URLs.
    *
-   * @param sessionId - The unique session identifier.
+   * @param sessionId - The unique session identifier returned by `create()`.
    * @returns Full session envelope including nested analysis data.
    * @throws {ValidationError} If `sessionId` is empty or not a string.
+   * @throws {AuthenticationError} If the API key is invalid (401).
+   * @throws {RateLimitError} If the rate limit is exceeded (429).
    * @throws {DeepIDVError} If the session is not found (404) or other API errors.
+   * @example
+   * ```typescript
+   * const session = await client.sessions.retrieve('sess_abc123');
+   * console.log(session.sessionRecord.status); // 'VERIFIED'
+   * ```
    */
   async retrieve(sessionId: string): Promise<SessionRetrieveResult> {
     if (typeof sessionId !== 'string' || sessionId.trim() === '') {
@@ -132,9 +150,16 @@ export class Sessions {
    * If the API returns a raw array, the SDK wraps it in a `PaginatedResponse`
    * envelope with `limit` and `offset` fields (D-05).
    *
-   * @param params - Optional pagination and filter parameters.
+   * @param params - Optional filtering and pagination parameters (status, limit, offset).
    * @returns Paginated list of sessions.
    * @throws {ValidationError} If params fail schema validation.
+   * @throws {AuthenticationError} If the API key is invalid (401).
+   * @throws {RateLimitError} If the rate limit is exceeded (429).
+   * @example
+   * ```typescript
+   * const { data, hasMore } = await client.sessions.list({ status: 'VERIFIED', limit: 10 });
+   * data.forEach(session => console.log(session.id, session.status));
+   * ```
    */
   async list(
     params?: z.input<typeof SessionListParamsSchema>,
@@ -161,10 +186,17 @@ export class Sessions {
    * even if TypeScript types were bypassed (SESS-04).
    *
    * @param sessionId - The unique session identifier.
-   * @param status - The target status: 'VERIFIED', 'REJECTED', or 'VOIDED'.
+   * @param status - The target status update payload: 'VERIFIED', 'REJECTED', or 'VOIDED'.
    * @returns Updated session details.
    * @throws {ValidationError} If `sessionId` is empty or `status` is not a valid update target.
+   * @throws {AuthenticationError} If the API key is invalid (401).
+   * @throws {RateLimitError} If the rate limit is exceeded (429).
    * @throws {DeepIDVError} If the session is not found (404) or other API errors.
+   * @example
+   * ```typescript
+   * const updated = await client.sessions.updateStatus('sess_abc123', 'VERIFIED');
+   * console.log(updated.sessionRecord.status); // 'VERIFIED'
+   * ```
    */
   async updateStatus(
     sessionId: string,

@@ -61,7 +61,7 @@ export class Face {
    * Uploads the image via the presigned URL flow, then calls the face detection
    * endpoint. The caller never interacts with presigned URLs directly.
    *
-   * @param input - Detection parameters including the image to analyze.
+   * @param input - Detection parameters including the image buffer to analyze.
    * @returns Detection result with face presence flag, confidence, bounding box, and landmarks.
    * @throws {ValidationError} If input fails schema validation.
    * @throws {AuthenticationError} If the API key is invalid (401).
@@ -69,6 +69,11 @@ export class Face {
    * @throws {DeepIDVError} For other API errors.
    * @throws {NetworkError} If the network request fails.
    * @throws {TimeoutError} If the request exceeds the configured timeout.
+   * @example
+   * ```typescript
+   * const result = await client.face.detect({ image: selfieBuffer });
+   * console.log(result.faceDetected, result.confidence);
+   * ```
    */
   async detect(input: z.input<typeof FaceDetectInputSchema>): Promise<FaceDetectResult> {
     let validated: z.infer<typeof FaceDetectInputSchema>;
@@ -91,7 +96,7 @@ export class Face {
    * request (count: 2) with parallel S3 PUTs (D-02, UPL-04). The caller passes
    * both images; orchestration is handled transparently.
    *
-   * @param input - Comparison parameters with source and target images.
+   * @param input - Comparison parameters with source and target image buffers.
    * @returns Comparison result with match flag, confidence, threshold, and per-image detection flags.
    * @throws {ValidationError} If input fails schema validation.
    * @throws {AuthenticationError} If the API key is invalid (401).
@@ -99,6 +104,11 @@ export class Face {
    * @throws {DeepIDVError} For other API errors.
    * @throws {NetworkError} If the network request fails.
    * @throws {TimeoutError} If the request exceeds the configured timeout.
+   * @example
+   * ```typescript
+   * const result = await client.face.compare({ source: idPhoto, target: selfie });
+   * console.log(result.isMatch, result.confidence);
+   * ```
    */
   async compare(input: z.input<typeof FaceCompareInputSchema>): Promise<FaceCompareResult> {
     let validated: z.infer<typeof FaceCompareInputSchema>;
@@ -123,7 +133,7 @@ export class Face {
    * Uploads the image via the presigned URL flow, then calls the age estimation
    * endpoint. Returns estimated age, age range, gender, and face detection status.
    *
-   * @param input - Estimation parameters including the image to analyze.
+   * @param input - Estimation parameters including the image buffer to analyze.
    * @returns Age estimation result with estimated age, age range, gender, and detection flag.
    * @throws {ValidationError} If input fails schema validation.
    * @throws {AuthenticationError} If the API key is invalid (401).
@@ -131,6 +141,11 @@ export class Face {
    * @throws {DeepIDVError} For other API errors.
    * @throws {NetworkError} If the network request fails.
    * @throws {TimeoutError} If the request exceeds the configured timeout.
+   * @example
+   * ```typescript
+   * const result = await client.face.estimateAge({ image: selfieBuffer });
+   * console.log(result.estimatedAge, result.gender);
+   * ```
    */
   async estimateAge(
     input: z.input<typeof FaceEstimateAgeInputSchema>,
