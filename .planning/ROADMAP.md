@@ -65,10 +65,10 @@ Plans:
   2. `client.sessions.retrieve(id)` returns the full session object including analysis data and presigned resource URLs
   3. `client.sessions.list({ limit, offset, status })` returns a paginated list of sessions, with TypeScript enforcing valid status filter values
   4. `client.sessions.updateStatus(id, "VERIFIED")` rejects non-enumerated status values at compile time and returns the updated session
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 03-01-PLAN.md — Zod schemas, Sessions class with HttpClient DI, barrel exports
+- [x] 03-01-PLAN.md — Zod schemas, Sessions class with HttpClient DI, barrel exports
 - [ ] 03-02-PLAN.md — msw test setup, comprehensive sessions test suite
 
 ### Phase 4: Document & Face Primitives
@@ -125,7 +125,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 |-------|----------------|--------|-----------|
 | 1. Core Infrastructure | 4/4 | Complete |  |
 | 2. Presigned Upload Handler | 2/2 | Complete |  |
-| 3. Sessions Module | 0/2 | Not started | - |
+| 3. Sessions Module | 1/2 | In Progress|  |
 | 4. Document & Face Primitives | 0/TBD | Not started | - |
 | 5. Identity Module | 0/TBD | Not started | - |
 | 6. Public Entry Point | 0/TBD | Not started | - |

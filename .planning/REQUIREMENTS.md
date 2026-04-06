@@ -54,10 +54,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Sessions Module
 
-- [ ] **SESS-01**: `client.sessions.create()` — create hosted verification session with typed input/output
-- [ ] **SESS-02**: `client.sessions.retrieve()` — retrieve full session with all analysis data and presigned resource URLs
-- [ ] **SESS-03**: `client.sessions.list()` — list sessions with pagination (limit, offset) and status filter
-- [ ] **SESS-04**: `client.sessions.updateStatus()` — update session status (VERIFIED, REJECTED, VOIDED)
+- [x] **SESS-01**: `client.sessions.create()` — create hosted verification session with typed input/output
+- [x] **SESS-02**: `client.sessions.retrieve()` — retrieve full session with all analysis data and presigned resource URLs
+- [x] **SESS-03**: `client.sessions.list()` — list sessions with pagination (limit, offset) and status filter
+- [x] **SESS-04**: `client.sessions.updateStatus()` — update session status (VERIFIED, REJECTED, VOIDED)
 
 ### Document Module
 
@@ -184,10 +184,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UPL-05 | Phase 2 | Complete |
 | UPL-06 | Phase 2 | Complete |
 | UPL-07 | Phase 2 | Complete |
-| SESS-01 | Phase 3 | Pending |
-| SESS-02 | Phase 3 | Pending |
-| SESS-03 | Phase 3 | Pending |
-| SESS-04 | Phase 3 | Pending |
+| SESS-01 | Phase 3 | Complete |
+| SESS-02 | Phase 3 | Complete |
+| SESS-03 | Phase 3 | Complete |
+| SESS-04 | Phase 3 | Complete |
 | DOC-01 | Phase 4 | Pending |
 | DOC-02 | Phase 4 | Pending |
 | DOC-03 | Phase 4 | Pending |
