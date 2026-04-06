@@ -124,12 +124,12 @@ async function sessionsExample(): Promise<void> {
    * timestamps, and all linked data collected during verification.
    */
   const retrieved = await client.sessions.retrieve(sessionId);
-  console.log('Session status:', retrieved.session.status);
+  console.log('Session status:', retrieved.sessionRecord.status);
 
   /**
    * List sessions with optional filters.
    *
-   * Returns: { items: Session[], total: number, limit: number, offset: number }
+   * Returns: { data: Session[], total?: number, hasMore?: boolean, limit: number, offset: number }
    */
   const page = await client.sessions.list({
     limit: 10,
@@ -137,7 +137,7 @@ async function sessionsExample(): Promise<void> {
     // status: 'PENDING',   // filter by status
   });
 
-  console.log(`Listed ${page.items.length} of ${page.total} sessions`);
+  console.log(`Listed ${page.data.length} of ${page.total} sessions`);
 
   /**
    * Update a session's status to VERIFIED, REJECTED, or VOIDED.
@@ -148,7 +148,7 @@ async function sessionsExample(): Promise<void> {
    * Returns the updated Session object.
    */
   const updated = await client.sessions.updateStatus(sessionId, 'VERIFIED');
-  console.log('Updated status:', updated.session.status);
+  console.log('Updated status:', updated.sessionRecord.status);
 }
 
 // ---------------------------------------------------------------------------
@@ -173,7 +173,7 @@ async function documentExample(): Promise<void> {
   console.log('Full name:', result.fullName);
   console.log('Date of birth:', result.dateOfBirth);
   console.log('Document number:', result.documentNumber);
-  console.log('Expiry date:', result.expiryDate);
+  console.log('Expiration date:', result.expirationDate);
   console.log('Nationality:', result.nationality);
 }
 
@@ -198,22 +198,22 @@ async function faceExample(): Promise<void> {
    * Compare two face images and get a similarity score.
    *
    * Both images are uploaded in parallel using presigned URLs.
-   * Returns: { match: boolean, confidence: number (0–1) }
+   * Returns: { isMatch: boolean, confidence: number (0–1), threshold: number }
    *
    * Typical use case: compare a selfie against a document photo.
    */
   const comparison = await client.face.compare({
-    image1: selfieBuffer,   // source face (e.g., live selfie)
-    image2: documentBuffer, // target face (e.g., passport photo)
+    source: selfieBuffer,   // source face (e.g., live selfie)
+    target: documentBuffer, // target face (e.g., passport photo)
   });
 
-  console.log('Faces match:', comparison.match);
+  console.log('Faces match:', comparison.isMatch);
   console.log('Match confidence:', comparison.confidence);
 
   /**
    * Estimate the age and gender of a person from a face image.
    *
-   * Returns: { estimatedAge: number, ageRange: { min, max }, gender: 'male' | 'female' | 'unknown' }
+   * Returns: { estimatedAge: number, ageRange: { low, high }, gender: 'male' | 'female' | 'unknown' }
    */
   const ageResult = await client.face.estimateAge({
     image: selfieBuffer,
@@ -247,7 +247,7 @@ async function identityExample(): Promise<void> {
   });
 
   console.log('Identity verified:', result.verified);
-  console.log('Overall confidence:', result.confidence);
+  console.log('Overall confidence:', result.overallConfidence);
 
   // Sub-results for each check
   console.log('Document scan result:', result.document);
