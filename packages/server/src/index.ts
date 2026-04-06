@@ -32,3 +32,41 @@ export {
   SessionStatusUpdateSchema,
   SessionStatusSchema,
 } from './sessions.types.js';
+
+// Document module — Phase 4
+export { Document } from './document.js';
+export type {
+  DocumentScanInput,
+  DocumentScanResult,
+  DocumentType,
+} from './document.types.js';
+
+// Document Zod schemas — exported for consumer-side custom validation
+export {
+  DocumentScanInputSchema,
+  DocumentScanResultSchema,
+  DocumentTypeSchema,
+} from './document.types.js';
+
+// Face module — Phase 4
+export { Face } from './face.js';
+export type {
+  FaceDetectInput,
+  FaceDetectResult,
+  FaceCompareInput,
+  FaceCompareResult,
+  FaceEstimateAgeInput,
+  FaceEstimateAgeResult,
+  Gender,
+} from './face.types.js';
+
+// Face Zod schemas — exported for consumer-side custom validation
+export {
+  FaceDetectInputSchema,
+  FaceDetectResultSchema,
+  FaceCompareInputSchema,
+  FaceCompareResultSchema,
+  FaceEstimateAgeInputSchema,
+  FaceEstimateAgeResultSchema,
+  GenderSchema,
+} from './face.types.js';
