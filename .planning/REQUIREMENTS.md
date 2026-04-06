@@ -95,8 +95,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Testing & Publishing
 
-- [ ] **TEST-01**: vitest + msw test suite with unit tests for HTTP client, retry logic, upload handler
-- [ ] **TEST-02**: Integration tests for each module's request/response mapping against mocked API
+- [x] **TEST-01**: vitest + msw test suite with unit tests for HTTP client, retry logic, upload handler
+- [x] **TEST-02**: Integration tests for each module's request/response mapping against mocked API
 - [ ] **TEST-03**: Consumer declaration-file validation (import from built package in a test project)
 - [ ] **PUB-01**: changesets for versioning and changelogs
 - [ ] **PUB-02**: npm publish config with `"access": "public"` on `@deepidv/server`
@@ -203,8 +203,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | API-03 | Phase 6 | Complete |
 | API-04 | Phase 6 | Complete |
 | API-05 | Phase 6 | Complete |
-| TEST-01 | Phase 7 | Pending |
-| TEST-02 | Phase 7 | Pending |
+| TEST-01 | Phase 7 | Complete |
+| TEST-02 | Phase 7 | Complete |
 | TEST-03 | Phase 7 | Pending |
 | PUB-01 | Phase 7 | Pending |
 | PUB-02 | Phase 7 | Pending |

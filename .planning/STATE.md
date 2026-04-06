@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 7 context gathered
-last_updated: "2026-04-06T05:39:54.581Z"
+status: executing
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-04-06T14:21:01.981Z"
 last_activity: 2026-04-06
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 17
+  completed_plans: 15
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-05)
 
 **Core value:** Developers pass images in and get typed verification results back — all presigned URL orchestration, retry logic, and error handling is invisible.
-**Current focus:** Phase 06 — public-entry-point
+**Current focus:** Phase 07 — tests-examples-publishing
 
 ## Current Position
 
-Phase: 7
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 07 (tests-examples-publishing) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-06
 
 Progress: [░░░░░░░░░░] 0%
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-identity-module P01 | 4 | 2 tasks | 3 files |
 | Phase 05-identity-module P02 | 2 | 2 tasks | 1 files |
 | Phase 06-public-entry-point P01 | 256 | 3 tasks | 7 files |
+| Phase 07-tests-examples-publishing P01 | 2 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,8 @@ Recent decisions affecting current work:
 - [Phase 05-identity-module]: Barrel exports pre-completed by 05-01 Rule 2 auto-fix — Task 2 required only verification, no file changes
 - [Phase 06-public-entry-point]: DeepIDV class is the single public entry point; Sessions/Document/Face/Identity classes are internal implementation details not exported from the barrel
 - [Phase 06-public-entry-point]: DeepIDVConfigSchema exported for consumers who need schema-driven config validation
+- [Phase 07-tests-examples-publishing]: Overriding presign endpoint to 401 is the correct trigger for AuthenticationError in uploader-dependent methods
+- [Phase 07-tests-examples-publishing]: passWithNoTests removed from server vitest.config.ts — server package now has 59 tests
 
 ### Pending Todos
 
@@ -117,6 +120,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T05:39:54.577Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-tests-examples-publishing/07-CONTEXT.md
+Last session: 2026-04-06T14:21:01.979Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: None

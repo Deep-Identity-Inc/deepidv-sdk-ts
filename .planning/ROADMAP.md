@@ -126,10 +126,10 @@ Plans:
   2. A consumer test project imports `@deepidv/server` from the built package (not source) and TypeScript resolves all types correctly under `moduleResolution: bundler`
   3. `examples/node-basic/index.ts` showcases every SDK method with descriptive comments
   4. A GitHub Actions workflow runs tests on every PR and publishes to npm via `pnpm publish` (not `npm publish`) when a release is cut via changesets
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
-- [ ] 07-01-PLAN.md — Fill test gaps: error-path tests for all server modules, config edge cases, remove passWithNoTests
+- [x] 07-01-PLAN.md — Fill test gaps: error-path tests for all server modules, config edge cases, remove passWithNoTests
 - [ ] 07-02-PLAN.md — Core bundling (noExternal), changesets init, consumer type-check, node-basic example
 - [ ] 07-03-PLAN.md — GitHub Actions CI + publish workflows
 
@@ -146,4 +146,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Document & Face Primitives | 3/3 | Complete   | 2026-04-06 |
 | 5. Identity Module | 2/2 | Complete   |  |
 | 6. Public Entry Point | 1/1 | Complete   | 2026-04-06 |
-| 7. Tests, Examples & Publishing | 0/3 | Not started | - |
+| 7. Tests, Examples & Publishing | 1/3 | In Progress|  |
