@@ -96,7 +96,7 @@ Plans:
   1. `client.identity.verify({ documentImage: buffer, faceImage: buffer })` returns an `IdentityVerificationResult` containing `document`, `faceDetection`, `faceMatch`, `overallConfidence`, and a boolean `verified`
   2. The document and face image uploads are dispatched in parallel (single batch presign call with `count: 2`) rather than sequentially
   3. A failure in any sub-operation (document scan, face detect, or face compare) surfaces as a typed `DeepIDVError` subclass, not an untyped exception
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans executed
 
 Plans:
 - [x] 05-01-PLAN.md — Identity Zod schemas, types, and Identity class with verify() method
@@ -115,7 +115,7 @@ Plans:
 **Plans:** 1/1 plans complete
 
 Plans:
-- [x] 06-01-PLAN.md — DeepIDV class, config validation, barrel rewrite, zero-any verification� DeepIDV class, config validation, barrel rewrite, zero-any verification
+- [x] 06-01-PLAN.md — DeepIDV class, config validation, barrel rewrite, zero-any verification
 
 ### Phase 7: Tests, Examples & Publishing
 **Goal**: The SDK has a complete vitest + msw test suite, example projects demonstrating real usage, and a changesets CI/CD pipeline that publishes to npm on release
@@ -124,12 +124,14 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. `pnpm test` passes with unit tests covering HTTP client, retry logic, and upload handler, plus integration tests for each module against msw-mocked API responses
   2. A consumer test project imports `@deepidv/server` from the built package (not source) and TypeScript resolves all types correctly under `moduleResolution: bundler`
-  3. Running `node examples/node-basic/index.js`, `examples/express-app/app.js`, and `examples/nextjs-app/` each execute without runtime errors against the mocked API
+  3. `examples/node-basic/index.ts` showcases every SDK method with descriptive comments
   4. A GitHub Actions workflow runs tests on every PR and publishes to npm via `pnpm publish` (not `npm publish`) when a release is cut via changesets
-**Plans:** 1 plan
+**Plans:** 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — DeepIDV class, config validation, barrel rewrite, zero-any verification� DeepIDV class, config validation, barrel rewrite, zero-any verification
+- [ ] 07-01-PLAN.md — Fill test gaps: error-path tests for all server modules, config edge cases, remove passWithNoTests
+- [ ] 07-02-PLAN.md — Core bundling (noExternal), changesets init, consumer type-check, node-basic example
+- [ ] 07-03-PLAN.md — GitHub Actions CI + publish workflows
 
 ## Progress
 
@@ -142,6 +144,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 2. Presigned Upload Handler | 2/2 | Complete |  |
 | 3. Sessions Module | 2/2 | Complete |  |
 | 4. Document & Face Primitives | 3/3 | Complete   | 2026-04-06 |
-| 5. Identity Module | 1/2 | In Progress|  |
+| 5. Identity Module | 2/2 | Complete   |  |
 | 6. Public Entry Point | 1/1 | Complete   | 2026-04-06 |
-| 7. Tests, Examples & Publishing | 0/TBD | Not started | - |
+| 7. Tests, Examples & Publishing | 0/3 | Not started | - |
