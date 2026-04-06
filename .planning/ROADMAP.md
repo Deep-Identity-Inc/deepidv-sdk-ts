@@ -69,7 +69,7 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — Zod schemas, Sessions class with HttpClient DI, barrel exports
-- [ ] 03-02-PLAN.md — msw test setup, comprehensive sessions test suite
+- [x] 03-02-PLAN.md — msw test setup, comprehensive sessions test suite
 
 ### Phase 4: Document & Face Primitives
 **Goal**: Developers can call document.scan and all three face methods, passing image files in any supported format and receiving typed structured results
