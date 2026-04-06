@@ -100,7 +100,7 @@ Plans:
 
 Plans:
 - [x] 05-01-PLAN.md — Identity Zod schemas, types, and Identity class with verify() method
-- [ ] 05-02-PLAN.md — Identity test suite and barrel exports
+- [x] 05-02-PLAN.md — Identity test suite and barrel exports
 
 ### Phase 6: Public Entry Point
 **Goal**: The `DeepIDV` class is the single public entry point with grouped module namespaces, config validation, full JSDoc, zero `any`, and explicit named exports
