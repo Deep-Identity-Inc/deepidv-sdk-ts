@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-04-06T03:01:43.148Z"
+status: verifying
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-04-06T03:06:17.951Z"
 last_activity: 2026-04-06
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 
 Phase: 04 (document-face-primitives) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-06
 
 Progress: [░░░░░░░░░░] 0%
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-sessions-module P02 | 10 | 1 tasks | 3 files |
 | Phase 04-document-face-primitives P01 | 1 | 2 tasks | 2 files |
 | Phase 04-document-face-primitives P02 | 1 | 2 tasks | 2 files |
+| Phase 04-document-face-primitives P03 | 15 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase 04-document-face-primitives]: Document class uses constructor injection with HttpClient + FileUploader (D-04); DocumentScanResultSchema uses .strip() for forward-compatible API response parsing (D-06)
 - [Phase 04-document-face-primitives]: compare() passes array [source, target] to FileUploader.upload() for batch presign (count:2) and parallel S3 PUTs per UPL-04/D-02
 - [Phase 04-document-face-primitives]: All face result schemas use .strip() to tolerate future API fields without breaking
+- [Phase 04-document-face-primitives]: Exported Zod schemas alongside types in barrel — enables consumer-side custom validation without zod as direct dep
+- [Phase 04-document-face-primitives]: mockPresignBatch asserts body.count===2 inline to verify batch presign contract in the test that exercises face.compare()
 
 ### Pending Todos
 
@@ -106,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T03:01:43.146Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-04-06T03:06:17.949Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None

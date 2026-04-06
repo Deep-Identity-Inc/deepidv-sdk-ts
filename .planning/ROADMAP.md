@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Core Infrastructure** - Monorepo scaffold, HTTP client, auth, retry, errors, event emitter, runtime compat
 - [ ] **Phase 2: Presigned Upload Handler** - File input normalization, presign flow, parallel S3 uploads, Zod validation
 - [ ] **Phase 3: Sessions Module** - First end-to-end HTTP integration: session CRUD with typed input/output
-- [ ] **Phase 4: Document & Face Primitives** - document.scan, face.detect, face.compare, face.estimateAge
+- [x] **Phase 4: Document & Face Primitives** - document.scan, face.detect, face.compare, face.estimateAge (completed 2026-04-06)
 - [ ] **Phase 5: Identity Module** - Orchestrated compound call: document scan + face detect + face compare in one method
 - [ ] **Phase 6: Public Entry Point** - DeepIDV class assembly, explicit exports, full JSDoc on public surface
 - [ ] **Phase 7: Tests, Examples & Publishing** - Full test suite, example projects, changesets, CI/CD publish pipeline
@@ -81,12 +81,12 @@ Plans:
   3. `client.face.compare({ image1: buffer, image2: buffer })` uploads both images in parallel and returns `matchConfidence`, `threshold`, and a boolean `passed`
   4. `client.face.estimateAge({ image: buffer })` returns `estimatedAge`, `ageRange`, `gender`, and `confidence`
   5. All four methods trigger the presigned upload flow internally — the caller never constructs a presigned URL or calls S3 directly
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 04-01-PLAN.md — Document Zod schemas and Document class with scan() method
 - [x] 04-02-PLAN.md — Face Zod schemas and Face class with detect(), compare(), estimateAge() methods
-- [ ] 04-03-PLAN.md — Barrel exports, document test suite, face test suite
+- [x] 04-03-PLAN.md — Barrel exports, document test suite, face test suite
 
 ### Phase 5: Identity Module
 **Goal**: Developers can run a full document + face identity verification in one method call, with parallel uploads and a single unified result
@@ -131,7 +131,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Core Infrastructure | 4/4 | Complete |  |
 | 2. Presigned Upload Handler | 2/2 | Complete |  |
 | 3. Sessions Module | 2/2 | Complete |  |
-| 4. Document & Face Primitives | 2/3 | In Progress|  |
+| 4. Document & Face Primitives | 3/3 | Complete   | 2026-04-06 |
 | 5. Identity Module | 0/TBD | Not started | - |
 | 6. Public Entry Point | 0/TBD | Not started | - |
 | 7. Tests, Examples & Publishing | 0/TBD | Not started | - |
