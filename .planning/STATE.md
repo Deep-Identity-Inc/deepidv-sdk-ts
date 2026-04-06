@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 07-03-PLAN.md — all 3 plans in phase 07 complete
-last_updated: "2026-04-06T14:29:39.072Z"
+status: executing
+stopped_at: Completed 07-04-PLAN.md — all 4 plans in phase 07 complete
+last_updated: "2026-04-06T14:56:00.437Z"
 last_activity: 2026-04-06
 progress:
   total_phases: 7
   completed_phases: 7
-  total_plans: 17
-  completed_plans: 17
+  total_plans: 18
+  completed_plans: 18
   percent: 0
 ---
 
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-04-05)
 ## Current Position
 
 Phase: 07 (tests-examples-publishing) — EXECUTING
-Plan: 3 of 3
-Status: Phase complete — ready for verification
+Plan: 2 of 4
+Status: Ready to execute
 Last activity: 2026-04-06
 
 Progress: [░░░░░░░░░░] 0%
@@ -69,6 +69,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07-tests-examples-publishing P01 | 2 | 2 tasks | 6 files |
 | Phase 07-tests-examples-publishing P02 | 4 | 2 tasks | 7 files |
 | Phase 07-tests-examples-publishing P03 | 3 | 2 tasks | 2 files |
+| Phase 07-tests-examples-publishing P04 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,8 @@ Recent decisions affecting current work:
 - [Phase 07-tests-examples-publishing]: pnpm/action-setup@v4 (not v3) required for pnpm v10 support in CI
 - [Phase 07-tests-examples-publishing]: id-token:write enables npm provenance attestation linking package to GitHub Actions run
 - [Phase 07-tests-examples-publishing]: concurrency guard on publish workflow prevents parallel runs on rapid pushes to main
+- [Phase 07-tests-examples-publishing]: All example files use correct SDK field names exactly matching Zod schemas (source/target, isMatch, sessionRecord, expirationDate, overallConfidence)
+- [Phase 07-tests-examples-publishing]: express-app uses multer.memoryStorage() for Buffer input; nextjs-app converts File to Uint8Array via arrayBuffer() for fetch-native Next.js App Router
 
 ### Pending Todos
 
@@ -130,6 +133,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T14:29:39.069Z
-Stopped at: Completed 07-03-PLAN.md — all 3 plans in phase 07 complete
+Last session: 2026-04-06T14:56:00.434Z
+Stopped at: Completed 07-04-PLAN.md — all 4 plans in phase 07 complete
 Resume file: None
