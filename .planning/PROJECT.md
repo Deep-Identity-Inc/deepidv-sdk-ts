@@ -20,12 +20,12 @@ Developers pass images in and get typed verification results back — all presig
 - [x] Typed event emitter for request lifecycle events — Validated in Phase 1: Core Infrastructure
 - [x] Presigned URL upload handler — accepts Buffer, Uint8Array, ReadableStream, file path, base64; handles single and batch uploads — Validated in Phase 2: Presigned Upload Handler
 - [x] Zod-based runtime input validation on all public methods — Validated in Phase 2: Presigned Upload Handler
+- [x] `client.sessions.create()` — create hosted verification session — Validated in Phase 3: Sessions Module
+- [x] `client.sessions.retrieve()` — retrieve full session with analysis data — Validated in Phase 3: Sessions Module
+- [x] `client.sessions.list()` — list sessions with filtering — Validated in Phase 3: Sessions Module
+- [x] `client.sessions.updateStatus()` — update session status — Validated in Phase 3: Sessions Module
 
 ### Active
-- [ ] `client.sessions.create()` — create hosted verification session
-- [ ] `client.sessions.retrieve()` — retrieve full session with analysis data
-- [ ] `client.sessions.list()` — list sessions with filtering
-- [ ] `client.sessions.updateStatus()` — update session status
 - [ ] `client.document.scan()` — upload document image, get structured OCR data
 - [ ] `client.face.detect()` — upload image, get face detection confidence
 - [ ] `client.face.compare()` — upload two images, get face match confidence (parallel presigned uploads)
