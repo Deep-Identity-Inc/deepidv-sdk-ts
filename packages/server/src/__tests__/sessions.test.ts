@@ -8,7 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
-import { resolveConfig, TypedEmitter, HttpClient, ValidationError } from '@deepidv/core';
+import { resolveConfig, TypedEmitter, HttpClient, ValidationError, AuthenticationError, DeepIDVError } from '@deepidv/core';
 import type { SDKEventMap } from '@deepidv/core';
 import { Sessions } from '../sessions.js';
 
@@ -157,6 +157,23 @@ describe('Sessions.create', () => {
       }),
     ).rejects.toThrow(ValidationError);
   });
+
+  it('returns AuthenticationError on 401', async () => {
+    server.use(
+      http.post('*/v1/sessions', () =>
+        HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      ),
+    );
+    const sessions = createSessions();
+    await expect(
+      sessions.create({
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: 'jane@example.com',
+        phone: '+15192223333',
+      }),
+    ).rejects.toThrow(AuthenticationError);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -189,6 +206,16 @@ describe('Sessions.retrieve', () => {
   it('throws ValidationError on whitespace-only sessionId', async () => {
     const sessions = createSessions();
     await expect(sessions.retrieve('   ')).rejects.toThrow(ValidationError);
+  });
+
+  it('returns AuthenticationError on 401', async () => {
+    server.use(
+      http.get('*/v1/sessions/:id', () =>
+        HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      ),
+    );
+    const sessions = createSessions();
+    await expect(sessions.retrieve('sess_abc123')).rejects.toThrow(AuthenticationError);
   });
 });
 
@@ -264,6 +291,16 @@ describe('Sessions.list', () => {
     expect(typeof result.limit).toBe('number');
     expect(typeof result.offset).toBe('number');
   });
+
+  it('returns DeepIDVError on 500', async () => {
+    server.use(
+      http.get('*/v1/sessions', () =>
+        HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 }),
+      ),
+    );
+    const sessions = createSessions();
+    await expect(sessions.list()).rejects.toThrow(DeepIDVError);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -297,5 +334,15 @@ describe('Sessions.updateStatus', () => {
   it('throws ValidationError on empty sessionId', async () => {
     const sessions = createSessions();
     await expect(sessions.updateStatus('', 'VERIFIED')).rejects.toThrow(ValidationError);
+  });
+
+  it('returns DeepIDVError on 404', async () => {
+    server.use(
+      http.patch('*/v1/sessions/:id', () =>
+        HttpResponse.json({ error: 'Not Found' }, { status: 404 }),
+      ),
+    );
+    const sessions = createSessions();
+    await expect(sessions.updateStatus('sess_nonexistent', 'VERIFIED')).rejects.toThrow(DeepIDVError);
   });
 });

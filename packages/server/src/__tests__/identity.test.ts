@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
-import { resolveConfig, TypedEmitter, HttpClient, FileUploader, ValidationError } from '@deepidv/core';
+import { resolveConfig, TypedEmitter, HttpClient, FileUploader, ValidationError, AuthenticationError, DeepIDVError } from '@deepidv/core';
 import type { SDKEventMap } from '@deepidv/core';
 import { Identity } from '../identity.js';
 
@@ -232,6 +232,32 @@ describe('Identity', () => {
 
       // Optional param accepted — result.verified is a boolean (no error thrown)
       expect(typeof result.verified).toBe('boolean');
+    });
+
+    it('returns AuthenticationError on 401 from presign', async () => {
+      server.use(
+        http.post(`${BASE_URL}/v1/uploads/presign`, () =>
+          HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+        ),
+      );
+      const identity = createIdentity();
+      await expect(
+        identity.verify({ documentImage: JPEG_BYTES, faceImage: JPEG_BYTES_2 }),
+      ).rejects.toThrow(AuthenticationError);
+    });
+
+    it('returns DeepIDVError on 500 from verify endpoint', async () => {
+      server.use(
+        mockPresignBatch(),
+        ...mockS3Puts(),
+        http.post(`${BASE_URL}/v1/identity/verify`, () =>
+          HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 }),
+        ),
+      );
+      const identity = createIdentity();
+      await expect(
+        identity.verify({ documentImage: JPEG_BYTES, faceImage: JPEG_BYTES_2 }),
+      ).rejects.toThrow(DeepIDVError);
     });
   });
 });

@@ -10,7 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
-import { resolveConfig, TypedEmitter, HttpClient, FileUploader, ValidationError } from '@deepidv/core';
+import { resolveConfig, TypedEmitter, HttpClient, FileUploader, ValidationError, AuthenticationError, DeepIDVError } from '@deepidv/core';
 import type { SDKEventMap } from '@deepidv/core';
 import { Face } from '../face.js';
 
@@ -131,6 +131,16 @@ describe('Face.detect', () => {
     const face = createFace();
     await expect(face.detect({} as never)).rejects.toThrow(ValidationError);
   });
+
+  it('returns AuthenticationError on 401 from presign', async () => {
+    server.use(
+      http.post(`${BASE_URL}/v1/uploads/presign`, () =>
+        HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      ),
+    );
+    const face = createFace();
+    await expect(face.detect({ image: JPEG_BYTES })).rejects.toThrow(AuthenticationError);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -191,6 +201,13 @@ describe('Face.compare', () => {
       face.compare({ source: JPEG_BYTES } as never),
     ).rejects.toThrow(ValidationError);
   });
+
+  it('throws ValidationError when source image is missing', async () => {
+    const face = createFace();
+    await expect(
+      face.compare({ target: JPEG_BYTES_2 } as never),
+    ).rejects.toThrow(ValidationError);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -224,6 +241,18 @@ describe('Face.estimateAge', () => {
   it('throws ValidationError for missing image', async () => {
     const face = createFace();
     await expect(face.estimateAge({} as never)).rejects.toThrow(ValidationError);
+  });
+
+  it('returns DeepIDVError on 500 from estimateAge endpoint', async () => {
+    server.use(
+      mockPresignSingle(),
+      http.put('https://s3.example.com/presigned-1', () => new HttpResponse(null, { status: 200 })),
+      http.post(`${BASE_URL}/v1/face/estimate-age`, () =>
+        HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 }),
+      ),
+    );
+    const face = createFace();
+    await expect(face.estimateAge({ image: JPEG_BYTES })).rejects.toThrow(DeepIDVError);
   });
 
   it('strips unknown fields from response (D-06)', async () => {
