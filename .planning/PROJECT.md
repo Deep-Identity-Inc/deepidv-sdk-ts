@@ -10,38 +10,43 @@ Developers pass images in and get typed verification results back — all presig
 
 ## Requirements
 
-### Validated
+### Validated (v1.0)
 
-- [x] Monorepo scaffolding with pnpm workspace (`@deepidv/core` + `@deepidv/server`) — Validated in Phase 1: Core Infrastructure
-- [x] TypeScript strict mode, ES2022 target, tsup dual ESM + CJS build — Validated in Phase 1: Core Infrastructure
-- [x] HTTP client using native fetch with base URL, auth (x-api-key header), JSON parsing — Validated in Phase 1: Core Infrastructure
-- [x] Error classes: DeepIDVError, AuthenticationError (401), RateLimitError (429), ValidationError (400), NetworkError, TimeoutError — Validated in Phase 1: Core Infrastructure
-- [x] Retry logic with exponential backoff + jitter (429 and 5xx only, never 4xx) — Validated in Phase 1: Core Infrastructure
-- [x] Typed event emitter for request lifecycle events — Validated in Phase 1: Core Infrastructure
-- [x] Presigned URL upload handler — accepts Buffer, Uint8Array, ReadableStream, file path, base64; handles single and batch uploads — Validated in Phase 2: Presigned Upload Handler
-- [x] Zod-based runtime input validation on all public methods — Validated in Phase 2: Presigned Upload Handler
-- [x] `client.sessions.create()` — create hosted verification session — Validated in Phase 3: Sessions Module
-- [x] `client.sessions.retrieve()` — retrieve full session with analysis data — Validated in Phase 3: Sessions Module
-- [x] `client.sessions.list()` — list sessions with filtering — Validated in Phase 3: Sessions Module
-- [x] `client.sessions.updateStatus()` — update session status — Validated in Phase 3: Sessions Module
-- [x] `client.document.scan()` — upload document image, get structured OCR data — Validated in Phase 4: Document & Face Primitives
-- [x] `client.face.detect()` — upload image, get face detection confidence — Validated in Phase 4: Document & Face Primitives
-- [x] `client.face.compare()` — upload two images, get face match confidence (parallel presigned uploads) — Validated in Phase 4: Document & Face Primitives
-- [x] `client.face.estimateAge()` — upload image, get estimated age and gender — Validated in Phase 4: Document & Face Primitives
-- [x] `client.identity.verify()` — orchestrated identity verification in one call — Validated in Phase 5: Identity Module
+All 57 requirements shipped and verified. Full list in `.planning/milestones/v1.0-REQUIREMENTS.md`.
+
+**Infrastructure (Phase 1)**
+- [x] pnpm monorepo, TypeScript strict, tsup dual ESM+CJS, ESLint+Prettier
+- [x] Native fetch HTTP client with x-api-key auth, timeout, exponential backoff retry
+- [x] 6-class typed error hierarchy with cause chaining and API key redaction
+- [x] Typed event emitter for request lifecycle events
+
+**File Uploads (Phase 2)**
+- [x] Presigned URL upload handler — Buffer, Uint8Array, ReadableStream, file path, base64
+- [x] Content-type detection, parallel batch uploads, separate upload timeout
+- [x] Zod-based runtime input validation on all public methods
+
+**API Modules (Phases 3-5)**
+- [x] Sessions CRUD: create, retrieve, list (paginated), updateStatus
+- [x] Document scan with structured OCR data and optional documentType
+- [x] Face detect, compare (parallel uploads), estimateAge
+- [x] Identity verify — orchestrated document+face in one call with parallel uploads
+
+**Public Surface (Phase 6)**
+- [x] DeepIDV class as single entry point with Zod config validation
+- [x] Grouped module namespaces, full JSDoc, zero `any`, explicit named exports
+
+**Quality (Phase 7)**
+- [x] 185-test suite (vitest + msw) with consumer type-check validation
+- [x] 3 example projects: node-basic, express-app, nextjs-app
+- [x] Changesets CI/CD with GitHub Actions (CI on PR, publish on release)
 
 ### Active
 
-(none — all v1.0 requirements validated)
+(none — planning next milestone)
 
 ### Recently Validated
-- [x] Full vitest + msw test suite covering all modules (185 tests) — Validated in Phase 7: Tests, Examples & Publishing
-- [x] Example projects: node-basic, express-app, nextjs-app — Validated in Phase 7: Tests, Examples & Publishing
-- [x] Changesets CI/CD pipeline with GitHub Actions (CI on PR, publish on release) — Validated in Phase 7: Tests, Examples & Publishing
-- [x] Consumer type-check validation (built package, moduleResolution: bundler) — Validated in Phase 7: Tests, Examples & Publishing
-- [x] Full JSDoc on every public method and field, zero `any` in codebase — Validated in Phase 6: Public Entry Point
-- [x] DeepIDV public entry class with Zod config validation, eager module wiring, event subscription — Validated in Phase 6: Public Entry Point
-- [x] Explicit named exports only (no wildcard re-exports, module classes not exported) — Validated in Phase 6: Public Entry Point
+
+(merged into Validated after v1.0 milestone completion)
 
 ### Out of Scope
 
@@ -54,6 +59,10 @@ Developers pass images in and get typed verification results back — all presig
 - iOS/Android native SDKs — future packages
 - OAuth/token-based auth — x-api-key is sufficient for v1
 - AWS SDKs — all AWS orchestration lives in the API backend
+
+## Current State
+
+Shipped v1.0 with 6,730 LOC TypeScript across 2 packages. 185 tests passing. Ready for npm publish via changesets.
 
 ## Context
 
@@ -68,6 +77,7 @@ Developers pass images in and get typed verification results back — all presig
 - **Presigned upload flow:** SDK calls POST /v1/uploads/presign → gets { uploadUrl, fileKey } → PUTs file to S3 → calls processing endpoint with fileKey → returns typed result. Multi-file ops batch presigned URLs and upload in parallel.
 - **Module structure:** `client.sessions`, `client.document`, `client.face`, `client.identity` — grouped, not flat.
 - **Only dependency:** zod. Everything else uses native web APIs (fetch, Blob, AbortController, ReadableStream, crypto.subtle) for universal runtime support.
+- **Known tech debt:** 5 minor items tracked in `.planning/milestones/v1.0-MILESTONE-AUDIT.md` (batch presign contentType, example documentation inaccuracies)
 
 ## Constraints
 
@@ -91,6 +101,9 @@ Developers pass images in and get typed verification results back — all presig
 | Grouped module API (client.face.detect) over flat (client.detectFace) | Better discoverability, autocomplete groups related methods, matches API structure | Validated Phase 4 |
 | Independent identity schemas over reusing Phase 4 types | Identity module decoupled from document/face modules — API can evolve response shapes independently | Validated Phase 5 |
 | DeepIDV class as single entry point over direct module instantiation | Consumers use `new DeepIDV({ apiKey })` — module classes are internal, config validation is centralized, shared infrastructure (HttpClient, FileUploader, emitter) is wired once | Validated Phase 6 |
+| noExternal core into server bundle | `@deepidv/core` inlined into `@deepidv/server` — consumers install one package, no workspace:* resolution needed at runtime | Validated Phase 7 |
+| Changesets over semantic-release | Explicit version control — developer decides patch/minor/major, not commit message parsing | Validated Phase 7 |
+| msw over nock/fetch-mock | Handler-based HTTP interception compatible with native fetch; isomorphic for future `@deepidv/web` | Validated Phase 7 |
 
 ## Evolution
 
@@ -110,4 +123,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-06 after Phase 7 completion — all v1.0 milestone phases complete: full test suite (185 tests), 3 example projects, changesets CI/CD pipeline*
+*Last updated: 2026-04-06 after v1.0 milestone — shipped SDK with 57 requirements validated, 185 tests, 6,730 LOC TypeScript*
