@@ -112,7 +112,10 @@ Plans:
   3. Every public method, parameter, and return type has JSDoc visible in IDE hover tooltips
   4. TypeScript reports zero errors with `strict: true` and `noImplicitAny: true` across the entire codebase, with no `any` in source or generated `.d.ts` files
   5. The `@deepidv/server` package index uses explicit named exports only â€” importing a non-exported internal symbol fails at compile time
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 06-01-PLAN.md â€” DeepIDV class, config validation, barrel rewrite, zero-any verification— DeepIDV class, config validation, barrel rewrite, zero-any verification
 
 ### Phase 7: Tests, Examples & Publishing
 **Goal**: The SDK has a complete vitest + msw test suite, example projects demonstrating real usage, and a changesets CI/CD pipeline that publishes to npm on release
@@ -123,7 +126,10 @@ Plans:
   2. A consumer test project imports `@deepidv/server` from the built package (not source) and TypeScript resolves all types correctly under `moduleResolution: bundler`
   3. Running `node examples/node-basic/index.js`, `examples/express-app/app.js`, and `examples/nextjs-app/` each execute without runtime errors against the mocked API
   4. A GitHub Actions workflow runs tests on every PR and publishes to npm via `pnpm publish` (not `npm publish`) when a release is cut via changesets
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 06-01-PLAN.md â€” DeepIDV class, config validation, barrel rewrite, zero-any verification— DeepIDV class, config validation, barrel rewrite, zero-any verification
 
 ## Progress
 
