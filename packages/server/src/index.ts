@@ -70,3 +70,22 @@ export {
   FaceEstimateAgeResultSchema,
   GenderSchema,
 } from './face.types.js';
+
+// Identity module — Phase 5
+export { Identity } from './identity.js';
+export type {
+  IdentityVerifyInput,
+  IdentityVerificationResult,
+  IdentityDocumentResult,
+  IdentityFaceDetectionResult,
+  IdentityFaceMatchResult,
+} from './identity.types.js';
+
+// Identity Zod schemas — exported for consumer-side custom validation
+export {
+  IdentityVerifyInputSchema,
+  IdentityVerificationResultSchema,
+  IdentityDocumentResultSchema,
+  IdentityFaceDetectionResultSchema,
+  IdentityFaceMatchResultSchema,
+} from './identity.types.js';
