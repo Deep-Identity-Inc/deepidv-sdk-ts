@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-04-06T03:01:28.187Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-04-06T03:01:43.148Z"
 last_activity: 2026-04-06
 progress:
   total_phases: 7
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-sessions-module P01 | 25 | 3 tasks | 5 files |
 | Phase 03-sessions-module P02 | 10 | 1 tasks | 3 files |
 | Phase 04-document-face-primitives P01 | 1 | 2 tasks | 2 files |
+| Phase 04-document-face-primitives P02 | 1 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 03-sessions-module]: All tests use real HttpClient + msw interception (not mocked HttpClient) — consistent with core package test pattern
 - [Phase 03-sessions-module]: server.use() inside each it() block prevents msw handler leakage between tests; onUnhandledRequest: error catches accidental real HTTP calls
 - [Phase 04-document-face-primitives]: Document class uses constructor injection with HttpClient + FileUploader (D-04); DocumentScanResultSchema uses .strip() for forward-compatible API response parsing (D-06)
+- [Phase 04-document-face-primitives]: compare() passes array [source, target] to FileUploader.upload() for batch presign (count:2) and parallel S3 PUTs per UPL-04/D-02
+- [Phase 04-document-face-primitives]: All face result schemas use .strip() to tolerate future API fields without breaking
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T03:01:19.713Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-04-06T03:01:43.146Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None

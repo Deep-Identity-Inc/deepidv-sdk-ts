@@ -67,10 +67,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Face Module
 
-- [ ] **FACE-01**: `client.face.detect()` — upload image, return face detection confidence + bounding box + landmarks
-- [ ] **FACE-02**: `client.face.compare()` — upload two images in parallel, return match confidence + threshold + pass/fail
-- [ ] **FACE-03**: `client.face.estimateAge()` — upload image, return estimated age, age range, gender, confidence
-- [ ] **FACE-04**: All face methods use the presigned URL upload flow
+- [x] **FACE-01**: `client.face.detect()` — upload image, return face detection confidence + bounding box + landmarks
+- [x] **FACE-02**: `client.face.compare()` — upload two images in parallel, return match confidence + threshold + pass/fail
+- [x] **FACE-03**: `client.face.estimateAge()` — upload image, return estimated age, age range, gender, confidence
+- [x] **FACE-04**: All face methods use the presigned URL upload flow
 
 ### Identity Module
 
@@ -191,10 +191,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOC-01 | Phase 4 | Complete |
 | DOC-02 | Phase 4 | Complete |
 | DOC-03 | Phase 4 | Complete |
-| FACE-01 | Phase 4 | Pending |
-| FACE-02 | Phase 4 | Pending |
-| FACE-03 | Phase 4 | Pending |
-| FACE-04 | Phase 4 | Pending |
+| FACE-01 | Phase 4 | Complete |
+| FACE-02 | Phase 4 | Complete |
+| FACE-03 | Phase 4 | Complete |
+| FACE-04 | Phase 4 | Complete |
 | IDV-01 | Phase 5 | Pending |
 | IDV-02 | Phase 5 | Pending |
 | IDV-03 | Phase 5 | Pending |
