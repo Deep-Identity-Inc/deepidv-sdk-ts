@@ -31,9 +31,14 @@ Developers pass images in and get typed verification results back — all presig
 - [x] `client.identity.verify()` — orchestrated identity verification in one call — Validated in Phase 5: Identity Module
 
 ### Active
-- [ ] Tests (vitest + msw), examples, and npm publishing pipeline
+
+(none — all v1.0 requirements validated)
 
 ### Recently Validated
+- [x] Full vitest + msw test suite covering all modules (185 tests) — Validated in Phase 7: Tests, Examples & Publishing
+- [x] Example projects: node-basic, express-app, nextjs-app — Validated in Phase 7: Tests, Examples & Publishing
+- [x] Changesets CI/CD pipeline with GitHub Actions (CI on PR, publish on release) — Validated in Phase 7: Tests, Examples & Publishing
+- [x] Consumer type-check validation (built package, moduleResolution: bundler) — Validated in Phase 7: Tests, Examples & Publishing
 - [x] Full JSDoc on every public method and field, zero `any` in codebase — Validated in Phase 6: Public Entry Point
 - [x] DeepIDV public entry class with Zod config validation, eager module wiring, event subscription — Validated in Phase 6: Public Entry Point
 - [x] Explicit named exports only (no wildcard re-exports, module classes not exported) — Validated in Phase 6: Public Entry Point
@@ -105,4 +110,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-06 after Phase 6 completion — DeepIDV public entry point with Zod config validation, eager module wiring, full JSDoc on all 9 public methods, explicit named exports only*
+*Last updated: 2026-04-06 after Phase 7 completion — all v1.0 milestone phases complete: full test suite (185 tests), 3 example projects, changesets CI/CD pipeline*
