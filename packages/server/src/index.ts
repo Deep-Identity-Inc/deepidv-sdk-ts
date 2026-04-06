@@ -1,20 +1,53 @@
-// @deepidv/server — public SDK package
-// Phase 1: re-exports from core. Service modules added in Phases 3-6.
+/**
+ * @deepidv/server — Identity verification SDK for Node.js, Deno, Bun, and edge runtimes.
+ *
+ * @example
+ * ```typescript
+ * import { DeepIDV } from '@deepidv/server';
+ *
+ * const client = new DeepIDV({ apiKey: process.env.DEEPIDV_API_KEY! });
+ *
+ * const result = await client.identity.verify({
+ *   documentImage: passportBuffer,
+ *   faceImage: selfieBuffer,
+ * });
+ * ```
+ *
+ * @packageDocumentation
+ */
 
+// ---------------------------------------------------------------------------
+// 1. DeepIDV class and config schema (primary entry point)
+// ---------------------------------------------------------------------------
+export { DeepIDV, DeepIDVConfigSchema } from './deepidv.js';
+export type { DeepIDVOptions } from './deepidv.js';
+
+// ---------------------------------------------------------------------------
+// 2. Config type from core (re-exported for consumers who need the interface)
+// ---------------------------------------------------------------------------
+export type { DeepIDVConfig } from '@deepidv/core';
+
+// ---------------------------------------------------------------------------
+// 3. Error classes from core
+// ---------------------------------------------------------------------------
 export {
-  type DeepIDVConfig,
-  type RawResponse,
   DeepIDVError,
   AuthenticationError,
   RateLimitError,
   ValidationError,
   NetworkError,
   TimeoutError,
-  type SDKEventMap,
 } from '@deepidv/core';
+export type { RawResponse } from '@deepidv/core';
 
-// Sessions module — Phase 3
-export { Sessions } from './sessions.js';
+// ---------------------------------------------------------------------------
+// 4. Event types from core (needed for the client.on() method)
+// ---------------------------------------------------------------------------
+export type { SDKEventMap } from '@deepidv/core';
+
+// ---------------------------------------------------------------------------
+// 5. Session types and schemas
+// ---------------------------------------------------------------------------
 export type {
   SessionCreateInput,
   SessionCreateResult,
@@ -24,8 +57,6 @@ export type {
   SessionStatusUpdate,
   PaginatedResponse,
 } from './sessions.types.js';
-
-// Sessions Zod schemas — exported for consumer-side custom validation
 export {
   SessionCreateInputSchema,
   SessionListParamsSchema,
@@ -33,23 +64,23 @@ export {
   SessionStatusSchema,
 } from './sessions.types.js';
 
-// Document module — Phase 4
-export { Document } from './document.js';
+// ---------------------------------------------------------------------------
+// 6. Document types and schemas
+// ---------------------------------------------------------------------------
 export type {
   DocumentScanInput,
   DocumentScanResult,
   DocumentType,
 } from './document.types.js';
-
-// Document Zod schemas — exported for consumer-side custom validation
 export {
   DocumentScanInputSchema,
   DocumentScanResultSchema,
   DocumentTypeSchema,
 } from './document.types.js';
 
-// Face module — Phase 4
-export { Face } from './face.js';
+// ---------------------------------------------------------------------------
+// 7. Face types and schemas
+// ---------------------------------------------------------------------------
 export type {
   FaceDetectInput,
   FaceDetectResult,
@@ -59,8 +90,6 @@ export type {
   FaceEstimateAgeResult,
   Gender,
 } from './face.types.js';
-
-// Face Zod schemas — exported for consumer-side custom validation
 export {
   FaceDetectInputSchema,
   FaceDetectResultSchema,
@@ -71,8 +100,9 @@ export {
   GenderSchema,
 } from './face.types.js';
 
-// Identity module — Phase 5
-export { Identity } from './identity.js';
+// ---------------------------------------------------------------------------
+// 8. Identity types and schemas
+// ---------------------------------------------------------------------------
 export type {
   IdentityVerifyInput,
   IdentityVerificationResult,
@@ -80,8 +110,6 @@ export type {
   IdentityFaceDetectionResult,
   IdentityFaceMatchResult,
 } from './identity.types.js';
-
-// Identity Zod schemas — exported for consumer-side custom validation
 export {
   IdentityVerifyInputSchema,
   IdentityVerificationResultSchema,
@@ -89,3 +117,7 @@ export {
   IdentityFaceDetectionResultSchema,
   IdentityFaceMatchResultSchema,
 } from './identity.types.js';
+
+// NOTE: Sessions, Document, Face, Identity classes are NOT exported.
+// Consumers access them exclusively through client.sessions, client.document,
+// client.face, and client.identity (per D-01, API-05).
