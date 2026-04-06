@@ -26,10 +26,10 @@ Developers pass images in and get typed verification results back — all presig
 - [x] `client.sessions.updateStatus()` — update session status — Validated in Phase 3: Sessions Module
 
 ### Active
-- [ ] `client.document.scan()` — upload document image, get structured OCR data
-- [ ] `client.face.detect()` — upload image, get face detection confidence
-- [ ] `client.face.compare()` — upload two images, get face match confidence (parallel presigned uploads)
-- [ ] `client.face.estimateAge()` — upload image, get estimated age and gender
+- [x] `client.document.scan()` — upload document image, get structured OCR data — Validated in Phase 4: Document & Face Primitives
+- [x] `client.face.detect()` — upload image, get face detection confidence — Validated in Phase 4: Document & Face Primitives
+- [x] `client.face.compare()` — upload two images, get face match confidence (parallel presigned uploads) — Validated in Phase 4: Document & Face Primitives
+- [x] `client.face.estimateAge()` — upload image, get estimated age and gender — Validated in Phase 4: Document & Face Primitives
 - [ ] `client.identity.verify()` — orchestrated: document.scan + face.detect + face.compare in one call
 - [ ] Full JSDoc on every public method and field, zero `any` in codebase
 - [ ] Tests (vitest + msw), examples, and npm publishing pipeline
@@ -76,10 +76,10 @@ Developers pass images in and get typed verification results back — all presig
 |----------|-----------|---------|
 | pnpm monorepo with @deepidv/core + @deepidv/server | Core internals shared across future packages (web, react, etc.) without exposing to developers | Validated Phase 1 |
 | Native fetch over axios/got | Universal runtime support (Node 18+, Deno, Bun, Workers) with zero HTTP deps | Validated Phase 1 |
-| Zod for runtime validation | Type inference from schemas + runtime validation in one library, zero-dep itself | — Pending |
+| Zod for runtime validation | Type inference from schemas + runtime validation in one library, zero-dep itself | Validated Phase 4 |
 | tsup for bundling | Dual ESM + CJS output, .d.ts generation, tree-shaking — minimal config | Validated Phase 1 |
-| Presigned URL upload pattern | Keeps file uploads out of our API servers, leverages S3 directly, supports large files | — Pending |
-| Grouped module API (client.face.detect) over flat (client.detectFace) | Better discoverability, autocomplete groups related methods, matches API structure | — Pending |
+| Presigned URL upload pattern | Keeps file uploads out of our API servers, leverages S3 directly, supports large files | Validated Phase 4 |
+| Grouped module API (client.face.detect) over flat (client.detectFace) | Better discoverability, autocomplete groups related methods, matches API structure | Validated Phase 4 |
 
 ## Evolution
 
@@ -99,4 +99,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-05 after Phase 1 completion — core infrastructure validated*
+*Last updated: 2026-04-05 after Phase 4 completion — document & face primitives validated, all 4 service methods working with Zod schemas + presigned uploads*
