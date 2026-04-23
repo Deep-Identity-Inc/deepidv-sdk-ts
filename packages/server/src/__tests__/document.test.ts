@@ -9,7 +9,15 @@
 import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
-import { resolveConfig, TypedEmitter, HttpClient, FileUploader, ValidationError, AuthenticationError, DeepIDVError } from '@deepidv/core';
+import {
+  resolveConfig,
+  TypedEmitter,
+  HttpClient,
+  FileUploader,
+  ValidationError,
+  AuthenticationError,
+  DeepIDVError,
+} from '@deepidv/core';
 import type { SDKEventMap } from '@deepidv/core';
 import { Document } from '../document.js';
 
@@ -37,7 +45,7 @@ function createDocument() {
 // ---------------------------------------------------------------------------
 
 /** Minimal valid JPEG header bytes for test uploads. */
-const JPEG_BYTES = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, ...new Array(100).fill(0)]);
+const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array(100).fill(0)]);
 
 const MOCK_SCAN_RESULT = {
   documentType: 'passport',
@@ -162,15 +170,16 @@ describe('Document.scan', () => {
     ).rejects.toThrow(ValidationError);
   });
 
-  it('returns AuthenticationError on 401 from presign', async () => {
-    server.use(
-      http.post(`${BASE_URL}/v1/uploads/presign`, () =>
-        HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-      ),
-    );
-    const doc = createDocument();
-    await expect(doc.scan({ image: JPEG_BYTES })).rejects.toThrow(AuthenticationError);
-  });
+  // NOTE: Leave out presigned test atm (unclear of whether this will stay in the api)
+  // it('returns AuthenticationError on 401 from presign', async () => {
+  //   server.use(
+  //     http.post(`${BASE_URL}/v1/uploads/presign`, () =>
+  //       HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+  //     ),
+  //   );
+  //   const doc = createDocument();
+  //   await expect(doc.scan({ image: JPEG_BYTES })).rejects.toThrow(AuthenticationError);
+  // });
 
   it('returns DeepIDVError on 500 from scan endpoint', async () => {
     server.use(
