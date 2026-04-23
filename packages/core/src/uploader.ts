@@ -134,9 +134,7 @@ async function readFilePath(path: string): Promise<Uint8Array> {
   // or Deno type definitions in the runtime-agnostic core package.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const g = globalThis as Record<string, any>;
-  const isNode =
-    typeof g['process'] !== 'undefined' &&
-    g['process']?.versions?.node !== undefined;
+  const isNode = typeof g['process'] !== 'undefined' && g['process']?.versions?.node !== undefined;
   const isDeno = typeof g['Deno'] !== 'undefined';
   const isBun = typeof g['Bun'] !== 'undefined';
 
@@ -152,8 +150,10 @@ async function readFilePath(path: string): Promise<Uint8Array> {
   const buffer = (await fs.readFile(path)) as Uint8Array;
   return new Uint8Array(
     (buffer as unknown as { buffer: ArrayBuffer; byteOffset: number; byteLength: number }).buffer,
-    (buffer as unknown as { buffer: ArrayBuffer; byteOffset: number; byteLength: number }).byteOffset,
-    (buffer as unknown as { buffer: ArrayBuffer; byteOffset: number; byteLength: number }).byteLength,
+    (buffer as unknown as { buffer: ArrayBuffer; byteOffset: number; byteLength: number })
+      .byteOffset,
+    (buffer as unknown as { buffer: ArrayBuffer; byteOffset: number; byteLength: number })
+      .byteLength,
   );
 }
 
@@ -213,9 +213,7 @@ export async function toUint8Array(input: FileInput): Promise<Uint8Array> {
  */
 export function detectContentType(bytes: Uint8Array): SupportedContentType {
   if (bytes.length < 4) {
-    throw new ValidationError(
-      'File is too small to detect content type (minimum 4 bytes).',
-    );
+    throw new ValidationError('File is too small to detect content type (minimum 4 bytes).');
   }
 
   // JPEG: FF D8 FF
@@ -224,12 +222,7 @@ export function detectContentType(bytes: Uint8Array): SupportedContentType {
   }
 
   // PNG: 89 50 4E 47
-  if (
-    bytes[0] === 0x89 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x4e &&
-    bytes[3] === 0x47
-  ) {
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
     return 'image/png';
   }
 
@@ -248,9 +241,7 @@ export function detectContentType(bytes: Uint8Array): SupportedContentType {
     return 'image/webp';
   }
 
-  throw new ValidationError(
-    'Unsupported image format. Accepted formats: JPEG, PNG, WebP.',
-  );
+  throw new ValidationError('Unsupported image format. Accepted formats: JPEG, PNG, WebP.');
 }
 
 /**
@@ -338,10 +329,7 @@ export class FileUploader {
    * @throws {TimeoutError} If an S3 PUT times out.
    * @throws {NetworkError} If an S3 PUT fails at the network level.
    */
-  async upload(
-    inputs: FileInput | FileInput[],
-    options?: UploadOptions,
-  ): Promise<string[]> {
+  async upload(inputs: FileInput | FileInput[], options?: UploadOptions): Promise<string[]> {
     const opts = validateUploadOptions(options ?? {});
     const inputArray = Array.isArray(inputs) ? inputs : [inputs];
 
@@ -349,15 +337,13 @@ export class FileUploader {
     const byteArrays = await Promise.all(inputArray.map(toUint8Array));
 
     // 2. Detect or use caller-provided content type
-    const contentTypes = byteArrays.map((bytes) =>
-      opts.contentType ?? detectContentType(bytes),
-    );
+    const contentTypes = byteArrays.map((bytes) => opts.contentType ?? detectContentType(bytes));
 
     // 3. Request presigned URLs (one API call for all files)
-    const presignResponse = await this.httpClient.post<PresignResponse>(
-      '/v1/uploads/presign',
-      { contentType: contentTypes[0], count: inputArray.length },
-    );
+    const presignResponse = await this.httpClient.post<PresignResponse>('/v1/uploads/presign', {
+      contentType: contentTypes[0],
+      count: inputArray.length,
+    });
 
     // 4. PUT each file to S3 in parallel (UPL-04)
     await Promise.all(
@@ -421,10 +407,9 @@ export class FileUploader {
         if (err instanceof Error && err.name === 'AbortError') {
           throw new TimeoutError(`Upload timed out after ${timeoutMs}ms`, { cause: err });
         }
-        throw new NetworkError(
-          err instanceof Error ? err.message : 'S3 upload network error',
-          { cause: err },
-        );
+        throw new NetworkError(err instanceof Error ? err.message : 'S3 upload network error', {
+          cause: err,
+        });
       }
 
       if (response.ok) {
