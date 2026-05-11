@@ -21,7 +21,7 @@ import { DeepIDVError, NetworkError, TimeoutError, ValidationError } from './err
 import { withRetry } from './retry.js';
 import type { ResolvedConfig } from './config.js';
 import type { HttpClient } from './client.js';
-import type { TypedEmitter, SDKEventMap } from './events.js';
+import type { TypedEmitter } from './events.js';
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -134,6 +134,7 @@ async function readFilePath(path: string): Promise<Uint8Array> {
   // or Deno type definitions in the runtime-agnostic core package.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const g = globalThis as Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   const isNode = typeof g['process'] !== 'undefined' && g['process']?.versions?.node !== undefined;
   const isDeno = typeof g['Deno'] !== 'undefined';
   const isBun = typeof g['Bun'] !== 'undefined';
@@ -145,8 +146,10 @@ async function readFilePath(path: string): Promise<Uint8Array> {
   }
 
   // Dynamic import keeps fs out of edge runtime bundles.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const fs = (await import('node:fs/promises' as string)) as any;
+  const fs = (await import('node:fs/promises' as string)) as {
+    readFile: (path: string) => Promise<Uint8Array>;
+  };
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const buffer = (await fs.readFile(path)) as Uint8Array;
   return new Uint8Array(
     (buffer as unknown as { buffer: ArrayBuffer; byteOffset: number; byteLength: number }).buffer,
@@ -311,7 +314,7 @@ export class FileUploader {
   constructor(
     private readonly config: ResolvedConfig,
     private readonly httpClient: HttpClient,
-    private readonly emitter: TypedEmitter<SDKEventMap>,
+    private readonly emitter: TypedEmitter,
   ) {}
 
   /**
@@ -333,18 +336,27 @@ export class FileUploader {
     const opts = validateUploadOptions(options ?? {});
     const inputArray = Array.isArray(inputs) ? inputs : [inputs];
 
-    const byteArrays = await Promise.all(inputArray.map(toUint8Array));
-    const contentTypes = byteArrays.map((bytes) => opts.contentType ?? detectContentType(bytes));
+    const files = await Promise.all(
+      inputArray.map(async (input) => {
+        const bytes = await toUint8Array(input);
+        const contentType = opts.contentType ?? detectContentType(bytes);
+        return { bytes, contentType };
+      }),
+    );
 
     const presignResponse = await this.httpClient.post<PresignResponse>('/v1/upload/presign', {
-      contentType: contentTypes[0],
-      count: inputArray.length,
+      contentType: files[0]?.contentType,
+      count: files.length,
     });
 
     await Promise.all(
-      presignResponse.uploads.map((upload, i) =>
-        this._putToS3(upload.uploadUrl, byteArrays[i]!, contentTypes[i]!),
-      ),
+      presignResponse.uploads.map((upload, i) => {
+        const file = files[i];
+        if (!file) {
+          throw new DeepIDVError('Presign returned more uploads than requested.');
+        }
+        return this._putToS3(upload.uploadUrl, file.bytes, file.contentType);
+      }),
     );
 
     return presignResponse.uploads.map((u) => u.fileKey);
@@ -382,7 +394,9 @@ export class FileUploader {
   private async _attemptPut(url: string, bytes: Uint8Array, contentType: string): Promise<void> {
     const controller = new AbortController();
     const timeoutMs = this.config.uploadTimeout;
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeoutMs);
 
     this.emitter.emit('upload:start', { url, bytes: bytes.length, contentType });
 
@@ -399,7 +413,7 @@ export class FileUploader {
         });
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') {
-          throw new TimeoutError(`Upload timed out after ${timeoutMs}ms`, { cause: err });
+          throw new TimeoutError(`Upload timed out after ${String(timeoutMs)}ms`, { cause: err });
         }
         throw new NetworkError(err instanceof Error ? err.message : 'S3 upload network error', {
           cause: err,
@@ -421,14 +435,14 @@ export class FileUploader {
 
       // 5xx: wrap as DeepIDVError with status so isRetryable returns true
       if (response.status >= 500) {
-        throw new DeepIDVError(`S3 upload failed: HTTP ${response.status}`, {
+        throw new DeepIDVError(`S3 upload failed: HTTP ${String(response.status)}`, {
           status: response.status,
           code: 'upload_error',
         });
       }
 
       // Other 4xx: throw immediately (non-retryable)
-      throw new DeepIDVError(`S3 upload failed: HTTP ${response.status}`, {
+      throw new DeepIDVError(`S3 upload failed: HTTP ${String(response.status)}`, {
         status: response.status,
         code: 'upload_error',
       });

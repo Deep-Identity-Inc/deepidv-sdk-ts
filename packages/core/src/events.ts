@@ -54,8 +54,10 @@ export class TypedEmitter<TMap extends Record<string, unknown> = SDKEventMap> {
    */
   on<K extends keyof TMap>(event: K, listener: Listener<TMap[K]>): () => void {
     if (!this.listeners.has(event)) this.listeners.set(event, []);
-    this.listeners.get(event)!.push(listener as Listener<unknown>);
-    return () => this.off(event, listener);
+    this.listeners.get(event)?.push(listener as Listener<unknown>);
+    return () => {
+      this.off(event, listener);
+    };
   }
 
   /**

@@ -60,7 +60,7 @@ export const SessionCreateInputSchema = z.object({
   /** Applicant last name (required). */
   lastName: z.string().min(1),
   /** Applicant email address (required, must be valid email format). */
-  email: z.string().email(),
+  email: z.email(),
   /** Applicant phone number in E.164 format, e.g. "+15192223333" (required). */
   phone: z.string().min(1),
   /** Your internal reference ID echoed back in responses. */
@@ -68,7 +68,7 @@ export const SessionCreateInputSchema = z.object({
   /** Workflow to use for this session (omit for standalone session). */
   workflowId: z.string().optional(),
   /** HTTPS URL to redirect the applicant after completing the session. */
-  redirectUrl: z.string().url().optional(),
+  redirectUrl: z.url().optional(),
   /** Send email invitation to applicant. Defaults to true on the API. */
   sendEmailInvite: z.boolean().optional(),
   /** Send SMS invitation to applicant. Defaults to true on the API. */
@@ -116,21 +116,19 @@ export const SessionCreateResultSchema = z.object({
 // ---------------------------------------------------------------------------
 
 /** Face detection result from ID document analysis. Uses passthrough() for undocumented fields. */
-const FaceDetectionSchema = z
-  .object({
-    /** Detection confidence score (0-1). */
-    confidence: z.number().optional(),
-    /** Bounding box of detected face. */
-    boundingBox: z
-      .object({
-        top: z.number(),
-        left: z.number(),
-        width: z.number(),
-        height: z.number(),
-      })
-      .optional(),
-  })
-  .passthrough();
+const FaceDetectionSchema = z.looseObject({
+  /** Detection confidence score (0-1). */
+  confidence: z.number().optional(),
+  /** Bounding box of detected face. */
+  boundingBox: z
+    .object({
+      top: z.number(),
+      left: z.number(),
+      width: z.number(),
+      height: z.number(),
+    })
+    .optional(),
+});
 
 /** Single extracted text item from an ID document. */
 const ExtractedTextItemSchema = z.object({
@@ -161,9 +159,9 @@ const CompareFacesDataSchema = z
 /** PEP and sanctions screening data. Individual match shapes use passthrough(). */
 const PepSanctionsDataSchema = z
   .object({
-    peps: z.array(z.object({}).passthrough()).nullable(),
-    sanctions: z.array(z.object({}).passthrough()).nullable(),
-    both: z.array(z.object({}).passthrough()).nullable(),
+    peps: z.array(z.looseObject({})).nullable(),
+    sanctions: z.array(z.looseObject({})).nullable(),
+    both: z.array(z.looseObject({})).nullable(),
   })
   .optional();
 
@@ -182,7 +180,7 @@ const DocumentRiskDataSchema = z
     overallRiskScore: z.number(),
     documentsAnalyzed: z.number(),
     documentsWithSignals: z.number(),
-    documentAnalysis: z.array(z.object({}).passthrough()),
+    documentAnalysis: z.array(z.looseObject({})),
   })
   .optional();
 
@@ -288,7 +286,7 @@ export const SessionRetrieveResultSchema = z.object({
  * @param itemSchema - The Zod schema for individual list items.
  * @returns A Zod object schema representing a paginated response.
  */
-export const PaginatedResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
+export const PaginatedResponseSchema = <T extends z.ZodType>(itemSchema: T) =>
   z.object({
     data: z.array(itemSchema),
     total: z.number().optional(),

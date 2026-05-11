@@ -91,7 +91,10 @@ describe('TypedEmitter', () => {
     emitter.on('request', fn1);
     emitter.on('request', fn2);
     emitter.on('request', fn3);
-    const payload: SDKEventMap['request'] = { method: 'POST', url: 'https://api.deepidv.com/v1/test' };
+    const payload: SDKEventMap['request'] = {
+      method: 'POST',
+      url: 'https://api.deepidv.com/v1/test',
+    };
     emitter.emit('request', payload);
     expect(fn1).toHaveBeenCalledOnce();
     expect(fn2).toHaveBeenCalledOnce();
@@ -112,9 +115,9 @@ describe('TypedEmitter', () => {
   it('unsubscribe during iteration does not crash', () => {
     const emitter = new TypedEmitter();
     const fn = vi.fn();
-    let unsub: (() => void) | undefined;
+    let unsub: () => void = () => {};
     emitter.on('retry', () => {
-      if (unsub) unsub();
+      unsub();
     });
     unsub = emitter.on('retry', fn);
     // Should not crash — unsub called while iterating listeners

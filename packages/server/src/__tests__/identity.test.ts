@@ -11,7 +11,6 @@ import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
 import { resolveConfig, TypedEmitter, HttpClient, FileUploader, ValidationError, AuthenticationError, DeepIDVError } from '@deepidv/core';
-import type { SDKEventMap } from '@deepidv/core';
 import { Identity } from '../identity.js';
 
 const BASE_URL = 'https://api.deepidv.com';
@@ -27,7 +26,7 @@ function createIdentity() {
     timeout: 5_000,
     maxRetries: 0,
   });
-  const emitter = new TypedEmitter<SDKEventMap>();
+  const emitter = new TypedEmitter();
   const client = new HttpClient(config, emitter);
   const uploader = new FileUploader(config, client, emitter);
   return new Identity(client, uploader);
@@ -38,9 +37,9 @@ function createIdentity() {
 // ---------------------------------------------------------------------------
 
 /** Minimal valid JPEG header bytes for document image upload. */
-const JPEG_BYTES = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, ...new Array(100).fill(0)]);
+const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array<number>(100).fill(0)]);
 /** Minimal valid JPEG bytes for face image upload. */
-const JPEG_BYTES_2 = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE1, ...new Array(100).fill(0)]);
+const JPEG_BYTES_2 = new Uint8Array([0xff, 0xd8, 0xff, 0xe1, ...new Array<number>(100).fill(0)]);
 
 // ---------------------------------------------------------------------------
 // MSW handler helpers

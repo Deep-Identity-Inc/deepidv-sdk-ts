@@ -32,7 +32,7 @@ function createClient(overrides?: Partial<Parameters<typeof resolveConfig>[0]>) 
     maxRetries: 0, // disable retries by default so tests are fast/deterministic
     ...overrides,
   });
-  const emitter = new TypedEmitter<SDKEventMap>();
+  const emitter = new TypedEmitter();
   return { client: new HttpClient(config, emitter), emitter, config };
 }
 
@@ -125,17 +125,12 @@ describe('HttpClient — error mapping', () => {
   it('401 response throws AuthenticationError', async () => {
     server.use(
       http.post(`${BASE_URL}/v1/sessions`, () => {
-        return HttpResponse.json(
-          { error: 'Invalid API key' },
-          { status: 401 },
-        );
+        return HttpResponse.json({ error: 'Invalid API key' }, { status: 401 });
       }),
     );
 
     const { client } = createClient();
-    await expect(client.post('/v1/sessions', {})).rejects.toBeInstanceOf(
-      AuthenticationError,
-    );
+    await expect(client.post('/v1/sessions', {})).rejects.toBeInstanceOf(AuthenticationError);
   });
 
   it('AuthenticationError includes redacted API key', async () => {
@@ -160,42 +155,29 @@ describe('HttpClient — error mapping', () => {
   it('429 response throws RateLimitError', async () => {
     server.use(
       http.post(`${BASE_URL}/v1/sessions`, () => {
-        return HttpResponse.json(
-          { error: 'Too many requests' },
-          { status: 429 },
-        );
+        return HttpResponse.json({ error: 'Too many requests' }, { status: 429 });
       }),
     );
 
     const { client } = createClient();
-    await expect(client.post('/v1/sessions', {})).rejects.toBeInstanceOf(
-      RateLimitError,
-    );
+    await expect(client.post('/v1/sessions', {})).rejects.toBeInstanceOf(RateLimitError);
   });
 
   it('400 response throws ValidationError', async () => {
     server.use(
       http.post(`${BASE_URL}/v1/sessions`, () => {
-        return HttpResponse.json(
-          { error: 'Invalid request body' },
-          { status: 400 },
-        );
+        return HttpResponse.json({ error: 'Invalid request body' }, { status: 400 });
       }),
     );
 
     const { client } = createClient();
-    await expect(client.post('/v1/sessions', {})).rejects.toBeInstanceOf(
-      ValidationError,
-    );
+    await expect(client.post('/v1/sessions', {})).rejects.toBeInstanceOf(ValidationError);
   });
 
   it('500 response throws DeepIDVError with status 500', async () => {
     server.use(
       http.post(`${BASE_URL}/v1/sessions`, () => {
-        return HttpResponse.json(
-          { error: 'Internal server error' },
-          { status: 500 },
-        );
+        return HttpResponse.json({ error: 'Internal server error' }, { status: 500 });
       }),
     );
 
@@ -248,9 +230,7 @@ describe('HttpClient — timeout', () => {
 
     // Very short timeout to trigger abort
     const { client } = createClient({ timeout: 50 });
-    await expect(client.post('/v1/sessions', {})).rejects.toBeInstanceOf(
-      TimeoutError,
-    );
+    await expect(client.post('/v1/sessions', {})).rejects.toBeInstanceOf(TimeoutError);
   });
 });
 
@@ -284,7 +264,7 @@ describe('HttpClient — AbortController', () => {
       timeout: 50,
       maxRetries: 1,
     });
-    const emitter = new TypedEmitter<SDKEventMap>();
+    const emitter = new TypedEmitter();
     const client = new HttpClient(config, emitter);
 
     const result = await client.post<{ id: string }>('/v1/sessions', {});
@@ -311,7 +291,7 @@ describe('HttpClient — custom fetch', () => {
       baseUrl: BASE_URL,
       fetch: customFetch as typeof globalThis.fetch,
     });
-    const emitter = new TypedEmitter<SDKEventMap>();
+    const emitter = new TypedEmitter();
     const client = new HttpClient(config, emitter);
 
     const result = await client.post<{ id: string }>('/v1/sessions', {});
@@ -326,9 +306,7 @@ describe('HttpClient — custom fetch', () => {
 
 describe('HttpClient — network failure', () => {
   it('throws NetworkError when fetch throws TypeError', async () => {
-    const networkFailFetch = vi.fn().mockRejectedValue(
-      new TypeError('Failed to fetch'),
-    );
+    const networkFailFetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
 
     const config = resolveConfig({
       apiKey: 'sk_test_key_1234',
@@ -336,7 +314,7 @@ describe('HttpClient — network failure', () => {
       maxRetries: 0,
       fetch: networkFailFetch as typeof globalThis.fetch,
     });
-    const emitter = new TypedEmitter<SDKEventMap>();
+    const emitter = new TypedEmitter();
     const client = new HttpClient(config, emitter);
 
     await expect(client.get('/v1/sessions')).rejects.toBeInstanceOf(NetworkError);
@@ -349,9 +327,7 @@ describe('HttpClient — network failure', () => {
 
 describe('HttpClient — lifecycle events', () => {
   it('emits request event before fetch', async () => {
-    server.use(
-      http.get(`${BASE_URL}/v1/sessions`, () => HttpResponse.json([])),
-    );
+    server.use(http.get(`${BASE_URL}/v1/sessions`, () => HttpResponse.json([])));
 
     const { client, emitter } = createClient();
     const requestEvents: SDKEventMap['request'][] = [];
@@ -367,9 +343,7 @@ describe('HttpClient — lifecycle events', () => {
   });
 
   it('emits response event after successful fetch', async () => {
-    server.use(
-      http.get(`${BASE_URL}/v1/sessions`, () => HttpResponse.json([])),
-    );
+    server.use(http.get(`${BASE_URL}/v1/sessions`, () => HttpResponse.json([])));
 
     const { client, emitter } = createClient();
     const responseEvents: SDKEventMap['response'][] = [];
@@ -382,7 +356,7 @@ describe('HttpClient — lifecycle events', () => {
       status: 200,
       url: `${BASE_URL}/v1/sessions`,
     });
-    expect(typeof responseEvents[0].durationMs).toBe('number');
+    expect(typeof responseEvents[0]?.durationMs).toBe('number');
   });
 
   it('emits error event on final failure after retries', async () => {
@@ -404,7 +378,7 @@ describe('HttpClient — lifecycle events', () => {
     }
 
     expect(errorEvents).toHaveLength(1);
-    expect(errorEvents[0].error).toBeInstanceOf(DeepIDVError);
+    expect(errorEvents[0]?.error).toBeInstanceOf(DeepIDVError);
   });
 });
 
@@ -447,9 +421,7 @@ describe('HttpClient — retry integration', () => {
     );
 
     const { client } = createClient({ maxRetries: 3 });
-    await expect(client.post('/v1/sessions', {})).rejects.toBeInstanceOf(
-      ValidationError,
-    );
+    await expect(client.post('/v1/sessions', {})).rejects.toBeInstanceOf(ValidationError);
     expect(callCount).toBe(1);
   });
 });

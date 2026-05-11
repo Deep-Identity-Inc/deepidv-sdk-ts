@@ -48,11 +48,13 @@ describe('DeepIDV constructor', () => {
 
   it('Test 8: exposes event subscription via on() method', () => {
     const client = new DeepIDV({ apiKey: 'sk-test-123' });
-    const handler = (_payload: { method: string; url: string }) => {};
-    const unsub = client.on('request', handler);
+    const unsub = client.on('request', () => {
+      // listener body unused — test only verifies unsubscribe handle
+    });
     expect(typeof unsub).toBe('function');
-    // calling unsub should not throw
-    expect(() => unsub()).not.toThrow();
+    expect(() => {
+      unsub();
+    }).not.toThrow();
   });
 
   it('Test 9: accepts maxRetries: 0 without throwing', () => {

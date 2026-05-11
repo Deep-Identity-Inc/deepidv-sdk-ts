@@ -9,7 +9,6 @@ import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
 import { resolveConfig, TypedEmitter, HttpClient, ValidationError, AuthenticationError, DeepIDVError } from '@deepidv/core';
-import type { SDKEventMap } from '@deepidv/core';
 import { Sessions } from '../sessions.js';
 
 const BASE_URL = 'https://api.deepidv.com';
@@ -26,7 +25,7 @@ function createSessions(overrides?: Record<string, unknown>) {
     maxRetries: 0,
     ...overrides,
   });
-  const emitter = new TypedEmitter<SDKEventMap>();
+  const emitter = new TypedEmitter();
   const client = new HttpClient(config, emitter);
   return new Sessions(client);
 }

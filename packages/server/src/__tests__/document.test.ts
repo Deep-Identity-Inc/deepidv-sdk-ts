@@ -18,7 +18,6 @@ import {
   AuthenticationError,
   DeepIDVError,
 } from '@deepidv/core';
-import type { SDKEventMap } from '@deepidv/core';
 import { Document } from '../document.js';
 
 const BASE_URL = 'https://api.deepidv.com';
@@ -34,7 +33,7 @@ function createDocument() {
     timeout: 5_000,
     maxRetries: 0,
   });
-  const emitter = new TypedEmitter<SDKEventMap>();
+  const emitter = new TypedEmitter();
   const client = new HttpClient(config, emitter);
   const uploader = new FileUploader(config, client, emitter);
   return new Document(client, uploader);
@@ -45,7 +44,7 @@ function createDocument() {
 // ---------------------------------------------------------------------------
 
 /** Minimal valid JPEG header bytes for test uploads. */
-const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array(100).fill(0)]);
+const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array<number>(100).fill(0)]);
 
 const MOCK_SCAN_RESULT = {
   documentType: 'passport',

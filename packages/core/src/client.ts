@@ -15,7 +15,6 @@ import type { ResolvedConfig } from './config.js';
 import { buildHeaders, buildUrl } from './auth.js';
 import { withRetry } from './retry.js';
 import { TypedEmitter } from './events.js';
-import type { SDKEventMap } from './events.js';
 import {
   DeepIDVError,
   AuthenticationError,
@@ -52,7 +51,7 @@ export interface RequestOptions {
  */
 export class HttpClient {
   private readonly config: ResolvedConfig;
-  private readonly emitter: TypedEmitter<SDKEventMap>;
+  private readonly emitter: TypedEmitter;
 
   /**
    * Creates an HttpClient instance.
@@ -60,7 +59,7 @@ export class HttpClient {
    * @param config - Resolved configuration with all defaults applied.
    * @param emitter - Typed event emitter for lifecycle events.
    */
-  constructor(config: ResolvedConfig, emitter: TypedEmitter<SDKEventMap>) {
+  constructor(config: ResolvedConfig, emitter: TypedEmitter) {
     this.config = config;
     this.emitter = emitter;
   }
@@ -128,7 +127,9 @@ export class HttpClient {
   ): Promise<T> {
     // New AbortController per attempt — never reuse (D-01, HTTP-03)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeoutMs);
 
     this.emitter.emit('request', { method, url });
 
@@ -146,16 +147,12 @@ export class HttpClient {
       } catch (err) {
         // AbortError means our timeout fired (D-01)
         if (err instanceof Error && err.name === 'AbortError') {
-          throw new TimeoutError(
-            `Request timed out after ${timeoutMs}ms`,
-            { cause: err },
-          );
+          throw new TimeoutError(`Request timed out after ${String(timeoutMs)}ms`, { cause: err });
         }
         // All other fetch-level errors are network failures
-        throw new NetworkError(
-          err instanceof Error ? err.message : 'Network request failed',
-          { cause: err },
-        );
+        throw new NetworkError(err instanceof Error ? err.message : 'Network request failed', {
+          cause: err,
+        });
       }
 
       if (response.ok) {
@@ -278,7 +275,7 @@ function extractErrorMessage(body: unknown, status: number): string {
     if (typeof b['message'] === 'string') return b['message'];
     if (typeof b['error'] === 'string') return b['error'];
   }
-  return `HTTP ${status}`;
+  return `HTTP ${String(status)}`;
 }
 
 /**
@@ -287,9 +284,7 @@ function extractErrorMessage(body: unknown, status: number): string {
  * @param headers - Headers as a plain string-to-string record.
  * @returns Number of seconds or `undefined` if not present/parseable.
  */
-function extractRetryAfterSeconds(
-  headers: Record<string, string>,
-): number | undefined {
+function extractRetryAfterSeconds(headers: Record<string, string>): number | undefined {
   const raw = headers['retry-after'];
   if (!raw) return undefined;
 

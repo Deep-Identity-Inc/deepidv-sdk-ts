@@ -4,7 +4,7 @@
  * Covers: toUint8Array, detectContentType, mapZodError, UploadOptionsSchema, FileUploader.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, assert } from 'vitest';
 import { z } from 'zod';
 import { http, HttpResponse } from 'msw';
 import {
@@ -14,9 +14,8 @@ import {
   validateUploadOptions,
   FileUploader,
 } from '../uploader.js';
-import { ValidationError, DeepIDVError } from '../errors.js';
+import { ValidationError } from '../errors.js';
 import { TypedEmitter } from '../events.js';
-import type { SDKEventMap } from '../events.js';
 import { HttpClient } from '../client.js';
 import { resolveConfig } from '../config.js';
 import { server } from './setup.js';
@@ -138,8 +137,8 @@ describe('detectContentType', () => {
     bytes[2] = 0x46; // F
     bytes[3] = 0x46; // F
     // bytes 4-7: file size (don't matter)
-    bytes[8] = 0x57;  // W
-    bytes[9] = 0x45;  // E
+    bytes[8] = 0x57; // W
+    bytes[9] = 0x45; // E
     bytes[10] = 0x42; // B
     bytes[11] = 0x50; // P
     expect(detectContentType(bytes)).toBe('image/webp');
@@ -172,8 +171,8 @@ describe('mapZodError', () => {
       if (err instanceof z.ZodError) zodError = err;
     }
     expect(zodError).toBeDefined();
-
-    const validationError = mapZodError(zodError!);
+    assert(zodError);
+    const validationError = mapZodError(zodError);
     expect(validationError).toBeInstanceOf(ValidationError);
     // Message should contain the path 'name'
     expect(validationError.message).toContain("at 'name'");
@@ -190,8 +189,8 @@ describe('mapZodError', () => {
       if (err instanceof z.ZodError) zodError = err;
     }
     expect(zodError).toBeDefined();
-
-    const validationError = mapZodError(zodError!);
+    assert(zodError);
+    const validationError = mapZodError(zodError);
     expect(validationError.message).toContain("at '(root)'");
   });
 });
@@ -217,13 +216,17 @@ describe('UploadOptionsSchema', () => {
 // ---------------------------------------------------------------------------
 
 // JPEG magic bytes + padding
-const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array(100).fill(0)]);
+const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array<number>(100).fill(0)]);
 // PNG magic bytes + padding
-const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, ...new Array(100).fill(0)]);
+const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, ...new Array<number>(100).fill(0)]);
 
-function makeUploader(configOverrides?: { uploadTimeout?: number; maxRetries?: number; fetch?: typeof globalThis.fetch }) {
+function makeUploader(configOverrides?: {
+  uploadTimeout?: number;
+  maxRetries?: number;
+  fetch?: typeof globalThis.fetch;
+}) {
   const config = resolveConfig({ apiKey: 'test-key', ...configOverrides });
-  const emitter = new TypedEmitter<SDKEventMap>();
+  const emitter = new TypedEmitter();
   const httpClient = new HttpClient(config, emitter);
   return { uploader: new FileUploader(config, httpClient, emitter), emitter, config };
 }
@@ -296,8 +299,10 @@ describe('FileUploader', () => {
     await uploader.upload(JPEG_BYTES);
 
     expect(putRequest).toBeDefined();
-    expect(putRequest!.headers.get('content-type')).toBe('image/jpeg');
-    expect(putRequest!.headers.get('x-api-key')).toBeNull();
+    assert(putRequest);
+
+    expect(putRequest.headers.get('content-type')).toBe('image/jpeg');
+    expect(putRequest.headers.get('x-api-key')).toBeNull();
   });
 
   it('S3 PUT uses uploadTimeout (not API timeout) — PUT uses config.fetch directly with AbortController', async () => {
@@ -332,8 +337,13 @@ describe('FileUploader', () => {
       ),
     );
 
-    const config = resolveConfig({ apiKey: 'test-key', uploadTimeout: 50, maxRetries: 0, fetch: mockFetch });
-    const emitter = new TypedEmitter<SDKEventMap>();
+    const config = resolveConfig({
+      apiKey: 'test-key',
+      uploadTimeout: 50,
+      maxRetries: 0,
+      fetch: mockFetch,
+    });
+    const emitter = new TypedEmitter();
     const httpClient = new HttpClient(config, emitter);
     const uploader = new FileUploader(config, httpClient, emitter);
 
@@ -361,7 +371,7 @@ describe('FileUploader', () => {
     );
 
     const config = resolveConfig({ apiKey: 'test-key', maxRetries: 2, initialRetryDelay: 1 });
-    const emitter = new TypedEmitter<SDKEventMap>();
+    const emitter = new TypedEmitter();
     const httpClient = new HttpClient(config, emitter);
     const uploader = new FileUploader(config, httpClient, emitter);
 
@@ -373,7 +383,7 @@ describe('FileUploader', () => {
     expect(result).toEqual(['key-1']);
     expect(callCount).toBe(2);
     expect(retryEvents).toHaveLength(1);
-    expect(retryEvents[0]!.attempt).toBe(1);
+    expect(retryEvents[0]?.attempt).toBe(1);
   });
 
   it('S3 PUT on 403 throws DeepIDVError with code "upload_url_expired" immediately (no retry)', async () => {
@@ -430,7 +440,7 @@ describe('FileUploader', () => {
     });
 
     const config = resolveConfig({ apiKey: 'test-key', maxRetries: 2, initialRetryDelay: 1 });
-    const emitter = new TypedEmitter<SDKEventMap>();
+    const emitter = new TypedEmitter();
     const httpClient = new HttpClient(config, emitter);
     const uploader = new FileUploader(config, httpClient, emitter);
 
@@ -475,7 +485,7 @@ describe('FileUploader', () => {
     );
 
     const config = resolveConfig({ apiKey: 'test-key' });
-    const emitter = new TypedEmitter<SDKEventMap>();
+    const emitter = new TypedEmitter();
     const httpClient = new HttpClient(config, emitter);
     const uploader = new FileUploader(config, httpClient, emitter);
 
