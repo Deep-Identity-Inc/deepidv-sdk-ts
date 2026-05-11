@@ -85,7 +85,7 @@ export class Face {
     }
 
     const [fileKey] = await this.uploader.upload(validated.image);
-    const raw = await this.client.post<unknown>('/v1/face/detect', { fileKey });
+    const raw = await this.client.post<unknown>('/v1/face/detect', { image: fileKey });
     return FaceDetectResultSchema.parse(raw);
   }
 
@@ -121,8 +121,8 @@ export class Face {
 
     const fileKeys = await this.uploader.upload([validated.source, validated.target]);
     const raw = await this.client.post<unknown>('/v1/face/compare', {
-      sourceFileKey: fileKeys[0],
-      targetFileKey: fileKeys[1],
+      source: fileKeys[0],
+      target: fileKeys[1],
     });
     return FaceCompareResultSchema.parse(raw);
   }
@@ -159,7 +159,7 @@ export class Face {
     }
 
     const [fileKey] = await this.uploader.upload(validated.image);
-    const raw = await this.client.post<unknown>('/v1/face/estimate-age', { fileKey });
+    const raw = await this.client.post<unknown>('/v1/face/estimate-age', { image: fileKey });
     return FaceEstimateAgeResultSchema.parse(raw);
   }
 }

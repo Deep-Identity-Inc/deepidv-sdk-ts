@@ -115,22 +115,27 @@ export const FaceEstimateAgeInputSchema = z.object({
 
 /**
  * Response schema for `face.estimateAge()`. Unknown API fields are stripped.
+ *
+ * Age, range, and gender fields are optional because the API only returns them
+ * when a face was detected — `{ faceDetected: false }` is the no-face response.
  */
 export const FaceEstimateAgeResultSchema = z
   .object({
-    /** Estimated age of the face in years. */
-    estimatedAge: z.number(),
-    /** Age range containing the estimated age. */
-    ageRange: z.object({
-      low: z.number(),
-      high: z.number(),
-    }),
-    /** Predicted gender. */
-    gender: GenderSchema,
-    /** Gender prediction confidence score (0-1). */
-    genderConfidence: z.number(),
     /** Whether a face was detected in the image. */
     faceDetected: z.boolean(),
+    /** Estimated age of the face in years. Present only when `faceDetected` is true. */
+    estimatedAge: z.number().optional(),
+    /** Age range containing the estimated age. Present only when `faceDetected` is true. */
+    ageRange: z
+      .object({
+        low: z.number(),
+        high: z.number(),
+      })
+      .optional(),
+    /** Predicted gender. Present only when `faceDetected` is true. */
+    gender: GenderSchema.optional(),
+    /** Gender prediction confidence score (0-1). Present only when `faceDetected` is true. */
+    genderConfidence: z.number().optional(),
   })
   .strip();
 

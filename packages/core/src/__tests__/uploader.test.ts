@@ -233,10 +233,10 @@ function makeUploader(configOverrides?: { uploadTimeout?: number; maxRetries?: n
 // ---------------------------------------------------------------------------
 
 describe('FileUploader', () => {
-  it('upload(jpegBytes) calls POST /v1/uploads/presign with contentType and count:1, then PUTs to S3 and returns [fileKey]', async () => {
+  it('upload(jpegBytes) calls POST /v1/upload/presign with contentType and count:1, then PUTs to S3 and returns [fileKey]', async () => {
     let presignBody: unknown;
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', async ({ request }) => {
+      http.post('https://api.deepidv.com/v1/upload/presign', async ({ request }) => {
         presignBody = await request.json();
         return HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
@@ -255,7 +255,7 @@ describe('FileUploader', () => {
   it('upload([jpegBytes, pngBytes]) calls presign with count:2 and PUTs both files in parallel', async () => {
     const putUrls: string[] = [];
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [
             { uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' },
@@ -281,7 +281,7 @@ describe('FileUploader', () => {
   it('S3 PUT request has correct Content-Type header and no x-api-key header', async () => {
     let putRequest: Request | undefined;
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
         }),
@@ -325,7 +325,7 @@ describe('FileUploader', () => {
     }) as typeof globalThis.fetch;
 
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
         }),
@@ -346,7 +346,7 @@ describe('FileUploader', () => {
     const retryEvents: Array<{ attempt: number }> = [];
 
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
         }),
@@ -379,7 +379,7 @@ describe('FileUploader', () => {
   it('S3 PUT on 403 throws DeepIDVError with code "upload_url_expired" immediately (no retry)', async () => {
     let callCount = 0;
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
         }),
@@ -403,7 +403,7 @@ describe('FileUploader', () => {
     let callCount = 0;
     let secondRequestBodyLength = 0;
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
         }),
@@ -444,7 +444,7 @@ describe('FileUploader', () => {
     let presignBody: unknown;
     let putContentType: string | null = null;
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', async ({ request }) => {
+      http.post('https://api.deepidv.com/v1/upload/presign', async ({ request }) => {
         presignBody = await request.json();
         return HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
@@ -466,7 +466,7 @@ describe('FileUploader', () => {
 
   it('upload emits upload:start before PUT and upload:complete after success', async () => {
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
         }),

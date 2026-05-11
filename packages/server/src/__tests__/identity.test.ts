@@ -3,7 +3,7 @@
  *
  * Uses msw + real HttpClient + real FileUploader to intercept native fetch calls.
  * Covers Identity.verify() — happy path, batch presign count:2 (IDV-02), field
- * forwarding (documentFileKey, faceFileKey, documentType), unknown field stripping
+ * forwarding (documentImage, faceImage, documentType), unknown field stripping
  * (D-06), verified:false case, and Zod validation errors.
  */
 
@@ -51,7 +51,7 @@ const JPEG_BYTES_2 = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE1, ...new Array(100).f
  * and returns two upload slots with file keys for document and face.
  */
 function mockPresignBatch() {
-  return http.post(`${BASE_URL}/v1/uploads/presign`, async ({ request }) => {
+  return http.post(`${BASE_URL}/v1/upload/presign`, async ({ request }) => {
     const body = await request.json() as Record<string, unknown>;
     // Verify batch presign receives count: 2 (IDV-02 / D-02)
     expect(body['count']).toBe(2);
@@ -135,7 +135,7 @@ describe('Identity', () => {
       await identity.verify({ documentImage: JPEG_BYTES, faceImage: JPEG_BYTES_2 });
     });
 
-    it('forwards documentFileKey, faceFileKey, and documentType to API', async () => {
+    it('forwards documentImage, faceImage, and documentType to API', async () => {
       let capturedBody: unknown = null;
 
       server.use(
@@ -151,8 +151,8 @@ describe('Identity', () => {
       await identity.verify({ documentImage: JPEG_BYTES, faceImage: JPEG_BYTES_2, documentType: 'passport' });
 
       const body = capturedBody as Record<string, unknown>;
-      expect(body['documentFileKey']).toBe('fk_doc_001');
-      expect(body['faceFileKey']).toBe('fk_face_001');
+      expect(body['documentImage']).toBe('fk_doc_001');
+      expect(body['faceImage']).toBe('fk_face_001');
       expect(body['documentType']).toBe('passport');
     });
 
@@ -236,7 +236,7 @@ describe('Identity', () => {
 
     it('returns AuthenticationError on 401 from presign', async () => {
       server.use(
-        http.post(`${BASE_URL}/v1/uploads/presign`, () =>
+        http.post(`${BASE_URL}/v1/upload/presign`, () =>
           HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
         ),
       );

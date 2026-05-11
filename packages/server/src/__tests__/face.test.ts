@@ -48,7 +48,7 @@ const JPEG_BYTES_2 = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE1, ...new Array(100).f
 
 /** Single-file presign — returns one upload slot. */
 function mockPresignSingle() {
-  return http.post(`${BASE_URL}/v1/uploads/presign`, () => {
+  return http.post(`${BASE_URL}/v1/upload/presign`, () => {
     return HttpResponse.json({
       uploads: [{ uploadUrl: 'https://s3.example.com/presigned-1', fileKey: 'fk_face_001' }],
     });
@@ -60,7 +60,7 @@ function mockPresignSingle() {
  * and returns two upload slots.
  */
 function mockPresignBatch() {
-  return http.post(`${BASE_URL}/v1/uploads/presign`, async ({ request }) => {
+  return http.post(`${BASE_URL}/v1/upload/presign`, async ({ request }) => {
     const body = await request.json() as Record<string, unknown>;
     // Verify batch presign receives count: 2 (FACE-02 / D-02)
     expect(body['count']).toBe(2);
@@ -134,7 +134,7 @@ describe('Face.detect', () => {
 
   it('returns AuthenticationError on 401 from presign', async () => {
     server.use(
-      http.post(`${BASE_URL}/v1/uploads/presign`, () =>
+      http.post(`${BASE_URL}/v1/upload/presign`, () =>
         HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
       ),
     );
@@ -170,7 +170,7 @@ describe('Face.compare', () => {
     expect(result.confidence).toBe(0.95);
   });
 
-  it('sends sourceFileKey and targetFileKey to compare endpoint', async () => {
+  it('sends source and target file keys to compare endpoint', async () => {
     let capturedBody: unknown = null;
 
     server.use(
@@ -191,8 +191,8 @@ describe('Face.compare', () => {
     const face = createFace();
     await face.compare({ source: JPEG_BYTES, target: JPEG_BYTES_2 });
 
-    expect((capturedBody as Record<string, unknown>)['sourceFileKey']).toBe('fk_source_001');
-    expect((capturedBody as Record<string, unknown>)['targetFileKey']).toBe('fk_target_001');
+    expect((capturedBody as Record<string, unknown>)['source']).toBe('fk_source_001');
+    expect((capturedBody as Record<string, unknown>)['target']).toBe('fk_target_001');
   });
 
   it('throws ValidationError for missing target image', async () => {

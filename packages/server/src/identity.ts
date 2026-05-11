@@ -89,7 +89,9 @@ export class Identity {
    * }
    * ```
    */
-  async verify(input: z.input<typeof IdentityVerifyInputSchema>): Promise<IdentityVerificationResult> {
+  async verify(
+    input: z.input<typeof IdentityVerifyInputSchema>,
+  ): Promise<IdentityVerificationResult> {
     // Step 1: Zod-validate input (maps ZodError to ValidationError per D-12)
     let validated: z.infer<typeof IdentityVerifyInputSchema>;
     try {
@@ -104,8 +106,8 @@ export class Identity {
 
     // Step 3: POST to single API endpoint (IDV-01, D-01 — server handles scan+detect+compare)
     const raw = await this.client.post<unknown>('/v1/identity/verify', {
-      documentFileKey: fileKeys[0],
-      faceFileKey: fileKeys[1],
+      documentImage: fileKeys[0],
+      faceImage: fileKeys[1],
       documentType: validated.documentType,
     });
 

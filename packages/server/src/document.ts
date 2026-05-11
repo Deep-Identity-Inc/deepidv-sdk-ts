@@ -68,33 +68,21 @@ export class Document {
    * ```
    */
   async scan(input: z.input<typeof DocumentScanInputSchema>): Promise<DocumentScanResult> {
-    // Step 1: Zod-validate input (maps ZodError to ValidationError per D-12)
-    // let validated: z.infer<typeof DocumentScanInputSchema>;
-    // try {
-    //   validated = DocumentScanInputSchema.parse(input);
-    // } catch (err) {
-    //   if (err instanceof z.ZodError) throw mapZodError(err);
-    //   throw err;
-    // }
     const validatedInputResult = DocumentScanInputSchema.safeParse(input);
     if (!validatedInputResult.success) {
       throw mapZodError(validatedInputResult.error);
     }
     const validated = validatedInputResult.data;
 
-    // Step 2: Upload image via FileUploader (D-01 — developer never sees fileKey)
-    // const [fileKey] = await this.uploader.upload(validated.image);
+    const [fileKey] = await this.uploader.upload(validated.image);
 
-    // Step 3: Call processing endpoint via HttpClient (D-03 — gets auth, retry, error mapping)
     const raw = await this.client.post<Record<string, unknown>>('/v1/document/scan', {
-      image: validated.image,
+      image: fileKey,
       documentType: validated.documentType,
     });
 
-    // Step 4: Parse response with .strip() schema (D-07 — validate and strip unknown fields)
     return DocumentScanResultSchema.parse(raw);
   }
 }
 
-// Re-export types for consumers who import from this module path
 export type { DocumentScanInput, DocumentScanResult };

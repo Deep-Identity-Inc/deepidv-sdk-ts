@@ -69,7 +69,7 @@ const MOCK_SCAN_RESULT = {
 // ---------------------------------------------------------------------------
 
 function mockPresign() {
-  return http.post(`${BASE_URL}/v1/uploads/presign`, () => {
+  return http.post(`${BASE_URL}/v1/upload/presign`, () => {
     return HttpResponse.json({
       uploads: [{ uploadUrl: 'https://s3.example.com/presigned-1', fileKey: 'fk_doc_001' }],
     });
@@ -170,16 +170,15 @@ describe('Document.scan', () => {
     ).rejects.toThrow(ValidationError);
   });
 
-  // NOTE: Leave out presigned test atm (unclear of whether this will stay in the api)
-  // it('returns AuthenticationError on 401 from presign', async () => {
-  //   server.use(
-  //     http.post(`${BASE_URL}/v1/uploads/presign`, () =>
-  //       HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-  //     ),
-  //   );
-  //   const doc = createDocument();
-  //   await expect(doc.scan({ image: JPEG_BYTES })).rejects.toThrow(AuthenticationError);
-  // });
+  it('returns AuthenticationError on 401 from presign', async () => {
+    server.use(
+      http.post(`${BASE_URL}/v1/upload/presign`, () =>
+        HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      ),
+    );
+    const doc = createDocument();
+    await expect(doc.scan({ image: JPEG_BYTES })).rejects.toThrow(AuthenticationError);
+  });
 
   it('returns DeepIDVError on 500 from scan endpoint', async () => {
     server.use(

@@ -63,7 +63,7 @@ export type UploadOptions = z.infer<typeof UploadOptionsSchema>;
 // ---------------------------------------------------------------------------
 
 /**
- * Response from `POST /v1/uploads/presign`. Contains presigned S3 URLs
+ * Response from `POST /v1/upload/presign`. Contains presigned S3 URLs
  * and the file keys to reference after upload.
  */
 export interface PresignResponse {
@@ -292,7 +292,7 @@ export function validateUploadOptions(raw: unknown): UploadOptions {
  * 1. Normalize all inputs to `Uint8Array` (stream materialization happens here,
  *    before the retry loop — no double-read bug, UPL-06).
  * 2. Detect or accept caller-provided content type (D-06).
- * 3. Call `POST /v1/uploads/presign` once for all files.
+ * 3. Call `POST /v1/upload/presign` once for all files.
  * 4. PUT each file to its S3 presigned URL in parallel (UPL-04).
  * 5. Return `fileKey` strings in the same order as the inputs.
  *
@@ -333,26 +333,20 @@ export class FileUploader {
     const opts = validateUploadOptions(options ?? {});
     const inputArray = Array.isArray(inputs) ? inputs : [inputs];
 
-    // 1. Normalize all inputs to Uint8Array (materialization happens here, before retry loop — UPL-06)
     const byteArrays = await Promise.all(inputArray.map(toUint8Array));
-
-    // 2. Detect or use caller-provided content type
     const contentTypes = byteArrays.map((bytes) => opts.contentType ?? detectContentType(bytes));
 
-    // 3. Request presigned URLs (one API call for all files)
-    const presignResponse = await this.httpClient.post<PresignResponse>('/v1/uploads/presign', {
+    const presignResponse = await this.httpClient.post<PresignResponse>('/v1/upload/presign', {
       contentType: contentTypes[0],
       count: inputArray.length,
     });
 
-    // 4. PUT each file to S3 in parallel (UPL-04)
     await Promise.all(
       presignResponse.uploads.map((upload, i) =>
         this._putToS3(upload.uploadUrl, byteArrays[i]!, contentTypes[i]!),
       ),
     );
 
-    // 5. Return fileKeys in same order as inputs
     return presignResponse.uploads.map((u) => u.fileKey);
   }
 
