@@ -38,10 +38,10 @@ client.on('request', ({ method, url }) => {
 });
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field    | Type     | Description                                |
+| -------- | -------- | ------------------------------------------ |
 | `method` | `string` | HTTP method (`GET`, `POST`, `PATCH`, etc.) |
-| `url` | `string` | Full URL including base URL and path |
+| `url`    | `string` | Full URL including base URL and path       |
 
 ### `response`
 
@@ -53,10 +53,10 @@ client.on('response', ({ status, url, durationMs }) => {
 });
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `status` | `number` | HTTP status code |
-| `url` | `string` | Full request URL |
+| Field        | Type     | Description                                  |
+| ------------ | -------- | -------------------------------------------- |
+| `status`     | `number` | HTTP status code                             |
+| `url`        | `string` | Full request URL                             |
 | `durationMs` | `number` | Time from request start to response received |
 
 ### `retry`
@@ -69,11 +69,11 @@ client.on('retry', ({ attempt, delayMs, error }) => {
 });
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `attempt` | `number` | 1-based retry attempt number |
-| `delayMs` | `number` | Milliseconds until next attempt |
-| `error` | `unknown` | The error that triggered the retry |
+| Field     | Type      | Description                        |
+| --------- | --------- | ---------------------------------- |
+| `attempt` | `number`  | 1-based retry attempt number       |
+| `delayMs` | `number`  | Milliseconds until next attempt    |
+| `error`   | `unknown` | The error that triggered the retry |
 
 ### `error`
 
@@ -86,8 +86,8 @@ client.on('error', ({ error }) => {
 });
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field   | Type      | Description                         |
+| ------- | --------- | ----------------------------------- |
 | `error` | `unknown` | The final error that will be thrown |
 
 ### `warning`
@@ -100,10 +100,10 @@ client.on('warning', ({ message, error }) => {
 });
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `message` | `string` | Description of what went wrong |
-| `error` | `unknown` | The exception thrown by the listener |
+| Field     | Type      | Description                          |
+| --------- | --------- | ------------------------------------ |
+| `message` | `string`  | Description of what went wrong       |
+| `error`   | `unknown` | The exception thrown by the listener |
 
 ### `upload:start`
 
@@ -115,10 +115,10 @@ client.on('upload:start', ({ url, bytes, contentType }) => {
 });
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `url` | `string` | S3 presigned URL |
-| `bytes` | `number` | File size in bytes |
+| Field         | Type     | Description                    |
+| ------------- | -------- | ------------------------------ |
+| `url`         | `string` | S3 presigned URL               |
+| `bytes`       | `number` | File size in bytes             |
 | `contentType` | `string` | MIME type (e.g., `image/jpeg`) |
 
 ### `upload:complete`
@@ -131,10 +131,10 @@ client.on('upload:complete', ({ url, contentType }) => {
 });
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `url` | `string` | S3 presigned URL |
-| `contentType` | `string` | MIME type |
+| Field         | Type     | Description      |
+| ------------- | -------- | ---------------- |
+| `url`         | `string` | S3 presigned URL |
+| `contentType` | `string` | MIME type        |
 
 ## Subscribing and Unsubscribing
 
@@ -170,6 +170,7 @@ Events are dispatched **synchronously** within the request flow:
 3. After all listeners complete, the SDK continues with the request
 
 This means:
+
 - Listeners **should not** perform heavy blocking work (use async logging instead)
 - Listeners **cannot** modify the request or response (they receive read-only payloads)
 - The SDK **does not await** listener return values

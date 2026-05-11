@@ -1,29 +1,29 @@
 ---
 phase: 06-public-entry-point
-plan: "01"
+plan: '01'
 subsystem: server
 tags: [entry-point, barrel, jsdoc, validation, zod]
 dependency_graph:
   requires:
-    - "05-identity-module/05-01: Identity class and types"
-    - "04-document-face-primitives: Document, Face classes"
-    - "03-sessions-module: Sessions class"
-    - "@deepidv/core: HttpClient, FileUploader, TypedEmitter, mapZodError, resolveConfig"
+    - '05-identity-module/05-01: Identity class and types'
+    - '04-document-face-primitives: Document, Face classes'
+    - '03-sessions-module: Sessions class'
+    - '@deepidv/core: HttpClient, FileUploader, TypedEmitter, mapZodError, resolveConfig'
   provides:
-    - "DeepIDV public client class with Zod config validation"
-    - "Rewritten barrel with explicit named exports only"
-    - "Full JSDoc on all 9 public module methods"
+    - 'DeepIDV public client class with Zod config validation'
+    - 'Rewritten barrel with explicit named exports only'
+    - 'Full JSDoc on all 9 public module methods'
   affects:
-    - "packages/server/src/index.ts (rewritten)"
-    - "packages/server/src/deepidv.ts (new)"
+    - 'packages/server/src/index.ts (rewritten)'
+    - 'packages/server/src/deepidv.ts (new)'
 tech_stack:
   added:
-    - "DeepIDVConfigSchema (z.object) for constructor-time config validation"
+    - 'DeepIDVConfigSchema (z.object) for constructor-time config validation'
   patterns:
-    - "Fail-fast constructor: Zod parse then mapZodError before any I/O"
-    - "Eager module instantiation: all namespaces wired in constructor"
-    - "Event delegation: on() proxies to internal TypedEmitter without exposing it"
-    - "Explicit named exports only: no export* wildcards"
+    - 'Fail-fast constructor: Zod parse then mapZodError before any I/O'
+    - 'Eager module instantiation: all namespaces wired in constructor'
+    - 'Event delegation: on() proxies to internal TypedEmitter without exposing it'
+    - 'Explicit named exports only: no export* wildcards'
 key_files:
   created:
     - packages/server/src/deepidv.ts
@@ -35,12 +35,12 @@ key_files:
     - packages/server/src/face.ts
     - packages/server/src/identity.ts
 decisions:
-  - "DeepIDV class is the single public entry point; Sessions/Document/Face/Identity classes are internal implementation details not exported from the barrel"
-  - "DeepIDVConfigSchema exported for consumers who need schema-driven config validation"
-  - "on() method delegates to private TypedEmitter — emitter not exposed directly"
+  - 'DeepIDV class is the single public entry point; Sessions/Document/Face/Identity classes are internal implementation details not exported from the barrel'
+  - 'DeepIDVConfigSchema exported for consumers who need schema-driven config validation'
+  - 'on() method delegates to private TypedEmitter — emitter not exposed directly'
 metrics:
   duration_seconds: 256
-  completed_date: "2026-04-06"
+  completed_date: '2026-04-06'
   tasks_completed: 3
   files_modified: 7
 ---
@@ -76,11 +76,11 @@ Replaced the old barrel (which exposed `Sessions`, `Document`, `Face`, `Identity
 
 ## Commits
 
-| Task | Hash | Message |
-|------|------|---------|
+| Task         | Hash    | Message                                                                         |
+| ------------ | ------- | ------------------------------------------------------------------------------- |
 | Task 1 (TDD) | 9ea1878 | feat(06-01): create DeepIDV public entry point class with Zod config validation |
-| Task 2 | 706755f | feat(06-01): backfill @example JSDoc on all 9 public module methods |
-| Task 3 | 1e744ba | feat(06-01): rewrite server barrel with explicit named exports only |
+| Task 2       | 706755f | feat(06-01): backfill @example JSDoc on all 9 public module methods             |
+| Task 3       | 1e744ba | feat(06-01): rewrite server barrel with explicit named exports only             |
 
 ## Deviations from Plan
 

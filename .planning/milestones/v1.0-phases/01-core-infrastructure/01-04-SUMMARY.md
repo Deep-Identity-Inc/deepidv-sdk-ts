@@ -10,10 +10,10 @@ requires:
     provides: HttpClient, withRetry, TypedEmitter, all core module implementations
 
 provides:
-  - "@deepidv/core barrel exports wired with explicit named exports"
-  - "@deepidv/server shell re-exporting core error types for consumers"
-  - "Verified ESM + CJS runtime imports in Node 22"
-  - "vitest.config.ts for @deepidv/server with passWithNoTests"
+  - '@deepidv/core barrel exports wired with explicit named exports'
+  - '@deepidv/server shell re-exporting core error types for consumers'
+  - 'Verified ESM + CJS runtime imports in Node 22'
+  - 'vitest.config.ts for @deepidv/server with passWithNoTests'
 
 affects: [02-upload-handler, 03-sessions, 04-document, 05-face, 06-identity, 07-publishing]
 
@@ -21,9 +21,9 @@ affects: [02-upload-handler, 03-sessions, 04-document, 05-face, 06-identity, 07-
 tech-stack:
   added: []
   patterns:
-    - "Explicit named exports only — no export * wildcards in barrel files"
-    - "export type keyword for interface/type-only exports for tree-shaking"
-    - "vitest passWithNoTests for shell packages without tests yet"
+    - 'Explicit named exports only — no export * wildcards in barrel files'
+    - 'export type keyword for interface/type-only exports for tree-shaking'
+    - 'vitest passWithNoTests for shell packages without tests yet'
 
 key-files:
   created:
@@ -32,12 +32,12 @@ key-files:
     - packages/server/src/index.ts
 
 key-decisions:
-  - "passWithNoTests: true in @deepidv/server vitest config — Phase 1 shell has no tests; vitest exits 1 without this flag"
-  - "Core barrel file was complete from Plan 03 — Task 1 verified but required no file changes"
+  - 'passWithNoTests: true in @deepidv/server vitest config — Phase 1 shell has no tests; vitest exits 1 without this flag'
+  - 'Core barrel file was complete from Plan 03 — Task 1 verified but required no file changes'
 
 patterns-established:
-  - "Explicit named export pattern: separate export blocks per source module with type keyword on interface exports"
-  - "Server package re-exports only consumer-facing types from core — internal utilities (buildHeaders, withRetry) not re-exported by server"
+  - 'Explicit named export pattern: separate export blocks per source module with type keyword on interface exports'
+  - 'Server package re-exports only consumer-facing types from core — internal utilities (buildHeaders, withRetry) not re-exported by server'
 
 requirements-completed: [COMPAT-01, COMPAT-02, COMPAT-03, COMPAT-04]
 
@@ -90,6 +90,7 @@ Each task was committed atomically:
 ### Auto-fixed Issues
 
 **1. [Rule 2 - Missing Critical] Added passWithNoTests to server vitest.config.ts**
+
 - **Found during:** Task 2 (build and test verification)
 - **Issue:** Plan specified `vitest.config.ts` without `passWithNoTests: true`. Without it, `pnpm -r test --run` fails with exit code 1 since @deepidv/server has no test files in Phase 1.
 - **Fix:** Added `passWithNoTests: true` to the test config so the CI pipeline passes correctly.
@@ -121,5 +122,6 @@ None — `@deepidv/server` intentionally exports only error types in Phase 1. Se
 - Blocker carried forward: confirm `POST /v1/uploads/presign` request/response field names against API docs before Phase 2
 
 ---
-*Phase: 01-core-infrastructure*
-*Completed: 2026-04-05*
+
+_Phase: 01-core-infrastructure_
+_Completed: 2026-04-05_

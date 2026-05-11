@@ -10,7 +10,15 @@
 import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
-import { resolveConfig, TypedEmitter, HttpClient, FileUploader, ValidationError, AuthenticationError, DeepIDVError } from '@deepidv/core';
+import {
+  resolveConfig,
+  TypedEmitter,
+  HttpClient,
+  FileUploader,
+  ValidationError,
+  AuthenticationError,
+  DeepIDVError,
+} from '@deepidv/core';
 import { Identity } from '../identity.js';
 
 const BASE_URL = 'https://api.deepidv.com';
@@ -51,7 +59,7 @@ const JPEG_BYTES_2 = new Uint8Array([0xff, 0xd8, 0xff, 0xe1, ...new Array<number
  */
 function mockPresignBatch() {
   return http.post(`${BASE_URL}/v1/upload/presign`, async ({ request }) => {
-    const body = await request.json() as Record<string, unknown>;
+    const body = (await request.json()) as Record<string, unknown>;
     // Verify batch presign receives count: 2 (IDV-02 / D-02)
     expect(body['count']).toBe(2);
     return HttpResponse.json({
@@ -106,11 +114,7 @@ function mockIdentityVerify(overrides?: Record<string, unknown>) {
 describe('Identity', () => {
   describe('verify()', () => {
     it('returns typed IdentityVerificationResult on success', async () => {
-      server.use(
-        mockPresignBatch(),
-        ...mockS3Puts(),
-        mockIdentityVerify(),
-      );
+      server.use(mockPresignBatch(), ...mockS3Puts(), mockIdentityVerify());
 
       const identity = createIdentity();
       const result = await identity.verify({ documentImage: JPEG_BYTES, faceImage: JPEG_BYTES_2 });
@@ -124,11 +128,7 @@ describe('Identity', () => {
 
     it('sends batch presign with count: 2', async () => {
       // mockPresignBatch() asserts count === 2 inline — test passes if assertion does not throw
-      server.use(
-        mockPresignBatch(),
-        ...mockS3Puts(),
-        mockIdentityVerify(),
-      );
+      server.use(mockPresignBatch(), ...mockS3Puts(), mockIdentityVerify());
 
       const identity = createIdentity();
       await identity.verify({ documentImage: JPEG_BYTES, faceImage: JPEG_BYTES_2 });
@@ -147,7 +147,11 @@ describe('Identity', () => {
       );
 
       const identity = createIdentity();
-      await identity.verify({ documentImage: JPEG_BYTES, faceImage: JPEG_BYTES_2, documentType: 'passport' });
+      await identity.verify({
+        documentImage: JPEG_BYTES,
+        faceImage: JPEG_BYTES_2,
+        documentType: 'passport',
+      });
 
       const body = capturedBody as Record<string, unknown>;
       expect(body['documentImage']).toBe('fk_doc_001');
@@ -196,31 +200,25 @@ describe('Identity', () => {
 
     it('throws ValidationError when documentImage is missing', async () => {
       const identity = createIdentity();
-      await expect(
-        identity.verify({ faceImage: JPEG_BYTES } as never),
-      ).rejects.toThrow(ValidationError);
+      await expect(identity.verify({ faceImage: JPEG_BYTES } as never)).rejects.toThrow(
+        ValidationError,
+      );
     });
 
     it('throws ValidationError when faceImage is missing', async () => {
       const identity = createIdentity();
-      await expect(
-        identity.verify({ documentImage: JPEG_BYTES } as never),
-      ).rejects.toThrow(ValidationError);
+      await expect(identity.verify({ documentImage: JPEG_BYTES } as never)).rejects.toThrow(
+        ValidationError,
+      );
     });
 
     it('throws ValidationError when input is empty object', async () => {
       const identity = createIdentity();
-      await expect(
-        identity.verify({} as never),
-      ).rejects.toThrow(ValidationError);
+      await expect(identity.verify({} as never)).rejects.toThrow(ValidationError);
     });
 
     it('accepts optional documentType parameter', async () => {
-      server.use(
-        mockPresignBatch(),
-        ...mockS3Puts(),
-        mockIdentityVerify(),
-      );
+      server.use(mockPresignBatch(), ...mockS3Puts(), mockIdentityVerify());
 
       const identity = createIdentity();
       const result = await identity.verify({

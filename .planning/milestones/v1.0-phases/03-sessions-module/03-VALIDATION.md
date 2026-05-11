@@ -15,13 +15,13 @@ created: 2026-04-05
 
 ## Test Infrastructure
 
-| Property | Value |
-|----------|-------|
-| **Framework** | vitest (installed) |
-| **Config file** | `packages/server/vitest.config.ts` |
-| **Quick run command** | `pnpm --filter @deepidv/server test` |
+| Property               | Value                                |
+| ---------------------- | ------------------------------------ |
+| **Framework**          | vitest (installed)                   |
+| **Config file**        | `packages/server/vitest.config.ts`   |
+| **Quick run command**  | `pnpm --filter @deepidv/server test` |
 | **Full suite command** | `pnpm --filter @deepidv/server test` |
-| **Estimated runtime** | ~3 seconds |
+| **Estimated runtime**  | ~3 seconds                           |
 
 ---
 
@@ -36,15 +36,15 @@ created: 2026-04-05
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 03-01-01 | 01 | 1 | SESS-01 | unit | `pnpm --filter @deepidv/server test -- sessions` | ❌ W0 | ⬜ pending |
-| 03-01-02 | 01 | 1 | SESS-02 | unit | `pnpm --filter @deepidv/server test -- sessions` | ❌ W0 | ⬜ pending |
-| 03-01-03 | 01 | 1 | SESS-03 | unit | `pnpm --filter @deepidv/server test -- sessions` | ❌ W0 | ⬜ pending |
-| 03-01-04 | 01 | 1 | SESS-04 | unit | `pnpm --filter @deepidv/server test -- sessions` | ❌ W0 | ⬜ pending |
-| 03-02-01 | 02 | 2 | SESS-04 | compile-time | `pnpm --filter @deepidv/server build` | ✅ | ⬜ pending |
+| Task ID  | Plan | Wave | Requirement | Test Type    | Automated Command                                | File Exists | Status     |
+| -------- | ---- | ---- | ----------- | ------------ | ------------------------------------------------ | ----------- | ---------- |
+| 03-01-01 | 01   | 1    | SESS-01     | unit         | `pnpm --filter @deepidv/server test -- sessions` | ❌ W0       | ⬜ pending |
+| 03-01-02 | 01   | 1    | SESS-02     | unit         | `pnpm --filter @deepidv/server test -- sessions` | ❌ W0       | ⬜ pending |
+| 03-01-03 | 01   | 1    | SESS-03     | unit         | `pnpm --filter @deepidv/server test -- sessions` | ❌ W0       | ⬜ pending |
+| 03-01-04 | 01   | 1    | SESS-04     | unit         | `pnpm --filter @deepidv/server test -- sessions` | ❌ W0       | ⬜ pending |
+| 03-02-01 | 02   | 2    | SESS-04     | compile-time | `pnpm --filter @deepidv/server build`            | ✅          | ⬜ pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+_Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky_
 
 ---
 
@@ -53,15 +53,15 @@ created: 2026-04-05
 - [ ] `packages/server/src/__tests__/setup.ts` — msw server setup (mirrors `packages/core/src/__tests__/setup.ts`)
 - [ ] `packages/server/src/__tests__/sessions.test.ts` — test stubs for SESS-01 through SESS-04
 
-*Existing infrastructure: vitest installed, `packages/server/vitest.config.ts` has `passWithNoTests: true`*
+_Existing infrastructure: vitest installed, `packages/server/vitest.config.ts` has `passWithNoTests: true`_
 
 ---
 
 ## Manual-Only Verifications
 
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| TypeScript rejects `'PENDING'` in `updateStatus()` | SESS-04 | Compile-time check, not runtime | Write `sessions.updateStatus(id, 'PENDING')` in a `.ts` file and verify `tsc` reports a type error |
+| Behavior                                           | Requirement | Why Manual                      | Test Instructions                                                                                  |
+| -------------------------------------------------- | ----------- | ------------------------------- | -------------------------------------------------------------------------------------------------- |
+| TypeScript rejects `'PENDING'` in `updateStatus()` | SESS-04     | Compile-time check, not runtime | Write `sessions.updateStatus(id, 'PENDING')` in a `.ts` file and verify `tsc` reports a type error |
 
 ---
 

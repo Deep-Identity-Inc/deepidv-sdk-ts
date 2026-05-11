@@ -59,20 +59,20 @@ which is why the split exists.
 
 ### Component Boundaries
 
-| Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| `DeepIDVConfig` (config.ts) | Holds apiKey, baseUrl, timeout, retries, version; provides validated defaults | Consumed by HttpClient, FileUploader, all modules |
-| `AuthMiddleware` (auth.ts) | Attaches `x-api-key` header to every outbound request | Consumed by HttpClient |
-| `HttpClient` (client.ts) | Native `fetch` wrapper: base URL resolution, JSON serialisation/deserialisation, response status checking, timeout via `AbortController` | Uses AuthMiddleware, RetryEngine, ErrorFactory; called by all modules |
-| `ErrorFactory` / hierarchy (errors.ts) | Maps HTTP status codes to typed error subclasses; carries status code, error code, human message | Consumed by HttpClient; surfaced to end user |
-| `RetryEngine` (retry.ts) | Exponential backoff with jitter; retries only 429 and 5xx; never retries 4xx | Invoked by HttpClient per-attempt |
-| `FileUploader` (uploader.ts) | Accepts Buffer / Uint8Array / ReadableStream / file-path / base64; requests presigned URL; PUTs to S3; returns fileKey; supports batch parallel uploads | Uses HttpClient (for presign call); uses native `fetch` directly (for S3 PUT); called by document.ts, face.ts, identity.ts |
-| `EventEmitter` (events.ts) | Typed lifecycle events: request-start, upload-progress, response-received, error | Subscribed to by HttpClient and FileUploader; exposed optionally to end user |
-| `DeepIDV` (deepidv.ts) | Public client class; takes config; instantiates HttpClient + FileUploader + all module groups as properties | Owns all module instances; entry point for developers |
-| `SessionsModule` (sessions.ts) | CRUD for hosted verification sessions; pure HTTP, no file uploads | Uses HttpClient |
-| `DocumentModule` (document.ts) | `scan()` — presigned upload + OCR endpoint call | Uses FileUploader + HttpClient |
-| `FaceModule` (face.ts) | `detect()`, `compare()` (parallel dual upload), `estimateAge()` | Uses FileUploader + HttpClient |
-| `IdentityModule` (identity.ts) | `verify()` — orchestrates document.scan + face.detect + face.compare via single API endpoint | Uses FileUploader + HttpClient |
+| Component                              | Responsibility                                                                                                                                          | Communicates With                                                                                                          |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `DeepIDVConfig` (config.ts)            | Holds apiKey, baseUrl, timeout, retries, version; provides validated defaults                                                                           | Consumed by HttpClient, FileUploader, all modules                                                                          |
+| `AuthMiddleware` (auth.ts)             | Attaches `x-api-key` header to every outbound request                                                                                                   | Consumed by HttpClient                                                                                                     |
+| `HttpClient` (client.ts)               | Native `fetch` wrapper: base URL resolution, JSON serialisation/deserialisation, response status checking, timeout via `AbortController`                | Uses AuthMiddleware, RetryEngine, ErrorFactory; called by all modules                                                      |
+| `ErrorFactory` / hierarchy (errors.ts) | Maps HTTP status codes to typed error subclasses; carries status code, error code, human message                                                        | Consumed by HttpClient; surfaced to end user                                                                               |
+| `RetryEngine` (retry.ts)               | Exponential backoff with jitter; retries only 429 and 5xx; never retries 4xx                                                                            | Invoked by HttpClient per-attempt                                                                                          |
+| `FileUploader` (uploader.ts)           | Accepts Buffer / Uint8Array / ReadableStream / file-path / base64; requests presigned URL; PUTs to S3; returns fileKey; supports batch parallel uploads | Uses HttpClient (for presign call); uses native `fetch` directly (for S3 PUT); called by document.ts, face.ts, identity.ts |
+| `EventEmitter` (events.ts)             | Typed lifecycle events: request-start, upload-progress, response-received, error                                                                        | Subscribed to by HttpClient and FileUploader; exposed optionally to end user                                               |
+| `DeepIDV` (deepidv.ts)                 | Public client class; takes config; instantiates HttpClient + FileUploader + all module groups as properties                                             | Owns all module instances; entry point for developers                                                                      |
+| `SessionsModule` (sessions.ts)         | CRUD for hosted verification sessions; pure HTTP, no file uploads                                                                                       | Uses HttpClient                                                                                                            |
+| `DocumentModule` (document.ts)         | `scan()` — presigned upload + OCR endpoint call                                                                                                         | Uses FileUploader + HttpClient                                                                                             |
+| `FaceModule` (face.ts)                 | `detect()`, `compare()` (parallel dual upload), `estimateAge()`                                                                                         | Uses FileUploader + HttpClient                                                                                             |
+| `IdentityModule` (identity.ts)         | `verify()` — orchestrates document.scan + face.detect + face.compare via single API endpoint                                                            | Uses FileUploader + HttpClient                                                                                             |
 
 ---
 
@@ -168,6 +168,7 @@ All errors extend DeepIDVError base class:
 ### Pattern 1: Thin Module — Fat Core
 
 Modules (sessions.ts, document.ts, face.ts, identity.ts) contain only:
+
 1. Zod schema for input validation
 2. Call to FileUploader (if file-bearing)
 3. Single call to HttpClient
@@ -214,8 +215,8 @@ async function normaliseInput(input: ImageInput): Promise<Uint8Array> {
 `face.compare` and `identity.verify` need two images. Request both presigned URLs in one API call (`count: 2`), then upload in parallel:
 
 ```typescript
-const [{ uploadUrl: url1, fileKey: key1 }, { uploadUrl: url2, fileKey: key2 }]
-  = await this.uploader.uploadBatch([sourceImage, targetImage]);
+const [{ uploadUrl: url1, fileKey: key1 }, { uploadUrl: url2, fileKey: key2 }] =
+  await this.uploader.uploadBatch([sourceImage, targetImage]);
 // Both PUTs run via Promise.all internally
 ```
 
@@ -229,11 +230,11 @@ class DeepIDVError extends Error {
   errorCode: string;
   requestId?: string;
 }
-class AuthenticationError extends DeepIDVError {}   // 401
-class RateLimitError extends DeepIDVError {}        // 429 — retried
-class ValidationError extends DeepIDVError {}       // 400 — never retried
-class NetworkError extends DeepIDVError {}          // connection failure
-class TimeoutError extends DeepIDVError {}          // AbortController fired
+class AuthenticationError extends DeepIDVError {} // 401
+class RateLimitError extends DeepIDVError {} // 429 — retried
+class ValidationError extends DeepIDVError {} // 400 — never retried
+class NetworkError extends DeepIDVError {} // connection failure
+class TimeoutError extends DeepIDVError {} // AbortController fired
 ```
 
 ### Pattern 5: RetryEngine — Only 429 and 5xx
@@ -253,14 +254,14 @@ backoffMs(attempt, baseMs = 500, maxMs = 30_000):
 
 ```typescript
 // DO: grouped, discoverable
-client.face.detect()
-client.face.compare()
-client.face.estimateAge()
+client.face.detect();
+client.face.compare();
+client.face.estimateAge();
 
 // DON'T: flat, loses grouping signal
-client.detectFace()
-client.compareFaces()
-client.estimateFaceAge()
+client.detectFace();
+client.compareFaces();
+client.estimateFaceAge();
 ```
 
 Module instances are set as properties on the `DeepIDV` class constructor. This enables autocomplete to surface groups, matching the API's own URL structure (`/v1/face/...`).
@@ -269,11 +270,11 @@ Module instances are set as properties on the `DeepIDV` class constructor. This 
 
 ```typescript
 interface DeepIDVConfig {
-  apiKey: string;           // required
-  baseUrl?: string;         // default: 'https://api.deepidv.com'
-  timeout?: number;         // default: 30_000 ms
-  retries?: number;         // default: 3
-  version?: string;         // default: 'v1'
+  apiKey: string; // required
+  baseUrl?: string; // default: 'https://api.deepidv.com'
+  timeout?: number; // default: 30_000 ms
+  retries?: number; // default: 3
+  version?: string; // default: 'v1'
 }
 ```
 
@@ -371,14 +372,14 @@ The sessions module (Phase 3) intentionally precedes file-bearing modules (Phase
 
 This SDK runs on the developer's server — it does not scale with end-user traffic directly. Scalability concerns are about the SDK's own resource usage per server instance.
 
-| Concern | Behaviour | Design Decision |
-|---------|-----------|-----------------|
-| Concurrent uploads | Each call is independent; no global connection pool | Native fetch handles concurrency at runtime level |
-| Memory — large images | FileUploader streams where possible; no full-copy into memory for ReadableStream inputs | Streaming path avoids doubling image memory |
-| Rate limit handling | RetryEngine backs off on 429 with jitter to spread retries across concurrent callers | Jitter prevents thundering herd |
-| Timeout propagation | AbortController per request; timeout configurable at client construction | No request hangs indefinitely |
-| Edge runtime bundle size | Zero non-zod deps; tree-shakeable tsup output; dual ESM + CJS | Cloudflare Workers 1MB limit is not a concern |
-| Future concurrency | `identity.verify` batches two presign URLs and uploads in parallel; pattern extends to N files for future batch ops | `Promise.all` pattern is established from the start |
+| Concern                  | Behaviour                                                                                                           | Design Decision                                     |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Concurrent uploads       | Each call is independent; no global connection pool                                                                 | Native fetch handles concurrency at runtime level   |
+| Memory — large images    | FileUploader streams where possible; no full-copy into memory for ReadableStream inputs                             | Streaming path avoids doubling image memory         |
+| Rate limit handling      | RetryEngine backs off on 429 with jitter to spread retries across concurrent callers                                | Jitter prevents thundering herd                     |
+| Timeout propagation      | AbortController per request; timeout configurable at client construction                                            | No request hangs indefinitely                       |
+| Edge runtime bundle size | Zero non-zod deps; tree-shakeable tsup output; dual ESM + CJS                                                       | Cloudflare Workers 1MB limit is not a concern       |
+| Future concurrency       | `identity.verify` batches two presign URLs and uploads in parallel; pattern extends to N files for future batch ops | `Promise.all` pattern is established from the start |
 
 ---
 
@@ -387,14 +388,15 @@ This SDK runs on the developer's server — it does not scale with end-user traf
 **Decision: Namespaced (grouped).** Already decided in the build guide; this section documents why.
 
 ```typescript
-client.face.detect()      // grouped
-client.face.compare()
-client.face.estimateAge()
+client.face.detect(); // grouped
+client.face.compare();
+client.face.estimateAge();
 // vs.
-client.detectFace()       // flat — worse autocomplete signal
+client.detectFace(); // flat — worse autocomplete signal
 ```
 
 Reasons:
+
 1. **Autocomplete discoverability** — typing `client.face.` shows only the three face methods, not all 10+ SDK methods.
 2. **Mirrors the API URL structure** — `/v1/face/detect`, `/v1/face/compare`, `/v1/face/estimate-age` map directly to `client.face.detect/compare/estimateAge`.
 3. **Scales cleanly** — adding `client.face.deepfakeCheck()` in a future phase is additive and obvious; adding `client.detectFaceDeepfake()` to a flat namespace is awkward.

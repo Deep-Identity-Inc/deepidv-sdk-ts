@@ -4,16 +4,16 @@ The SDK uses only native web APIs (`fetch`, `AbortController`, `ReadableStream`,
 
 ## Runtime Support Matrix
 
-| Feature | Node.js 18+ | Deno | Bun | Cloudflare Workers |
-|---------|-------------|------|-----|-------------------|
-| All API methods | Yes | Yes | Yes | Yes |
-| File path input | Yes | Yes | Yes | **No** |
-| Buffer input | Yes | Yes | Yes | Yes |
-| Uint8Array input | Yes | Yes | Yes | Yes |
-| ReadableStream input | Yes | Yes | Yes | Yes |
-| Base64 / data URL input | Yes | Yes | Yes | Yes |
-| ESM import | Yes | Yes | Yes | Yes |
-| CJS require | Yes | N/A | Yes | N/A |
+| Feature                 | Node.js 18+ | Deno | Bun | Cloudflare Workers |
+| ----------------------- | ----------- | ---- | --- | ------------------ |
+| All API methods         | Yes         | Yes  | Yes | Yes                |
+| File path input         | Yes         | Yes  | Yes | **No**             |
+| Buffer input            | Yes         | Yes  | Yes | Yes                |
+| Uint8Array input        | Yes         | Yes  | Yes | Yes                |
+| ReadableStream input    | Yes         | Yes  | Yes | Yes                |
+| Base64 / data URL input | Yes         | Yes  | Yes | Yes                |
+| ESM import              | Yes         | Yes  | Yes | Yes                |
+| CJS require             | Yes         | N/A  | Yes | N/A                |
 
 ## Node.js 18+
 
@@ -64,7 +64,9 @@ const client = new DeepIDV({
 });
 
 const result = await client.document.scan({
-  image: await Bun.file('document.jpg').arrayBuffer().then(b => new Uint8Array(b)),
+  image: await Bun.file('document.jpg')
+    .arrayBuffer()
+    .then((b) => new Uint8Array(b)),
 });
 ```
 
@@ -110,6 +112,7 @@ const client = new DeepIDV({
 ```
 
 This is useful for:
+
 - Proxy routing
 - Mutual TLS (mTLS)
 - Cloudflare Workers service bindings
@@ -119,11 +122,11 @@ This is useful for:
 
 The SDK publishes dual format:
 
-| File | Format | Used By |
-|------|--------|---------|
-| `dist/index.js` | ESM | Node.js (type: module), Deno, Bun, Workers |
-| `dist/index.cjs` | CJS | Node.js (require) |
-| `dist/index.d.ts` | TypeScript declarations | IDEs, tsc |
-| `dist/index.d.cts` | CTS declarations | CJS TypeScript projects |
+| File               | Format                  | Used By                                    |
+| ------------------ | ----------------------- | ------------------------------------------ |
+| `dist/index.js`    | ESM                     | Node.js (type: module), Deno, Bun, Workers |
+| `dist/index.cjs`   | CJS                     | Node.js (require)                          |
+| `dist/index.d.ts`  | TypeScript declarations | IDEs, tsc                                  |
+| `dist/index.d.cts` | CTS declarations        | CJS TypeScript projects                    |
 
 The `package.json` `exports` map resolves the correct format automatically based on how you import the package.

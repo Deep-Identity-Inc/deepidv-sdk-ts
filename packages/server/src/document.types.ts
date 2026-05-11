@@ -18,12 +18,7 @@ import type { FileInput } from '@deepidv/core';
  * Supported document type hints for `document.scan()`.
  * Use `'auto'` (default) to let the API detect the document type.
  */
-export const DocumentTypeSchema = z.enum([
-  'passport',
-  'drivers_license',
-  'national_id',
-  'auto',
-]);
+export const DocumentTypeSchema = z.enum(['passport', 'drivers_license', 'national_id', 'auto']);
 
 // ---------------------------------------------------------------------------
 // Input schemas

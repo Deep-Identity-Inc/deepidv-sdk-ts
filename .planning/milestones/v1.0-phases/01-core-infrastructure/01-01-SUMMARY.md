@@ -23,7 +23,7 @@ tech_stack:
     - eslint@9.39.4
     - typescript-eslint@8.58.0
     - prettier@3.8.1
-    - "@changesets/cli@2.30.0"
+    - '@changesets/cli@2.30.0'
   patterns:
     - pnpm workspaces with workspace:* protocol
     - tsup dual ESM+CJS with .d.ts via dts:true
@@ -47,13 +47,13 @@ key_files:
     - .gitignore (extended)
   modified: []
 decisions:
-  - "Used TypeScript 6.0.2 (latest stable) instead of ^5.4 per CLAUDE.md — RESEARCH.md confirmed 6.0.2 is GA since March 2026"
-  - "Used zod 4.3.6 (latest stable) instead of ^3.23 per CLAUDE.md — RESEARCH.md recommends starting on v4 to avoid future migration"
-  - "Added ignoreDeprecations:6.0 to tsconfig.base.json — TS6 deprecates baseUrl which tsup DTS builder injects internally"
-  - "Added .prettierignore to exclude pnpm-lock.yaml (generated) from Prettier checks"
+  - 'Used TypeScript 6.0.2 (latest stable) instead of ^5.4 per CLAUDE.md — RESEARCH.md confirmed 6.0.2 is GA since March 2026'
+  - 'Used zod 4.3.6 (latest stable) instead of ^3.23 per CLAUDE.md — RESEARCH.md recommends starting on v4 to avoid future migration'
+  - 'Added ignoreDeprecations:6.0 to tsconfig.base.json — TS6 deprecates baseUrl which tsup DTS builder injects internally'
+  - 'Added .prettierignore to exclude pnpm-lock.yaml (generated) from Prettier checks'
 metrics:
-  duration: "3 minutes"
-  completed: "2026-04-05T21:50:25Z"
+  duration: '3 minutes'
+  completed: '2026-04-05T21:50:25Z'
   tasks_completed: 2
   files_created: 14
   files_modified: 1
@@ -76,20 +76,20 @@ ESLint v9 flat config uses `typescript-eslint.configs.strictTypeChecked` with `@
 
 ## Verification Results
 
-| Check | Result |
-|-------|--------|
-| `pnpm install` | Exits 0 — 315 packages resolved |
-| `pnpm -r build` | Exits 0 — both packages produce ESM, CJS, .d.ts, .d.cts |
-| `pnpm lint` | Exits 0 — no ESLint errors |
-| `pnpm format:check` | Exits 0 — all files formatted |
+| Check                   | Result                                                       |
+| ----------------------- | ------------------------------------------------------------ |
+| `pnpm install`          | Exits 0 — 315 packages resolved                              |
+| `pnpm -r build`         | Exits 0 — both packages produce ESM, CJS, .d.ts, .d.cts      |
+| `pnpm lint`             | Exits 0 — no ESLint errors                                   |
+| `pnpm format:check`     | Exits 0 — all files formatted                                |
 | ESM dynamic import test | `import('./packages/core/dist/index.js')` → `VERSION: 0.0.0` |
 
 ## Commits
 
-| Task | Commit | Description |
-|------|--------|-------------|
+| Task                      | Commit    | Description                                                                |
+| ------------------------- | --------- | -------------------------------------------------------------------------- |
 | Task 1: Monorepo scaffold | `299f3b4` | feat(01-01): scaffold pnpm monorepo with @deepidv/core and @deepidv/server |
-| Task 2: ESLint + Prettier | `d91c00c` | chore(01-01): configure ESLint flat config and Prettier |
+| Task 2: ESLint + Prettier | `d91c00c` | chore(01-01): configure ESLint flat config and Prettier                    |
 
 ## Deviations from Plan
 

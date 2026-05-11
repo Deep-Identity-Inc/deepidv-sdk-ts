@@ -17,9 +17,9 @@ affects: [06-jsdoc-cleanup]
 tech-stack:
   added: []
   patterns:
-    - "createIdentity() factory helper: real HttpClient + FileUploader with msw interception (mirrors createFace())"
-    - "mockPresignBatch() asserts count:2 inline — batch presign contract verified at test level"
-    - "server.use() inside each it() block — handler isolation, no global registration"
+    - 'createIdentity() factory helper: real HttpClient + FileUploader with msw interception (mirrors createFace())'
+    - 'mockPresignBatch() asserts count:2 inline — batch presign contract verified at test level'
+    - 'server.use() inside each it() block — handler isolation, no global registration'
 
 key-files:
   created:
@@ -27,8 +27,8 @@ key-files:
   modified: []
 
 key-decisions:
-  - "Barrel exports were already complete from 05-01 Rule 2 auto-fix — Task 2 required zero file changes (verified build + typecheck only)"
-  - "mockPresignBatch uses fileKeys fk_doc_001 / fk_face_001 to mirror document.test.ts naming convention"
+  - 'Barrel exports were already complete from 05-01 Rule 2 auto-fix — Task 2 required zero file changes (verified build + typecheck only)'
+  - 'mockPresignBatch uses fileKeys fk_doc_001 / fk_face_001 to mirror document.test.ts naming convention'
 
 requirements-completed: [IDV-01, IDV-02, IDV-03]
 
@@ -85,8 +85,10 @@ None — all test assertions verify real data, no placeholder values.
 ## Self-Check: PASSED
 
 Files verified:
+
 - `packages/server/src/__tests__/identity.test.ts` — FOUND
 - `packages/server/src/index.ts` — FOUND, contains all Identity exports
 
 Commits verified:
+
 - `9db2c0d` — FOUND (test(05-02): add identity.verify() test suite)

@@ -15,13 +15,13 @@ created: 2026-04-06
 
 ## Test Infrastructure
 
-| Property | Value |
-|----------|-------|
-| **Framework** | vitest v4.1.2 |
-| **Config file** | `packages/core/vitest.config.ts`, `packages/server/vitest.config.ts` |
-| **Quick run command** | `pnpm --filter @deepidv/server test` |
-| **Full suite command** | `pnpm test` |
-| **Estimated runtime** | ~5 seconds |
+| Property               | Value                                                                |
+| ---------------------- | -------------------------------------------------------------------- |
+| **Framework**          | vitest v4.1.2                                                        |
+| **Config file**        | `packages/core/vitest.config.ts`, `packages/server/vitest.config.ts` |
+| **Quick run command**  | `pnpm --filter @deepidv/server test`                                 |
+| **Full suite command** | `pnpm test`                                                          |
+| **Estimated runtime**  | ~5 seconds                                                           |
 
 ---
 
@@ -36,17 +36,17 @@ created: 2026-04-06
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 07-01-01 | 01 | 1 | TEST-01 | unit | `pnpm --filter @deepidv/core test` | ✅ | ⬜ pending |
-| 07-01-02 | 01 | 1 | TEST-02 | integration | `pnpm --filter @deepidv/server test` | ✅ | ⬜ pending |
-| 07-01-03 | 01 | 1 | TEST-03 | type-check | `cd test/consumer && tsc --noEmit` | ❌ W0 | ⬜ pending |
-| 07-02-01 | 02 | 2 | PUB-01 | manual verify | `ls .changeset/config.json` | ❌ W0 | ⬜ pending |
-| 07-02-02 | 02 | 2 | PUB-02 | already done | `grep access packages/server/package.json` | ✅ | ⬜ pending |
-| 07-02-03 | 02 | 2 | PUB-03 | CI (external) | Manual review | ❌ W0 | ⬜ pending |
-| 07-02-04 | 02 | 2 | PUB-04 | static file | `ls examples/node-basic/index.ts` | ❌ W0 | ⬜ pending |
+| Task ID  | Plan | Wave | Requirement | Test Type     | Automated Command                          | File Exists | Status     |
+| -------- | ---- | ---- | ----------- | ------------- | ------------------------------------------ | ----------- | ---------- |
+| 07-01-01 | 01   | 1    | TEST-01     | unit          | `pnpm --filter @deepidv/core test`         | ✅          | ⬜ pending |
+| 07-01-02 | 01   | 1    | TEST-02     | integration   | `pnpm --filter @deepidv/server test`       | ✅          | ⬜ pending |
+| 07-01-03 | 01   | 1    | TEST-03     | type-check    | `cd test/consumer && tsc --noEmit`         | ❌ W0       | ⬜ pending |
+| 07-02-01 | 02   | 2    | PUB-01      | manual verify | `ls .changeset/config.json`                | ❌ W0       | ⬜ pending |
+| 07-02-02 | 02   | 2    | PUB-02      | already done  | `grep access packages/server/package.json` | ✅          | ⬜ pending |
+| 07-02-03 | 02   | 2    | PUB-03      | CI (external) | Manual review                              | ❌ W0       | ⬜ pending |
+| 07-02-04 | 02   | 2    | PUB-04      | static file   | `ls examples/node-basic/index.ts`          | ❌ W0       | ⬜ pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+_Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky_
 
 ---
 
@@ -58,16 +58,16 @@ created: 2026-04-06
 - [ ] `.github/workflows/ci.yml` — PR test workflow
 - [ ] `.github/workflows/publish.yml` — changesets publish workflow
 
-*No test framework gaps — vitest infrastructure is complete*
+_No test framework gaps — vitest infrastructure is complete_
 
 ---
 
 ## Manual-Only Verifications
 
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| NPM_TOKEN secret exists | PUB-03 | GitHub secret cannot be verified in CI dry-run | Create npm automation token, add as `NPM_TOKEN` repo secret |
-| Publish workflow triggers on release | PUB-03 | Requires actual changeset merge to test | Verify workflow YAML triggers on push to main with changeset |
+| Behavior                             | Requirement | Why Manual                                     | Test Instructions                                            |
+| ------------------------------------ | ----------- | ---------------------------------------------- | ------------------------------------------------------------ |
+| NPM_TOKEN secret exists              | PUB-03      | GitHub secret cannot be verified in CI dry-run | Create npm automation token, add as `NPM_TOKEN` repo secret  |
+| Publish workflow triggers on release | PUB-03      | Requires actual changeset merge to test        | Verify workflow YAML triggers on push to main with changeset |
 
 ---
 

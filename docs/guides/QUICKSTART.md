@@ -53,10 +53,10 @@ const result = await client.document.scan({
   image: readFileSync('drivers-license.jpg'),
 });
 
-console.log(result.fullName);        // "Jane Doe"
-console.log(result.dateOfBirth);     // "1990-01-15"
-console.log(result.documentNumber);  // "D1234567"
-console.log(result.confidence);      // 0.97
+console.log(result.fullName); // "Jane Doe"
+console.log(result.dateOfBirth); // "1990-01-15"
+console.log(result.documentNumber); // "D1234567"
+console.log(result.confidence); // 0.97
 ```
 
 ## Compare Two Faces
@@ -69,8 +69,8 @@ const match = await client.face.compare({
   target: readFileSync('selfie.jpg'),
 });
 
-console.log(match.isMatch);     // true
-console.log(match.confidence);  // 0.94
+console.log(match.isMatch); // true
+console.log(match.confidence); // 0.94
 ```
 
 ## Full Identity Verification
@@ -83,10 +83,10 @@ const verification = await client.identity.verify({
   faceImage: readFileSync('selfie.jpg'),
 });
 
-console.log(verification.verified);           // true
-console.log(verification.overallConfidence);  // 0.96
-console.log(verification.document.fullName);  // "Jane Doe"
-console.log(verification.faceMatch.isMatch);  // true
+console.log(verification.verified); // true
+console.log(verification.overallConfidence); // 0.96
+console.log(verification.document.fullName); // "Jane Doe"
+console.log(verification.faceMatch.isMatch); // true
 ```
 
 ## Next Steps

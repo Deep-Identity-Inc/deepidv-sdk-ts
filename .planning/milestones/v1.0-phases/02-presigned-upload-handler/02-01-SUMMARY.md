@@ -1,6 +1,6 @@
 ---
 phase: 02-presigned-upload-handler
-plan: "01"
+plan: '01'
 subsystem: core
 tags: [upload, types, zod, validation, content-type, config, events]
 dependency_graph:
@@ -21,10 +21,10 @@ key_files:
 decisions:
   - "Used globalThis['process'] property access instead of bare `process` to avoid requiring @types/node in runtime-agnostic core package"
   - "Used dynamic import with string cast (`import('node:fs/promises' as string)`) to prevent DTS type errors while keeping conditional Node-only import"
-  - "Added uploader exports to core barrel (index.ts) even though not listed in plan files_modified — required for Plan 02 FileUploader class to import from @deepidv/core"
+  - 'Added uploader exports to core barrel (index.ts) even though not listed in plan files_modified — required for Plan 02 FileUploader class to import from @deepidv/core'
 metrics:
   duration_seconds: 215
-  completed_date: "2026-04-05"
+  completed_date: '2026-04-05'
   tasks_completed: 2
   files_changed: 5
 ---
@@ -35,24 +35,27 @@ Upload foundation layer: `uploadTimeout` config extension, upload lifecycle even
 
 ## Tasks Completed
 
-| Task | Description | Commit | Files |
-|------|-------------|--------|-------|
-| 1 | Extend config and events for upload support | 1d27234 | config.ts, events.ts |
-| 2 | Create uploader.ts with types, Zod schemas, utility functions | 806b6d4 | uploader.ts, uploader.test.ts, index.ts |
+| Task | Description                                                   | Commit  | Files                                   |
+| ---- | ------------------------------------------------------------- | ------- | --------------------------------------- |
+| 1    | Extend config and events for upload support                   | 1d27234 | config.ts, events.ts                    |
+| 2    | Create uploader.ts with types, Zod schemas, utility functions | 806b6d4 | uploader.ts, uploader.test.ts, index.ts |
 
 ## What Was Built
 
 ### config.ts
+
 - Added `DEFAULT_UPLOAD_TIMEOUT = 120_000` constant
 - Added `uploadTimeout?: number` to `DeepIDVConfig` interface (optional, default 120s)
 - Added `uploadTimeout: number` to `ResolvedConfig` interface (required after resolution)
 - Added `uploadTimeout: config.uploadTimeout ?? DEFAULT_UPLOAD_TIMEOUT` to `resolveConfig()`
 
 ### events.ts
+
 - Added `'upload:start': { url: string; bytes: number; contentType: string }` to `SDKEventMap`
 - Added `'upload:complete': { url: string; contentType: string }` to `SDKEventMap`
 
 ### uploader.ts (new file)
+
 - **`FileInput`** type: `Uint8Array | ReadableStream<Uint8Array> | string` — no Buffer
 - **`SupportedContentType`** type: `'image/jpeg' | 'image/png' | 'image/webp'`
 - **`UploadOptions`** type: `z.infer<typeof UploadOptionsSchema>` — Zod schema as source of truth
@@ -63,6 +66,7 @@ Upload foundation layer: `uploadTimeout` config extension, upload lifecycle even
 - **`validateUploadOptions()`**: Parses raw input through UploadOptionsSchema, maps ZodError to ValidationError
 
 ### index.ts
+
 - Exported `DEFAULT_UPLOAD_TIMEOUT` from config
 - Exported all public types and functions from uploader.ts
 
@@ -71,6 +75,7 @@ Upload foundation layer: `uploadTimeout` config extension, upload lifecycle even
 ### Auto-fixed Issues
 
 **1. [Rule 3 - Blocking] TypeScript DTS build errors for process/Deno/Bun globals**
+
 - **Found during:** Task 2 verification
 - **Issue:** TypeScript 6 with strict mode and no @types/node couldn't type `process`, `Deno`, `Bun`, or `import('fs/promises')` in uploader.ts DTS build
 - **Fix:** Routed all runtime globals through `globalThis as Record<string, any>` property access; used `import('node:fs/promises' as string) as any` to suppress type checking on conditional Node-only import
@@ -78,6 +83,7 @@ Upload foundation layer: `uploadTimeout` config extension, upload lifecycle even
 - **Commit:** 806b6d4
 
 **2. [Rule 2 - Missing Critical] Added uploader exports to core barrel**
+
 - **Found during:** Task 2 implementation
 - **Issue:** Plan's `files_modified` did not list `index.ts`, but Plan 02 (FileUploader class) must import types and utilities from `@deepidv/core`
 - **Fix:** Added `FileInput`, `SupportedContentType`, `UploadOptions`, `PresignResponse`, `toUint8Array`, `detectContentType`, `mapZodError`, `validateUploadOptions`, and `DEFAULT_UPLOAD_TIMEOUT` exports to `packages/core/src/index.ts`

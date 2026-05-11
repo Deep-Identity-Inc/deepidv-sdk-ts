@@ -8,7 +8,14 @@
 import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
-import { resolveConfig, TypedEmitter, HttpClient, ValidationError, AuthenticationError, DeepIDVError } from '@deepidv/core';
+import {
+  resolveConfig,
+  TypedEmitter,
+  HttpClient,
+  ValidationError,
+  AuthenticationError,
+  DeepIDVError,
+} from '@deepidv/core';
 import { Sessions } from '../sessions.js';
 
 const BASE_URL = 'https://api.deepidv.com';
@@ -325,9 +332,9 @@ describe('Sessions.updateStatus', () => {
 
   it('throws ValidationError on invalid status like PENDING', async () => {
     const sessions = createSessions();
-    await expect(
-      sessions.updateStatus('sess_abc123', 'PENDING' as never),
-    ).rejects.toThrow(ValidationError);
+    await expect(sessions.updateStatus('sess_abc123', 'PENDING' as never)).rejects.toThrow(
+      ValidationError,
+    );
   });
 
   it('throws ValidationError on empty sessionId', async () => {
@@ -342,6 +349,8 @@ describe('Sessions.updateStatus', () => {
       ),
     );
     const sessions = createSessions();
-    await expect(sessions.updateStatus('sess_nonexistent', 'VERIFIED')).rejects.toThrow(DeepIDVError);
+    await expect(sessions.updateStatus('sess_nonexistent', 'VERIFIED')).rejects.toThrow(
+      DeepIDVError,
+    );
   });
 });

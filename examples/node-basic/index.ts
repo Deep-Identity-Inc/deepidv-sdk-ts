@@ -15,12 +15,7 @@
  */
 
 import { readFileSync } from 'node:fs';
-import {
-  DeepIDV,
-  DeepIDVError,
-  AuthenticationError,
-  RateLimitError,
-} from '@deepidv/server';
+import { DeepIDV, DeepIDVError, AuthenticationError, RateLimitError } from '@deepidv/server';
 
 // ---------------------------------------------------------------------------
 // 1. Initialize the client
@@ -203,7 +198,7 @@ async function faceExample(): Promise<void> {
    * Typical use case: compare a selfie against a document photo.
    */
   const comparison = await client.face.compare({
-    source: selfieBuffer,   // source face (e.g., live selfie)
+    source: selfieBuffer, // source face (e.g., live selfie)
     target: documentBuffer, // target face (e.g., passport photo)
   });
 

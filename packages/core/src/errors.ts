@@ -159,10 +159,7 @@ export class RateLimitError extends DeepIDVError {
  * Indicates a problem with the request data sent by the caller.
  */
 export class ValidationError extends DeepIDVError {
-  constructor(
-    message: string,
-    options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'>,
-  ) {
+  constructor(message: string, options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'>) {
     super(message, { status: 400, code: 'validation_error', ...options });
     this.name = 'ValidationError';
     Object.setPrototypeOf(this, new.target.prototype);
@@ -174,10 +171,7 @@ export class ValidationError extends DeepIDVError {
  * connection refused, socket hang-up).
  */
 export class NetworkError extends DeepIDVError {
-  constructor(
-    message: string,
-    options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'>,
-  ) {
+  constructor(message: string, options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'>) {
     super(message, { code: 'network_error', ...options });
     this.name = 'NetworkError';
     Object.setPrototypeOf(this, new.target.prototype);
@@ -188,10 +182,7 @@ export class NetworkError extends DeepIDVError {
  * Thrown when a request exceeds the configured per-attempt timeout (D-01).
  */
 export class TimeoutError extends DeepIDVError {
-  constructor(
-    message: string,
-    options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'>,
-  ) {
+  constructor(message: string, options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'>) {
     super(message, { code: 'timeout_error', ...options });
     this.name = 'TimeoutError';
     Object.setPrototypeOf(this, new.target.prototype);

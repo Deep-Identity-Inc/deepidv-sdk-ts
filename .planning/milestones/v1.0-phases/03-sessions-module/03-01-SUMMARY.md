@@ -28,11 +28,11 @@ affects:
 tech-stack:
   added: [zod as direct @deepidv/server dependency]
   patterns:
-    - "Service module class with constructor injection of HttpClient (D-01)"
-    - "sessions.types.ts + sessions.ts file pair pattern for all future modules (D-07, D-08)"
-    - "z.infer<> as sole TypeScript type source — no separate interface declarations (D-04)"
-    - "wrapPaginated() normalizes raw array or pre-wrapped API response (D-05)"
-    - "Zod validate developer inputs only — never parse API responses (anti-pattern avoidance)"
+    - 'Service module class with constructor injection of HttpClient (D-01)'
+    - 'sessions.types.ts + sessions.ts file pair pattern for all future modules (D-07, D-08)'
+    - 'z.infer<> as sole TypeScript type source — no separate interface declarations (D-04)'
+    - 'wrapPaginated() normalizes raw array or pre-wrapped API response (D-05)'
+    - 'Zod validate developer inputs only — never parse API responses (anti-pattern avoidance)'
 
 key-files:
   created:
@@ -44,16 +44,16 @@ key-files:
     - packages/server/package.json
 
 key-decisions:
-  - "Zod 4 z.record() requires 2 args (key schema + value schema) — updated all z.record(valueSchema) calls to z.record(z.string(), valueSchema)"
-  - "Added lib:[ES2022, DOM] to server tsconfig — URLSearchParams is a Web API type (DOM lib), same fix as core package"
-  - "Added zod as direct dependency to @deepidv/server — sessions.types.ts imports zod directly, cannot rely on transitive resolution in strict pnpm workspace"
-  - "PaginatedResponse<T> implemented as plain TypeScript type alias (not z.infer) — generic types cannot be derived from a generic schema factory via z.infer"
+  - 'Zod 4 z.record() requires 2 args (key schema + value schema) — updated all z.record(valueSchema) calls to z.record(z.string(), valueSchema)'
+  - 'Added lib:[ES2022, DOM] to server tsconfig — URLSearchParams is a Web API type (DOM lib), same fix as core package'
+  - 'Added zod as direct dependency to @deepidv/server — sessions.types.ts imports zod directly, cannot rely on transitive resolution in strict pnpm workspace'
+  - 'PaginatedResponse<T> implemented as plain TypeScript type alias (not z.infer) — generic types cannot be derived from a generic schema factory via z.infer'
 
 patterns-established:
-  - "Pattern: Module file pair — sessions.ts (class) + sessions.types.ts (Zod schemas + inferred types)"
-  - "Pattern: Zod input validation with mapZodError before every network call"
-  - "Pattern: encodeURIComponent on all path parameters"
-  - "Pattern: wrapPaginated() for list endpoint normalization"
+  - 'Pattern: Module file pair — sessions.ts (class) + sessions.types.ts (Zod schemas + inferred types)'
+  - 'Pattern: Zod input validation with mapZodError before every network call'
+  - 'Pattern: encodeURIComponent on all path parameters'
+  - 'Pattern: wrapPaginated() for list endpoint normalization'
 
 requirements-completed: [SESS-01, SESS-02, SESS-03, SESS-04]
 
@@ -107,6 +107,7 @@ completed: 2026-04-05
 ### Auto-fixed Issues
 
 **1. [Rule 2 - Missing Critical] Added lib:[ES2022, DOM] to server tsconfig**
+
 - **Found during:** Task 2 (Sessions class creation)
 - **Issue:** `URLSearchParams` not found — server tsconfig only had `lib: ["ES2022"]`. Core package had DOM lib but server package did not inherit it.
 - **Fix:** Added `"lib": ["ES2022", "DOM"]` to `packages/server/tsconfig.json`
@@ -115,6 +116,7 @@ completed: 2026-04-05
 - **Committed in:** 3f651ac (Task 2 commit)
 
 **2. [Rule 3 - Blocking] Added zod as direct dependency to @deepidv/server**
+
 - **Found during:** Task 1 (sessions.types.ts creation)
 - **Issue:** `import { z } from 'zod'` failed TypeScript resolution — zod was in `@deepidv/core` but not in `@deepidv/server` dependencies. pnpm strict hoisting prevents phantom deps.
 - **Fix:** `pnpm --filter @deepidv/server add zod`
@@ -123,6 +125,7 @@ completed: 2026-04-05
 - **Committed in:** 96154e3 (Task 1 commit)
 
 **3. [Rule 1 - Bug] Fixed Zod 4 z.record() to require 2 arguments**
+
 - **Found during:** Task 1 (sessions.types.ts creation)
 - **Issue:** `z.record(z.unknown())` and similar single-arg forms are TS errors in Zod 4 — API changed to require explicit key schema.
 - **Fix:** Updated all 4 occurrences to `z.record(z.string(), <valueSchema>)` (faceMatchResult, newsExposures, uploads, resourceLinks)
@@ -151,5 +154,6 @@ None — no external service configuration required.
 - Known: `z.record(z.string(), z.unknown())` is the Zod 4 pattern for open record types — propagate to future type files in Phases 4-6
 
 ---
-*Phase: 03-sessions-module*
-*Completed: 2026-04-05*
+
+_Phase: 03-sessions-module_
+_Completed: 2026-04-05_

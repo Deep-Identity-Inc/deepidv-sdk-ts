@@ -31,12 +31,7 @@ const fileInputValidator = z.custom<FileInput>(
  * Supported document type hints for `identity.verify()`.
  * Use `'auto'` to let the API detect the document type automatically.
  */
-export const DocumentTypeSchema = z.enum([
-  'passport',
-  'drivers_license',
-  'national_id',
-  'auto',
-]);
+export const DocumentTypeSchema = z.enum(['passport', 'drivers_license', 'national_id', 'auto']);
 
 // ---------------------------------------------------------------------------
 // identity.verify() input schema (IDV-01, IDV-02)

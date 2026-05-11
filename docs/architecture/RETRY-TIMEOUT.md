@@ -4,17 +4,17 @@ The SDK automatically retries failed requests using exponential backoff with jit
 
 ## When Retries Happen
 
-| Condition | Retried? | Reason |
-|-----------|----------|--------|
-| HTTP 429 (Too Many Requests) | Yes | Transient rate limit — back off and try again |
-| HTTP 5xx (Server Error) | Yes | Server-side transient failure |
-| `NetworkError` | Yes | Connection dropped, DNS failure — may recover |
-| `TimeoutError` | Yes | Single attempt timed out — next attempt gets a fresh timer |
-| HTTP 400 (Bad Request) | **No** | Client error — retrying won't help |
-| HTTP 401 (Unauthorized) | **No** | Invalid API key — retrying won't help |
-| HTTP 403 (Forbidden) | **No** | Permission denied — retrying won't help |
-| HTTP 404 (Not Found) | **No** | Resource doesn't exist — retrying won't help |
-| Any other 4xx | **No** | Client errors are never retried |
+| Condition                    | Retried? | Reason                                                     |
+| ---------------------------- | -------- | ---------------------------------------------------------- |
+| HTTP 429 (Too Many Requests) | Yes      | Transient rate limit — back off and try again              |
+| HTTP 5xx (Server Error)      | Yes      | Server-side transient failure                              |
+| `NetworkError`               | Yes      | Connection dropped, DNS failure — may recover              |
+| `TimeoutError`               | Yes      | Single attempt timed out — next attempt gets a fresh timer |
+| HTTP 400 (Bad Request)       | **No**   | Client error — retrying won't help                         |
+| HTTP 401 (Unauthorized)      | **No**   | Invalid API key — retrying won't help                      |
+| HTTP 403 (Forbidden)         | **No**   | Permission denied — retrying won't help                    |
+| HTTP 404 (Not Found)         | **No**   | Resource doesn't exist — retrying won't help               |
+| Any other 4xx                | **No**   | Client errors are never retried                            |
 
 ## Retry Flow
 
@@ -53,17 +53,18 @@ delay = random(0, min(initialDelay * 2^attempt, MAX_BACKOFF))
 ```
 
 Where:
+
 - `initialDelay` = 500ms (configurable via `initialRetryDelay`)
 - `MAX_BACKOFF` = 30,000ms (30 seconds, not configurable)
 - `attempt` = 0-based retry index (0 = first retry)
 
-| Retry # | Attempt | Base Delay | Max Jittered Delay |
-|---------|---------|------------|-------------------|
-| 1st retry | 0 | 500ms | 0–500ms |
-| 2nd retry | 1 | 1,000ms | 0–1,000ms |
-| 3rd retry | 2 | 2,000ms | 0–2,000ms |
-| 4th retry | 3 | 4,000ms | 0–4,000ms |
-| ... | n | 500 * 2^n | 0–min(500 * 2^n, 30,000)ms |
+| Retry #   | Attempt | Base Delay | Max Jittered Delay          |
+| --------- | ------- | ---------- | --------------------------- |
+| 1st retry | 0       | 500ms      | 0–500ms                     |
+| 2nd retry | 1       | 1,000ms    | 0–1,000ms                   |
+| 3rd retry | 2       | 2,000ms    | 0–2,000ms                   |
+| 4th retry | 3       | 4,000ms    | 0–4,000ms                   |
+| ...       | n       | 500 \* 2^n | 0–min(500 \* 2^n, 30,000)ms |
 
 The jitter ensures multiple clients hitting rate limits don't all retry at the same instant (thundering herd).
 
@@ -144,11 +145,11 @@ client.on('retry', ({ attempt, delayMs, error }) => {
 });
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `attempt` | `number` | 1-based retry attempt number |
-| `delayMs` | `number` | Milliseconds the SDK will sleep before retrying |
-| `error` | `unknown` | The error that triggered the retry |
+| Field     | Type      | Description                                     |
+| --------- | --------- | ----------------------------------------------- |
+| `attempt` | `number`  | 1-based retry attempt number                    |
+| `delayMs` | `number`  | Milliseconds the SDK will sleep before retrying |
+| `error`   | `unknown` | The error that triggered the retry              |
 
 ## Two Timeout Zones
 
@@ -167,6 +168,7 @@ The SDK has two independent timeout configurations because API calls and S3 uplo
 ```
 
 The upload timeout is separate and longer because:
+
 - Document images can be several MB
 - Upload speed depends on the user's bandwidth, not the API's response time
 - A 30s timeout is too short for large files on slow connections

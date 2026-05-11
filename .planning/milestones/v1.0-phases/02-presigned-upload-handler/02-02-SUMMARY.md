@@ -1,6 +1,6 @@
 ---
 phase: 02-presigned-upload-handler
-plan: "02"
+plan: '02'
 subsystem: core
 tags: [upload, file-uploader, presign, s3, retry, events, tdd]
 dependency_graph:
@@ -9,7 +9,8 @@ dependency_graph:
   affects: [03-document-scan, 04-face-module, 05-identity-verify]
 tech_stack:
   added: []
-  patterns: [tdd-red-green, msw-http-handlers, promise-all-parallel-uploads, abort-controller-timeout]
+  patterns:
+    [tdd-red-green, msw-http-handlers, promise-all-parallel-uploads, abort-controller-timeout]
 key_files:
   created: []
   modified:
@@ -17,12 +18,12 @@ key_files:
     - packages/core/src/__tests__/uploader.test.ts
     - packages/core/src/index.ts
 decisions:
-  - "Cast Uint8Array body to ArrayBuffer for TypeScript 6 DTS compatibility — Uint8Array<ArrayBufferLike> is not directly assignable to BodyInit in strict mode"
-  - "Stream materialization happens in upload() before _putToS3() — no double-read bug even with retry"
-  - "FileUploader uses raw config.fetch for S3 PUTs (not HttpClient) to ensure no x-api-key header reaches S3"
+  - 'Cast Uint8Array body to ArrayBuffer for TypeScript 6 DTS compatibility — Uint8Array<ArrayBufferLike> is not directly assignable to BodyInit in strict mode'
+  - 'Stream materialization happens in upload() before _putToS3() — no double-read bug even with retry'
+  - 'FileUploader uses raw config.fetch for S3 PUTs (not HttpClient) to ensure no x-api-key header reaches S3'
 metrics:
   duration_seconds: 196
-  completed_date: "2026-04-05"
+  completed_date: '2026-04-05'
   tasks_completed: 2
   files_changed: 3
 ---
@@ -33,10 +34,10 @@ FileUploader class with full presign + S3 PUT orchestration: normalize inputs, d
 
 ## Tasks Completed
 
-| Task | Description | Commit | Files |
-|------|-------------|--------|-------|
-| 1 | Implement FileUploader class + integration tests (TDD) | 1f66b44 | uploader.ts, uploader.test.ts |
-| 2 | Update barrel exports in index.ts + fix DTS build error | 2322e14 | index.ts, uploader.ts |
+| Task | Description                                             | Commit  | Files                         |
+| ---- | ------------------------------------------------------- | ------- | ----------------------------- |
+| 1    | Implement FileUploader class + integration tests (TDD)  | 1f66b44 | uploader.ts, uploader.test.ts |
+| 2    | Update barrel exports in index.ts + fix DTS build error | 2322e14 | index.ts, uploader.ts         |
 
 ## What Was Built
 
@@ -52,6 +53,7 @@ FileUploader class with full presign + S3 PUT orchestration: normalize inputs, d
 ### uploader.test.ts
 
 9 new `FileUploader` integration tests using msw:
+
 - Single upload: presign called with `count:1`, S3 PUT returns `fileKey`
 - Batch upload: presign called with `count:2`, both PUTs received in parallel
 - S3 PUT has `Content-Type` header but no `x-api-key` header
@@ -72,6 +74,7 @@ FileUploader class with full presign + S3 PUT orchestration: normalize inputs, d
 ### Auto-fixed Issues
 
 **1. [Rule 3 - Blocking] TypeScript 6 DTS error: Uint8Array not assignable to BodyInit**
+
 - **Found during:** Task 2 verification (build)
 - **Issue:** TypeScript 6 strict mode: `Uint8Array<ArrayBufferLike>` is not assignable to `BodyInit | null | undefined` when used as fetch body in DTS generation
 - **Fix:** Changed `body: bytes` to `body: bytes.buffer as ArrayBuffer` — `ArrayBuffer` is unambiguously assignable to `BodyInit`

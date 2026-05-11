@@ -9,10 +9,7 @@
  */
 
 // --- Class + Schema ---
-import {
-  DeepIDV,
-  DeepIDVConfigSchema,
-} from '@deepidv/server';
+import { DeepIDV, DeepIDVConfigSchema } from '@deepidv/server';
 
 // --- Error classes ---
 import {
@@ -25,12 +22,7 @@ import {
 } from '@deepidv/server';
 
 // --- Types ---
-import type {
-  DeepIDVOptions,
-  DeepIDVConfig,
-  RawResponse,
-  SDKEventMap,
-} from '@deepidv/server';
+import type { DeepIDVOptions, DeepIDVConfig, RawResponse, SDKEventMap } from '@deepidv/server';
 
 // --- Session types + schemas ---
 import type {
@@ -50,11 +42,7 @@ import {
 } from '@deepidv/server';
 
 // --- Document types + schemas ---
-import type {
-  DocumentScanInput,
-  DocumentScanResult,
-  DocumentType,
-} from '@deepidv/server';
+import type { DocumentScanInput, DocumentScanResult, DocumentType } from '@deepidv/server';
 import {
   DocumentScanInputSchema,
   DocumentScanResultSchema,

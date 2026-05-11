@@ -20,9 +20,9 @@ affects: [06-jsdoc-cleanup, 07-publishing-pipeline]
 tech-stack:
   added: []
   patterns:
-    - "Independent nested result schemas (D-03): identity response sub-shapes defined inline, never reusing Phase 4 schemas"
-    - "Batch presign for two-image upload: uploader.upload([docImage, faceImage]) → fileKeys[0], fileKeys[1]"
-    - "Single compound API endpoint: one POST covers server-side scan+detect+compare"
+    - 'Independent nested result schemas (D-03): identity response sub-shapes defined inline, never reusing Phase 4 schemas'
+    - 'Batch presign for two-image upload: uploader.upload([docImage, faceImage]) → fileKeys[0], fileKeys[1]'
+    - 'Single compound API endpoint: one POST covers server-side scan+detect+compare'
 
 key-files:
   created:
@@ -32,12 +32,12 @@ key-files:
     - packages/server/src/index.ts
 
 key-decisions:
-  - "D-03 enforced: IdentityDocumentResultSchema, IdentityFaceDetectionResultSchema, IdentityFaceMatchResultSchema are all independent — not reusing Phase 4 schemas"
-  - "D-04 enforced: all sub-result fields (document, faceDetection, faceMatch) are required, not optional — API always returns full shape on 2xx"
-  - "Rule 2 auto-fix: Identity class and all types added to barrel index.ts (was missing from plan scope)"
+  - 'D-03 enforced: IdentityDocumentResultSchema, IdentityFaceDetectionResultSchema, IdentityFaceMatchResultSchema are all independent — not reusing Phase 4 schemas'
+  - 'D-04 enforced: all sub-result fields (document, faceDetection, faceMatch) are required, not optional — API always returns full shape on 2xx'
+  - 'Rule 2 auto-fix: Identity class and all types added to barrel index.ts (was missing from plan scope)'
 
 patterns-established:
-  - "verify() 4-step flow: Zod validate → batch upload → single POST → parse response (mirrors face.compare())"
+  - 'verify() 4-step flow: Zod validate → batch upload → single POST → parse response (mirrors face.compare())'
 
 requirements-completed: [IDV-01, IDV-02, IDV-03]
 
@@ -91,6 +91,7 @@ Each task was committed atomically:
 ### Auto-fixed Issues
 
 **1. [Rule 2 - Missing Export] Added Identity class and all types to barrel index.ts**
+
 - **Found during:** Task 2 (Identity class creation)
 - **Issue:** Plan scope only listed `identity.types.ts` and `identity.ts` as files_modified. The barrel `packages/server/src/index.ts` was not listed but is required for consumers to import `Identity` from `@deepidv/server`. Without it, the module exists but is unreachable.
 - **Fix:** Added Identity class export, 5 type exports, and 5 Zod schema exports to index.ts following Phase 4 pattern
@@ -119,5 +120,6 @@ None - no external service configuration required.
 - Phase 7 (publishing pipeline) has all service modules ready for packaging
 
 ---
-*Phase: 05-identity-module*
-*Completed: 2026-04-06*
+
+_Phase: 05-identity-module_
+_Completed: 2026-04-06_

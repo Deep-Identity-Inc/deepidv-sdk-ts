@@ -48,6 +48,7 @@ Every published package needs this exact shape:
 Keep `"main"` and `"types"` as fallbacks for tooling that does not read `"exports"`. The `"types"` condition inside `"exports"` must come before `"default"` — TypeScript resolves conditions in order.
 
 **Warning signs:**
+
 - `ERR_PACKAGE_PATH_NOT_EXPORTED` in consumer projects
 - `Cannot find module '@deepidv/server'` with `moduleResolution: bundler`
 - CJS consumers receive `.mjs` files (esbuild/webpack warnings about format mismatch)
@@ -81,6 +82,7 @@ export default defineConfig({
 In `package.json` `"exports"`, explicitly map `"types"` for both conditions (as shown in Pitfall 1). Test by installing the package in a consumer project with `moduleResolution: bundler` and running `tsc --noEmit`.
 
 **Warning signs:**
+
 - `TS2305: Module '"@deepidv/server"' has no exported member 'DeepIDV'` in consuming projects
 - Hover in VS Code shows `any` instead of the actual type
 - `tsc --noEmit` passes but `moduleResolution: node16` version fails
@@ -105,12 +107,14 @@ In `package.json` `"exports"`, explicitly map `"types"` for both conditions (as 
 4. S3 PUT response body is XML on error. Parse it as text, not JSON, and surface the `<Code>` element.
 
 Content-type detection strategy (in order of reliability):
+
 - If caller provides explicit `mimeType` option → use that
 - If input is a file path with `.jpg`/`.jpeg`/`.png`/`.webp`/`.pdf` extension → map to MIME type
 - If input is a Buffer/Uint8Array → read magic bytes (JPEG: `FF D8 FF`, PNG: `89 50 4E 47`, PDF: `25 50 44 46`)
 - Default to `image/jpeg` for identity verification use cases (but log a warning)
 
 **Warning signs:**
+
 - S3 PUT returning 403 with XML body containing `SignatureDoesNotMatch`
 - Upload works in dev with JPEG files but breaks with PNG or WebP inputs
 - Error handler receiving XML string where it expected JSON
@@ -134,6 +138,7 @@ Content-type detection strategy (in order of reliability):
 3. Add a runtime check: if the caller passes the same stream reference for `source` and `target` in `face.compare()`, throw immediately with a descriptive error.
 
 Conversion pattern:
+
 ```typescript
 async function streamToBuffer(stream: ReadableStream<Uint8Array>): Promise<Uint8Array> {
   const reader = stream.getReader();
@@ -155,6 +160,7 @@ async function streamToBuffer(stream: ReadableStream<Uint8Array>): Promise<Uint8
 ```
 
 **Warning signs:**
+
 - OCR or face detection returns empty/garbage results with no error
 - S3 access logs show zero-byte PUTs that return 200
 - Tests with Buffer inputs pass; tests with ReadableStream inputs produce wrong results
@@ -174,12 +180,14 @@ async function streamToBuffer(stream: ReadableStream<Uint8Array>): Promise<Uint8
 **Prevention:**
 
 Retry only on:
+
 - `429 Too Many Requests` (rate limit — always retry with `Retry-After` header respect)
 - `500`, `502`, `503`, `504` (server errors — transient, retriable)
 - `NetworkError` / connection reset (the fetch itself threw)
 - `TimeoutError` (if the request never received a response — safe to retry)
 
 Never retry:
+
 - `400`, `401`, `403`, `404`, `409`, `422` — any 4xx except 429
 - `408 Request Timeout` is ambiguous (server received the request) — do not retry by default
 
@@ -191,6 +199,7 @@ const sleep = Math.random() * Math.min(cap, base * Math.pow(2, attempt));
 ```
 
 **Warning signs:**
+
 - Test logs showing multiple identical requests for a 400 response
 - Rate limit errors escalating instead of recovering under load
 - `Retry-After` header present in 429 responses but SDK ignoring it
@@ -222,6 +231,7 @@ export type { SessionCreateParams, SessionCreateResult } from './types/sessions.
 `@deepidv/core` should have `"private": true` or `"publishConfig": { "access": "restricted" }` in its `package.json` to signal it is not for direct install.
 
 **Warning signs:**
+
 - `import { HttpClient } from '@deepidv/server'` works in a consumer project
 - VS Code autocomplete in a consumer shows internal class names
 - `@deepidv/core` has a non-zero npm download count from external sources
@@ -247,13 +257,14 @@ If `@deepidv/core` is internal-only and not published to npm, use `bundleDepende
 ```typescript
 // packages/server/tsup.config.ts
 export default defineConfig({
-  noExternal: ['@deepidv/core'],  // Bundle core into server output
+  noExternal: ['@deepidv/core'], // Bundle core into server output
 });
 ```
 
 Use changesets for release management — it handles version coordination across workspace packages and generates proper changelogs.
 
 **Warning signs:**
+
 - `npm install @deepidv/server` in a clean project fails with version resolution errors
 - Published `package.json` on npm contains `"workspace:*"` in dependencies
 - CI publish step using `npm publish` directly instead of `pnpm publish`
@@ -283,7 +294,7 @@ async function filePathToBuffer(path: string): Promise<Uint8Array> {
   } catch {
     throw new Error(
       'File path inputs are not supported in edge runtimes. ' +
-      'Pass a Uint8Array or ReadableStream instead.'
+        'Pass a Uint8Array or ReadableStream instead.',
     );
   }
 }
@@ -293,6 +304,7 @@ async function filePathToBuffer(path: string): Promise<Uint8Array> {
 3. Never use `Buffer` in `@deepidv/core`. Use `Uint8Array` throughout. `Uint8Array` is a web standard available everywhere. `Buffer` extends `Uint8Array` so Node.js `Buffer` instances pass `instanceof Uint8Array` checks — no conversion needed.
 
 **Warning signs:**
+
 - `ReferenceError: fs is not defined` in Cloudflare Workers logs
 - `Buffer is not defined` errors in Deno or edge runtimes
 - Tests pass in Node but fail in a Worker simulation
@@ -312,14 +324,18 @@ async function filePathToBuffer(path: string): Promise<Uint8Array> {
 **Prevention:**
 
 ```typescript
-async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const response = await fetch(url, { ...init, signal: controller.signal });
     return response;
   } finally {
-    clearTimeout(timeoutId);  // Always clear — success AND failure
+    clearTimeout(timeoutId); // Always clear — success AND failure
   }
 }
 ```
@@ -327,6 +343,7 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: numbe
 Consume the response body outside the timeout window for S3 PUTs — S3 PUT responses are tiny (empty on success, small XML on error), so body consumption time is negligible and should be counted inside the timeout.
 
 **Warning signs:**
+
 - `jest --forceExit` required in test suite (event loop hanging)
 - `AbortError` on response body consumption, not on the fetch itself
 - Node.js process doesn't exit after SDK calls complete
@@ -354,6 +371,7 @@ Add `"sideEffects": false` to each package's `package.json` to signal to bundler
 Audit each module: no top-level code that registers listeners, mutates globals, or reads environment variables. All initialization should be lazy (inside constructors or functions).
 
 **Warning signs:**
+
 - Webpack/esbuild bundle analysis shows session module included when only face module is used
 - `"sideEffects"` key absent from `package.json`
 - Module-level `process.env.NODE_ENV` reads in any file
@@ -391,6 +409,7 @@ if (targetResult.status === 'rejected') {
 3. Include which input (`source` or `target`) failed in the error message so developers know which image to check.
 
 **Warning signs:**
+
 - Unhandled promise rejection warnings in Node.js for S3 uploads
 - `face.compare()` error messages that don't identify which image failed
 - S3 storage growing with orphaned single-file uploads from failed pairs
@@ -425,6 +444,7 @@ type DocumentScanParams = z.infer<typeof DocumentScanParamsSchema>;
 Place the schema and its inferred type in the same file. Never write `interface DocumentScanParams { ... }` separately.
 
 **Warning signs:**
+
 - TypeScript shows no error but runtime throws `ZodError`
 - A field appears required in one place and optional in another
 - `type` and `schema` defined in different files that diverged
@@ -448,8 +468,8 @@ Expose separate timeout settings:
 ```typescript
 interface DeepIDVConfig {
   apiKey: string;
-  timeout?: number;          // API request timeout (default: 30_000ms)
-  uploadTimeout?: number;    // S3 upload timeout (default: 120_000ms)
+  timeout?: number; // API request timeout (default: 30_000ms)
+  uploadTimeout?: number; // S3 upload timeout (default: 120_000ms)
 }
 ```
 
@@ -458,6 +478,7 @@ Apply `timeout` to all deepidv API requests (presign, processing endpoints, sess
 For S3 upload specifically: the timeout should start from first byte sent, not connection establishment, to handle slow upload speeds on poor connections.
 
 **Warning signs:**
+
 - Users on mobile networks report intermittent upload failures
 - 5MB image upload timing out with default settings
 - Error message says "TimeoutError" with no indication it was the S3 upload step
@@ -495,6 +516,7 @@ try {
 ```
 
 Zod parse errors should be wrapped similarly:
+
 ```typescript
 const result = schema.safeParse(input);
 if (!result.success) {
@@ -506,6 +528,7 @@ if (!result.success) {
 ```
 
 **Warning signs:**
+
 - `console.log(error.cause)` returns `undefined` on any SDK error
 - Error messages contain no information about the underlying cause
 - Stack traces in bug reports only show SDK internals, not the original system error
@@ -541,6 +564,7 @@ Use `"moduleResolution": "bundler"` in `tsconfig.base.json` for all packages. Th
 **Prevention:**
 
 In the string input handler, check for three patterns:
+
 1. Starts with `data:image/` → data URL → strip the prefix, decode base64
 2. Starts with `/` or `./` or `C:\` or is an absolute path → file path
 3. Matches base64 character set with no path separators → raw base64
@@ -567,25 +591,25 @@ Use exact version pins (not ranges) between workspace packages in the published 
 
 ## Phase-Specific Warnings
 
-| Phase | Topic | Likely Pitfall | Mitigation |
-|-------|-------|---------------|------------|
-| Phase 1 | Monorepo setup | `workspace:*` not stripped on publish (Pitfall 7) | Use `pnpm publish`, test with `pnpm pack` before first release |
-| Phase 1 | Package exports | Wrong `"exports"` map breaks ESM consumers (Pitfall 1) | Write exports map before any module code; test with consumer project |
-| Phase 1 | TypeScript config | `moduleResolution: node` misses ESM validation (Pitfall 15) | Set `moduleResolution: bundler` in tsconfig.base.json from day one |
-| Phase 1 | Error classes | Missing `cause` makes errors opaque (Pitfall 14) | Establish `{ cause: err }` pattern in base `DeepIDVError` constructor |
-| Phase 1 | Retry logic | 4xx errors retried (Pitfall 5) | Allowlist 429+5xx only; write retry tests before HTTP client is used anywhere |
-| Phase 1 | Type exports | Wildcard re-exports leak internals (Pitfall 6) | Enumerate exports explicitly in server's `index.ts` |
-| Phase 2 | Upload handler | Content-Type mismatch → S3 403 (Pitfall 3) | Detect MIME type before presign call; match exactly on PUT |
-| Phase 2 | Upload handler | ReadableStream double-read (Pitfall 4) | Materialize stream to Uint8Array once at entry; never read twice |
-| Phase 2 | Upload handler | Separate API vs upload timeouts (Pitfall 13) | `uploadTimeout` config separate from `timeout` |
-| Phase 2 | Upload handler | File path string as data URL (Pitfall 16) | Explicit string type detection: path vs base64 vs data URL |
-| Phase 2 | Edge runtime | `fs` import crashes Workers (Pitfall 8) | Dynamic import with try/catch; no static `fs` imports in core |
-| Phase 3 | face.compare | Parallel upload error propagation (Pitfall 11) | Use `Promise.allSettled`; name which image failed in error |
-| Phase 5 | Publishing | `.d.mts`/`.d.cts` declaration confusion (Pitfall 2) | Test consumer project with `moduleResolution: bundler` before publish |
-| Phase 5 | Bundle | Tree-shaking fails due to side effects (Pitfall 10) | `"sideEffects": false` in package.json; bundle analysis in CI |
-| Phase 5 | Versions | Core/server version mismatch (Pitfall 17) | Bundle core into server with `noExternal`; or use exact version pins |
-| All | Zod/TS | Schema and type drift (Pitfall 12) | `type X = z.infer<typeof XSchema>` — never maintain types separately |
-| All | Timeouts | AbortController not cleaned up (Pitfall 9) | `finally { clearTimeout(id) }` — always, even on success |
+| Phase   | Topic             | Likely Pitfall                                              | Mitigation                                                                    |
+| ------- | ----------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Phase 1 | Monorepo setup    | `workspace:*` not stripped on publish (Pitfall 7)           | Use `pnpm publish`, test with `pnpm pack` before first release                |
+| Phase 1 | Package exports   | Wrong `"exports"` map breaks ESM consumers (Pitfall 1)      | Write exports map before any module code; test with consumer project          |
+| Phase 1 | TypeScript config | `moduleResolution: node` misses ESM validation (Pitfall 15) | Set `moduleResolution: bundler` in tsconfig.base.json from day one            |
+| Phase 1 | Error classes     | Missing `cause` makes errors opaque (Pitfall 14)            | Establish `{ cause: err }` pattern in base `DeepIDVError` constructor         |
+| Phase 1 | Retry logic       | 4xx errors retried (Pitfall 5)                              | Allowlist 429+5xx only; write retry tests before HTTP client is used anywhere |
+| Phase 1 | Type exports      | Wildcard re-exports leak internals (Pitfall 6)              | Enumerate exports explicitly in server's `index.ts`                           |
+| Phase 2 | Upload handler    | Content-Type mismatch → S3 403 (Pitfall 3)                  | Detect MIME type before presign call; match exactly on PUT                    |
+| Phase 2 | Upload handler    | ReadableStream double-read (Pitfall 4)                      | Materialize stream to Uint8Array once at entry; never read twice              |
+| Phase 2 | Upload handler    | Separate API vs upload timeouts (Pitfall 13)                | `uploadTimeout` config separate from `timeout`                                |
+| Phase 2 | Upload handler    | File path string as data URL (Pitfall 16)                   | Explicit string type detection: path vs base64 vs data URL                    |
+| Phase 2 | Edge runtime      | `fs` import crashes Workers (Pitfall 8)                     | Dynamic import with try/catch; no static `fs` imports in core                 |
+| Phase 3 | face.compare      | Parallel upload error propagation (Pitfall 11)              | Use `Promise.allSettled`; name which image failed in error                    |
+| Phase 5 | Publishing        | `.d.mts`/`.d.cts` declaration confusion (Pitfall 2)         | Test consumer project with `moduleResolution: bundler` before publish         |
+| Phase 5 | Bundle            | Tree-shaking fails due to side effects (Pitfall 10)         | `"sideEffects": false` in package.json; bundle analysis in CI                 |
+| Phase 5 | Versions          | Core/server version mismatch (Pitfall 17)                   | Bundle core into server with `noExternal`; or use exact version pins          |
+| All     | Zod/TS            | Schema and type drift (Pitfall 12)                          | `type X = z.infer<typeof XSchema>` — never maintain types separately          |
+| All     | Timeouts          | AbortController not cleaned up (Pitfall 9)                  | `finally { clearTimeout(id) }` — always, even on success                      |
 
 ---
 

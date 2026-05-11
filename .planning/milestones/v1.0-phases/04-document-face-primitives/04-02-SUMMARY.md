@@ -22,9 +22,9 @@ affects:
 tech-stack:
   added: []
   patterns:
-    - "validate-upload-call-parse: Zod validate input → FileUploader.upload() → HttpClient.post() → result schema parse"
-    - "Batch upload via array: pass [source, target] array to FileUploader.upload() to trigger count:2 batch presign with parallel S3 PUTs"
-    - "Constructor injection for two deps: Face(client: HttpClient, uploader: FileUploader)"
+    - 'validate-upload-call-parse: Zod validate input → FileUploader.upload() → HttpClient.post() → result schema parse'
+    - 'Batch upload via array: pass [source, target] array to FileUploader.upload() to trigger count:2 batch presign with parallel S3 PUTs'
+    - 'Constructor injection for two deps: Face(client: HttpClient, uploader: FileUploader)'
 
 key-files:
   created:
@@ -33,14 +33,14 @@ key-files:
   modified: []
 
 key-decisions:
-  - "compare() passes array [source, target] to FileUploader.upload() — single call triggers batch presign (count:2) and parallel S3 PUTs per UPL-04/D-02"
-  - "All result schemas use .strip() to tolerate future API fields without breaking"
-  - "GenderSchema defined as named export (not inline z.enum) so Gender type can be imported independently"
-  - "Response parsing uses schema.parse(raw) on the raw unknown API response — ensures strong typing and strips undocumented fields"
+  - 'compare() passes array [source, target] to FileUploader.upload() — single call triggers batch presign (count:2) and parallel S3 PUTs per UPL-04/D-02'
+  - 'All result schemas use .strip() to tolerate future API fields without breaking'
+  - 'GenderSchema defined as named export (not inline z.enum) so Gender type can be imported independently'
+  - 'Response parsing uses schema.parse(raw) on the raw unknown API response — ensures strong typing and strips undocumented fields'
 
 patterns-established:
-  - "Face service pattern: two-dep constructor (HttpClient + FileUploader), four-step method flow (validate → upload → call → parse)"
-  - "Batch upload pattern: pass FileInput[] to uploader.upload() for multi-file operations"
+  - 'Face service pattern: two-dep constructor (HttpClient + FileUploader), four-step method flow (validate → upload → call → parse)'
+  - 'Batch upload pattern: pass FileInput[] to uploader.upload() for multi-file operations'
 
 requirements-completed: [FACE-01, FACE-02, FACE-03, FACE-04]
 
@@ -62,6 +62,7 @@ completed: 2026-04-06
 - **Files modified:** 2
 
 ## Accomplishments
+
 - Created `face.types.ts` with full Zod schemas for all three face operations and exported inferred types
 - Created `face.ts` with Face class implementing validate-upload-call-parse flow for each method
 - compare() uses batch upload pattern: passes `[source, target]` array to FileUploader which issues a single presign request with `count: 2` and parallel S3 PUTs
@@ -74,10 +75,12 @@ Each task was committed atomically:
 2. **Task 2: Create Face class with detect(), compare(), estimateAge() methods** - `9abae43` (feat)
 
 ## Files Created/Modified
+
 - `packages/server/src/face.types.ts` - Zod schemas (FaceDetectInputSchema, FaceDetectResultSchema, FaceCompareInputSchema, FaceCompareResultSchema, FaceEstimateAgeInputSchema, FaceEstimateAgeResultSchema, GenderSchema) and inferred types
 - `packages/server/src/face.ts` - Face class with detect(), compare(), estimateAge() methods
 
 ## Decisions Made
+
 - `compare()` passes an array `[validated.source, validated.target]` to `this.uploader.upload()`. FileUploader already handles the batch presign (count: 2) and parallel S3 PUTs internally (UPL-04/D-02) — no extra orchestration needed in Face class.
 - All result schemas use `.strip()` rather than `.passthrough()` to drop unknown API fields and maintain clean typed results.
 - `GenderSchema` is exported as a named const so `Gender` type can be imported independently by consumers.
@@ -88,12 +91,15 @@ Each task was committed atomically:
 None - plan executed exactly as written.
 
 ## Issues Encountered
+
 None.
 
 ## User Setup Required
+
 None - no external service configuration required.
 
 ## Next Phase Readiness
+
 - Face module complete with all three methods (FACE-01, FACE-02, FACE-03, FACE-04)
 - Ready for Phase 4 Plan 3: identity.verify() which orchestrates document.scan + face.detect + face.compare
 - Both Face and Document classes follow the same constructor injection pattern — can be wired into the main DeepIDVClient alongside Sessions
@@ -101,6 +107,7 @@ None - no external service configuration required.
 ## Self-Check: PASSED
 
 All files created and commits verified:
+
 - `packages/server/src/face.types.ts` — FOUND
 - `packages/server/src/face.ts` — FOUND
 - `.planning/phases/04-document-face-primitives/04-02-SUMMARY.md` — FOUND
@@ -108,5 +115,6 @@ All files created and commits verified:
 - Commit `9abae43` (Task 2) — FOUND
 
 ---
-*Phase: 04-document-face-primitives*
-*Completed: 2026-04-06*
+
+_Phase: 04-document-face-primitives_
+_Completed: 2026-04-06_

@@ -59,12 +59,12 @@ const session = await client.sessions.create({
 
 ### Session Create Result
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | `string` | Unique session identifier |
-| `sessionUrl` | `string` | URL to send the user to for verification |
-| `externalId` | `string?` | Your external reference ID (if provided) |
-| `links` | `Array<{ url, type }>` | Associated resource links |
+| Field        | Type                   | Description                              |
+| ------------ | ---------------------- | ---------------------------------------- |
+| `id`         | `string`               | Unique session identifier                |
+| `sessionUrl` | `string`               | URL to send the user to for verification |
+| `externalId` | `string?`              | Your external reference ID (if provided) |
+| `links`      | `Array<{ url, type }>` | Associated resource links                |
 
 ## Step 2: Send the User to Verify
 
@@ -88,8 +88,8 @@ https://yourapp.com/verification-complete?status=SUBMITTED&sessionId=abc123
 const result = await client.sessions.retrieve(session.id);
 
 const record = result.sessionRecord;
-console.log(record.status);           // "SUBMITTED"
-console.log(record.sessionProgress);  // "COMPLETED"
+console.log(record.status); // "SUBMITTED"
+console.log(record.sessionProgress); // "COMPLETED"
 ```
 
 ### Navigating Analysis Data
@@ -101,8 +101,8 @@ const analysis = record.analysisData;
 
 if (analysis) {
   // Face match between ID and selfie
-  console.log(analysis.idMatchesSelfie);      // true/false
-  console.log(analysis.facelivenessScore);     // 0.99
+  console.log(analysis.idMatchesSelfie); // true/false
+  console.log(analysis.facelivenessScore); // 0.99
 
   // Document OCR data
   const idData = analysis.idAnalysisData;
@@ -113,9 +113,9 @@ if (analysis) {
     }
 
     // Compliance checks
-    console.log(idData.expiryDatePass);       // true = not expired
-    console.log(idData.validStatePass);       // true = valid jurisdiction
-    console.log(idData.ageRestrictionPass);   // true = meets age requirement
+    console.log(idData.expiryDatePass); // true = not expired
+    console.log(idData.validStatePass); // true = valid jurisdiction
+    console.log(idData.ageRestrictionPass); // true = meets age requirement
   }
 
   // Face comparison details
@@ -198,20 +198,20 @@ while (true) {
 
 ### PaginatedResponse Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `data` | `Session[]` | Array of session records |
-| `total` | `number?` | Total number of matching sessions |
-| `hasMore` | `boolean?` | Whether more pages exist |
-| `limit` | `number` | Page size used |
-| `offset` | `number` | Starting offset |
+| Field     | Type        | Description                       |
+| --------- | ----------- | --------------------------------- |
+| `data`    | `Session[]` | Array of session records          |
+| `total`   | `number?`   | Total number of matching sessions |
+| `hasMore` | `boolean?`  | Whether more pages exist          |
+| `limit`   | `number`    | Page size used                    |
+| `offset`  | `number`    | Starting offset                   |
 
 ## Session Statuses
 
-| Status | Meaning | Set By |
-|--------|---------|--------|
-| `PENDING` | Session created, user hasn't started | API |
-| `SUBMITTED` | User completed the verification flow | API |
-| `VERIFIED` | Approved by your team | You (via `updateStatus`) |
-| `REJECTED` | Rejected by your team | You (via `updateStatus`) |
-| `VOIDED` | Cancelled / invalidated | You (via `updateStatus`) |
+| Status      | Meaning                              | Set By                   |
+| ----------- | ------------------------------------ | ------------------------ |
+| `PENDING`   | Session created, user hasn't started | API                      |
+| `SUBMITTED` | User completed the verification flow | API                      |
+| `VERIFIED`  | Approved by your team                | You (via `updateStatus`) |
+| `REJECTED`  | Rejected by your team                | You (via `updateStatus`) |
+| `VOIDED`    | Cancelled / invalidated              | You (via `updateStatus`) |

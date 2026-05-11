@@ -16,12 +16,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  DeepIDV,
-  DeepIDVError,
-  AuthenticationError,
-  ValidationError,
-} from '@deepidv/server';
+import { DeepIDV, DeepIDVError, AuthenticationError, ValidationError } from '@deepidv/server';
 
 // Initialize the client at module scope — reused across requests.
 // Next.js App Router route handlers run on the server (Node.js runtime).

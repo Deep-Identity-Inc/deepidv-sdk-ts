@@ -11,11 +11,11 @@ User-provided configuration for creating a client.
 ```typescript
 interface DeepIDVConfig {
   apiKey: string;
-  baseUrl?: string;              // Default: "https://api.deepidv.com"
-  timeout?: number;              // Default: 30000 (30s)
-  uploadTimeout?: number;        // Default: 120000 (2min)
-  maxRetries?: number;           // Default: 3
-  initialRetryDelay?: number;    // Default: 500 (ms)
+  baseUrl?: string; // Default: "https://api.deepidv.com"
+  timeout?: number; // Default: 30000 (30s)
+  uploadTimeout?: number; // Default: 120000 (2min)
+  maxRetries?: number; // Default: 3
+  initialRetryDelay?: number; // Default: 500 (ms)
   fetch?: typeof globalThis.fetch;
 }
 ```
@@ -135,7 +135,9 @@ interface SessionRetrieveResult {
     createdAt: string;
     updatedAt: string;
   };
-  senderUser?: { /* same shape as user */ };
+  senderUser?: {
+    /* same shape as user */
+  };
   resourceLinks?: Record<string, string>;
 }
 ```
@@ -423,12 +425,12 @@ All error classes are exported from `@deepidv/server`:
 
 ```typescript
 import {
-  DeepIDVError,        // Base class (status, code, response, toJSON)
+  DeepIDVError, // Base class (status, code, response, toJSON)
   AuthenticationError, // 401 (redactedKey)
-  RateLimitError,      // 429 (retryAfter)
-  ValidationError,     // 400
-  NetworkError,        // Connection failures
-  TimeoutError,        // Timeout exceeded
+  RateLimitError, // 429 (retryAfter)
+  ValidationError, // 400
+  NetworkError, // Connection failures
+  TimeoutError, // Timeout exceeded
 } from '@deepidv/server';
 ```
 
