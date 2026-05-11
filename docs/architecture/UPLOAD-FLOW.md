@@ -90,11 +90,10 @@ await client.document.scan({ image: '/path/to/id.jpg' });                   // F
 
 The SDK detects image format from magic bytes — the first few bytes of the file:
 
-| Format | Magic Bytes                   | MIME Type    |
-| ------ | ----------------------------- | ------------ |
-| JPEG   | `FF D8 FF`                    | `image/jpeg` |
-| PNG    | `89 50 4E 47`                 | `image/png`  |
-| WebP   | `52 49 46 46 ... 57 45 42 50` | `image/webp` |
+| Format | Magic Bytes   | MIME Type    |
+| ------ | ------------- | ------------ |
+| JPEG   | `FF D8 FF`    | `image/jpeg` |
+| PNG    | `89 50 4E 47` | `image/png`  |
 
 If the bytes don't match any known format, a `ValidationError` is thrown before any network call.
 

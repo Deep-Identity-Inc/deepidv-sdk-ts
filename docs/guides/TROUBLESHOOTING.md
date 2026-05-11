@@ -138,7 +138,7 @@ await client.document.scan({ image: bytes });
 
 **Message:** `Unsupported image format` or `Unable to detect content type`
 
-**Cause:** The SDK checks magic bytes and only supports JPEG, PNG, and WebP.
+**Cause:** The SDK checks magic bytes and only supports JPEG and PNG (the formats accepted by the upstream recognition service).
 
 **Fix:**
 

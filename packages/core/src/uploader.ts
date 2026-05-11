@@ -4,7 +4,7 @@
  *
  * Provides:
  * - `FileInput` — normalized input type accepted on all upload APIs
- * - `SupportedContentType` — MIME type literals for JPEG, PNG, WebP
+ * - `SupportedContentType` — MIME type literals for JPEG and PNG
  * - `UploadOptions` — validated options accepted by upload methods
  * - `PresignResponse` — shape of the presign API response
  * - `toUint8Array` — normalizes any FileInput to Uint8Array
@@ -41,7 +41,7 @@ export type FileInput = Uint8Array | ReadableStream<Uint8Array> | string;
 /**
  * MIME types supported for identity verification uploads.
  */
-export type SupportedContentType = 'image/jpeg' | 'image/png' | 'image/webp';
+export type SupportedContentType = 'image/jpeg' | 'image/png';
 
 // ---------------------------------------------------------------------------
 // Zod schemas (D-10, D-11)
@@ -208,7 +208,6 @@ export async function toUint8Array(input: FileInput): Promise<Uint8Array> {
  * Supported formats:
  * - JPEG: `FF D8 FF`
  * - PNG: `89 50 4E 47`
- * - WebP: `52 49 46 46 ... 57 45 42 50` (RIFF....WEBP)
  *
  * @param bytes - Image bytes to inspect (minimum 4 bytes required).
  * @returns Detected MIME type.
@@ -229,22 +228,7 @@ export function detectContentType(bytes: Uint8Array): SupportedContentType {
     return 'image/png';
   }
 
-  // WebP: RIFF....WEBP (bytes 0-3 = RIFF, bytes 8-11 = WEBP)
-  if (
-    bytes.length >= 12 &&
-    bytes[0] === 0x52 &&
-    bytes[1] === 0x49 &&
-    bytes[2] === 0x46 &&
-    bytes[3] === 0x46 &&
-    bytes[8] === 0x57 &&
-    bytes[9] === 0x45 &&
-    bytes[10] === 0x42 &&
-    bytes[11] === 0x50
-  ) {
-    return 'image/webp';
-  }
-
-  throw new ValidationError('Unsupported image format. Accepted formats: JPEG, PNG, WebP.');
+  throw new ValidationError('Unsupported image format. Accepted formats: JPEG, PNG.');
 }
 
 /**

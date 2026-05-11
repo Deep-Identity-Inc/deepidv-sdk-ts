@@ -130,18 +130,18 @@ describe('detectContentType', () => {
     expect(detectContentType(bytes)).toBe('image/png');
   });
 
-  it('returns "image/webp" for bytes with RIFF header and WEBP at offset 8', () => {
+  it('throws ValidationError for WebP bytes (RIFF...WEBP) — only JPEG and PNG are supported', () => {
     const bytes = new Uint8Array(12);
     bytes[0] = 0x52; // R
     bytes[1] = 0x49; // I
     bytes[2] = 0x46; // F
     bytes[3] = 0x46; // F
-    // bytes 4-7: file size (don't matter)
     bytes[8] = 0x57; // W
     bytes[9] = 0x45; // E
     bytes[10] = 0x42; // B
     bytes[11] = 0x50; // P
-    expect(detectContentType(bytes)).toBe('image/webp');
+    expect(() => detectContentType(bytes)).toThrow(ValidationError);
+    expect(() => detectContentType(bytes)).toThrow('Unsupported image format');
   });
 
   it('throws ValidationError for unknown magic bytes', () => {
@@ -467,11 +467,11 @@ describe('FileUploader', () => {
     );
 
     const { uploader } = makeUploader();
-    // JPEG bytes but override to webp
-    await uploader.upload(JPEG_BYTES, { contentType: 'image/webp' });
+    // JPEG bytes but override to png
+    await uploader.upload(JPEG_BYTES, { contentType: 'image/png' });
 
-    expect(presignBody).toMatchObject({ contentType: 'image/webp' });
-    expect(putContentType).toBe('image/webp');
+    expect(presignBody).toMatchObject({ contentType: 'image/png' });
+    expect(putContentType).toBe('image/png');
   });
 
   it('upload emits upload:start before PUT and upload:complete after success', async () => {
