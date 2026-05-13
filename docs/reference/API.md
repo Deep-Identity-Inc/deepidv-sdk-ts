@@ -309,13 +309,13 @@ Compare two face images. Both are uploaded in parallel via batch presign.
 
 **Returns:** `FaceCompareResult`
 
-| Field                | Type      | Description            |
-| -------------------- | --------- | ---------------------- |
+| Field                | Type      | Description              |
+| -------------------- | --------- | ------------------------ |
 | `isMatch`            | `boolean` | Whether faces match      |
 | `confidence`         | `number`  | Match confidence (0–100) |
 | `threshold`          | `number`  | Match threshold (0–100)  |
-| `sourceFaceDetected` | `boolean` | Face found in source   |
-| `targetFaceDetected` | `boolean` | Face found in target   |
+| `sourceFaceDetected` | `boolean` | Face found in source     |
+| `targetFaceDetected` | `boolean` | Face found in target     |
 
 **Example:**
 

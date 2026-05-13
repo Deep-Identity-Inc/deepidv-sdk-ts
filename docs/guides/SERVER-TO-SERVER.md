@@ -175,7 +175,7 @@ const result = await client.identity.verify({
 });
 
 console.log(result.verified); // true/false
-console.log(result.overallConfidence); // 96 
+console.log(result.overallConfidence); // 96
 
 // Document data
 console.log(result.document.fullName);
@@ -192,13 +192,13 @@ console.log(result.faceMatch.confidence);
 
 ### IdentityVerificationResult Fields
 
-| Field               | Type                          | Description                                                    |
-| ------------------- | ----------------------------- | -------------------------------------------------------------- |
-| `verified`          | `boolean`                     | Overall pass/fail                                              |
+| Field               | Type                          | Description                    |
+| ------------------- | ----------------------------- | ------------------------------ |
+| `verified`          | `boolean`                     | Overall pass/fail              |
 | `overallConfidence` | `number`                      | Aggregate confidence (0–100)   |
-| `document`          | `IdentityDocumentResult`      | OCR data from the document                                     |
-| `faceDetection`     | `IdentityFaceDetectionResult` | Face detection from the selfie                                 |
-| `faceMatch`         | `IdentityFaceMatchResult`     | Face comparison result                                         |
+| `document`          | `IdentityDocumentResult`      | OCR data from the document     |
+| `faceDetection`     | `IdentityFaceDetectionResult` | Face detection from the selfie |
+| `faceMatch`         | `IdentityFaceMatchResult`     | Face comparison result         |
 
 All three sub-results are always present on a 2xx response, even if `verified` is `false`.
 

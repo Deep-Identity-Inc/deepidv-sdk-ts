@@ -84,7 +84,7 @@ const verification = await client.identity.verify({
 });
 
 console.log(verification.verified); // true
-console.log(verification.overallConfidence); // 96 
+console.log(verification.overallConfidence); // 96
 console.log(verification.document.fullName); // "Jane Doe"
 console.log(verification.faceMatch.isMatch); // true
 ```
