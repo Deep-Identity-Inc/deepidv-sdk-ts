@@ -85,7 +85,7 @@ export const FaceCompareResultSchema = z
   .object({
     /** Whether the two faces are considered a match. */
     isMatch: z.boolean(),
-    /** Match confidence score (0-1). */
+    /** Match confidence score (0–100). */
     confidence: z.number(),
     /** Confidence threshold used to determine `isMatch`. */
     threshold: z.number(),

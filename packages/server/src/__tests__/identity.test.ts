@@ -93,11 +93,11 @@ const MOCK_IDENTITY_RESULT = {
     documentNumber: 'AB1234567',
     expirationDate: '2030-06-01',
     issuingCountry: 'US',
-    confidence: 0.97,
+    confidence: 97,
   },
-  faceDetection: { faceDetected: true, confidence: 0.99 },
-  faceMatch: { isMatch: true, confidence: 0.95, threshold: 0.8 },
-  overallConfidence: 0.94,
+  faceDetection: { faceDetected: true, confidence: 99 },
+  faceMatch: { isMatch: true, confidence: 95, threshold: 80 },
+  overallConfidence: 94,
 };
 
 /** POST /v1/identity/verify handler returning the standard mock result with optional overrides. */
@@ -123,7 +123,7 @@ describe('Identity', () => {
       expect(result.document.fullName).toBe('John Doe');
       expect(result.faceDetection.faceDetected).toBe(true);
       expect(result.faceMatch.isMatch).toBe(true);
-      expect(result.overallConfidence).toBe(0.94);
+      expect(result.overallConfidence).toBe(94);
     });
 
     it('sends batch presign with count: 2', async () => {
@@ -186,8 +186,8 @@ describe('Identity', () => {
         ...mockS3Puts(),
         mockIdentityVerify({
           verified: false,
-          faceMatch: { isMatch: false, confidence: 0.3, threshold: 0.8 },
-          overallConfidence: 0.4,
+          faceMatch: { isMatch: false, confidence: 30, threshold: 80 },
+          overallConfidence: 40,
         }),
       );
 

@@ -70,7 +70,7 @@ const match = await client.face.compare({
 });
 
 console.log(match.isMatch); // true
-console.log(match.confidence); // 0.94
+console.log(match.confidence); // 94 (0–100 scale)
 ```
 
 ## Full Identity Verification
@@ -84,7 +84,7 @@ const verification = await client.identity.verify({
 });
 
 console.log(verification.verified); // true
-console.log(verification.overallConfidence); // 0.96
+console.log(verification.overallConfidence); // 96 
 console.log(verification.document.fullName); // "Jane Doe"
 console.log(verification.faceMatch.isMatch); // true
 ```

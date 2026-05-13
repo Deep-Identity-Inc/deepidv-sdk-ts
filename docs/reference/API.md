@@ -311,9 +311,9 @@ Compare two face images. Both are uploaded in parallel via batch presign.
 
 | Field                | Type      | Description            |
 | -------------------- | --------- | ---------------------- |
-| `isMatch`            | `boolean` | Whether faces match    |
-| `confidence`         | `number`  | Match confidence (0–1) |
-| `threshold`          | `number`  | Match threshold        |
+| `isMatch`            | `boolean` | Whether faces match      |
+| `confidence`         | `number`  | Match confidence (0–100) |
+| `threshold`          | `number`  | Match threshold (0–100)  |
 | `sourceFaceDetected` | `boolean` | Face found in source   |
 | `targetFaceDetected` | `boolean` | Face found in target   |
 
@@ -378,29 +378,31 @@ Full identity verification: document scan + face detection + face comparison. Bo
 
 **Returns:** `IdentityVerificationResult`
 
-| Field                        | Type                          | Description                |
-| ---------------------------- | ----------------------------- | -------------------------- |
-| `verified`                   | `boolean`                     | Overall pass/fail          |
-| `overallConfidence`          | `number`                      | Aggregate confidence (0–1) |
-| `document`                   | `IdentityDocumentResult`      | Document OCR data          |
-| `document.documentType`      | `string`                      | Detected type              |
-| `document.fullName`          | `string`                      | Full name                  |
-| `document.firstName`         | `string`                      | First name                 |
-| `document.lastName`          | `string`                      | Last name                  |
-| `document.dateOfBirth`       | `string`                      | Date of birth              |
-| `document.gender`            | `string`                      | Gender                     |
-| `document.nationality`       | `string`                      | Nationality                |
-| `document.documentNumber`    | `string`                      | Document number            |
-| `document.expirationDate`    | `string`                      | Expiration date            |
-| `document.issuingCountry`    | `string`                      | Issuing country            |
-| `document.confidence`        | `number`                      | OCR confidence             |
-| `faceDetection`              | `IdentityFaceDetectionResult` | Face detection result      |
-| `faceDetection.faceDetected` | `boolean`                     | Face found                 |
-| `faceDetection.confidence`   | `number`                      | Detection confidence       |
-| `faceMatch`                  | `IdentityFaceMatchResult`     | Face comparison result     |
-| `faceMatch.isMatch`          | `boolean`                     | Faces match                |
-| `faceMatch.confidence`       | `number`                      | Match confidence           |
-| `faceMatch.threshold`        | `number`                      | Match threshold            |
+All confidence and threshold values on this response are reported on a **0–100** scale.
+
+| Field                        | Type                          | Description                  |
+| ---------------------------- | ----------------------------- | ---------------------------- |
+| `verified`                   | `boolean`                     | Overall pass/fail            |
+| `overallConfidence`          | `number`                      | Aggregate confidence (0–100) |
+| `document`                   | `IdentityDocumentResult`      | Document OCR data            |
+| `document.documentType`      | `string`                      | Detected type                |
+| `document.fullName`          | `string`                      | Full name                    |
+| `document.firstName`         | `string`                      | First name                   |
+| `document.lastName`          | `string`                      | Last name                    |
+| `document.dateOfBirth`       | `string`                      | Date of birth                |
+| `document.gender`            | `string`                      | Gender                       |
+| `document.nationality`       | `string`                      | Nationality                  |
+| `document.documentNumber`    | `string`                      | Document number              |
+| `document.expirationDate`    | `string`                      | Expiration date              |
+| `document.issuingCountry`    | `string`                      | Issuing country              |
+| `document.confidence`        | `number`                      | OCR confidence (0–100)       |
+| `faceDetection`              | `IdentityFaceDetectionResult` | Face detection result        |
+| `faceDetection.faceDetected` | `boolean`                     | Face found                   |
+| `faceDetection.confidence`   | `number`                      | Detection confidence (0–100) |
+| `faceMatch`                  | `IdentityFaceMatchResult`     | Face comparison result       |
+| `faceMatch.isMatch`          | `boolean`                     | Faces match                  |
+| `faceMatch.confidence`       | `number`                      | Match confidence (0–100)     |
+| `faceMatch.threshold`        | `number`                      | Match threshold (0–100)      |
 
 **Throws:** `ValidationError`, `AuthenticationError`, `RateLimitError`, `NetworkError`, `TimeoutError`, `DeepIDVError`
 

@@ -89,7 +89,7 @@ export const IdentityDocumentResultSchema = z
     address: z.string().optional(),
     /** Base64-encoded face image extracted from the document, if present. */
     faceImage: z.string().optional(),
-    /** Overall OCR confidence score (0–1). */
+    /** Overall OCR confidence score (0–100). */
     confidence: z.number(),
   })
   .strip();
@@ -105,7 +105,7 @@ export const IdentityFaceDetectionResultSchema = z
   .object({
     /** Whether a face was detected in the provided face image. */
     faceDetected: z.boolean(),
-    /** Face detection confidence score (0–1). */
+    /** Face detection confidence score (0–100). */
     confidence: z.number(),
   })
   .strip();
@@ -121,9 +121,9 @@ export const IdentityFaceMatchResultSchema = z
   .object({
     /** Whether the document face and the provided face image are considered a match. */
     isMatch: z.boolean(),
-    /** Match confidence score (0–1). */
+    /** Match confidence score (0–100). Matches the scale used by `face.compare()`. */
     confidence: z.number(),
-    /** Confidence threshold used to determine `isMatch`. */
+    /** Confidence threshold used to determine `isMatch` (0–100). */
     threshold: z.number(),
   })
   .strip();
@@ -149,7 +149,7 @@ export const IdentityVerificationResultSchema = z
     faceDetection: IdentityFaceDetectionResultSchema,
     /** Face match result comparing the document face against the provided face image. */
     faceMatch: IdentityFaceMatchResultSchema,
-    /** Weighted aggregate confidence score across all sub-results (0–1). */
+    /** Weighted aggregate confidence score across all sub-results (0–100). */
     overallConfidence: z.number(),
   })
   .strip();

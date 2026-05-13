@@ -162,8 +162,8 @@ describe('Face.compare', () => {
       http.post(`${BASE_URL}/v1/face/compare`, () => {
         return HttpResponse.json({
           isMatch: true,
-          confidence: 0.95,
-          threshold: 0.8,
+          confidence: 95,
+          threshold: 80,
           sourceFaceDetected: true,
           targetFaceDetected: true,
         });
@@ -174,7 +174,7 @@ describe('Face.compare', () => {
     const result = await face.compare({ source: JPEG_BYTES, target: JPEG_BYTES_2 });
 
     expect(result.isMatch).toBe(true);
-    expect(result.confidence).toBe(0.95);
+    expect(result.confidence).toBe(95);
   });
 
   it('sends source and target file keys to compare endpoint', async () => {
@@ -187,8 +187,8 @@ describe('Face.compare', () => {
         capturedBody = await request.json();
         return HttpResponse.json({
           isMatch: true,
-          confidence: 0.95,
-          threshold: 0.8,
+          confidence: 95,
+          threshold: 80,
           sourceFaceDetected: true,
           targetFaceDetected: true,
         });
