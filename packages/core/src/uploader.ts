@@ -329,8 +329,10 @@ export class FileUploader {
     );
 
     const presignResponse = await this.httpClient.post<PresignResponse>('/v1/upload/presign', {
-      contentType: files[0]?.contentType,
-      count: files.length,
+      files: files.map((f) => ({
+        contentType: f.contentType,
+        byteLength: f.bytes.byteLength,
+      })),
     });
 
     await Promise.all(
@@ -390,9 +392,7 @@ export class FileUploader {
         response = await this.config.fetch(url, {
           method: 'PUT',
           headers: { 'Content-Type': contentType },
-          // Cast to ArrayBuffer for TypeScript 6 DTS compatibility (Uint8Array<ArrayBufferLike>
-          // is not directly assignable to BodyInit in strict mode — ArrayBuffer is safe)
-          body: bytes.buffer as ArrayBuffer,
+          body: bytes as BodyInit,
           signal: controller.signal,
         });
       } catch (err) {

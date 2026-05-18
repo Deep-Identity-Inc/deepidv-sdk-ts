@@ -236,7 +236,7 @@ function makeUploader(configOverrides?: {
 // ---------------------------------------------------------------------------
 
 describe('FileUploader', () => {
-  it('upload(jpegBytes) calls POST /v1/upload/presign with contentType and count:1, then PUTs to S3 and returns [fileKey]', async () => {
+  it('upload(jpegBytes) calls POST /v1/upload/presign with a single-entry files array carrying contentType + byteLength', async () => {
     let presignBody: unknown;
     server.use(
       http.post('https://api.deepidv.com/v1/upload/presign', async ({ request }) => {
@@ -252,20 +252,24 @@ describe('FileUploader', () => {
     const result = await uploader.upload(JPEG_BYTES);
 
     expect(result).toEqual(['key-1']);
-    expect(presignBody).toMatchObject({ contentType: 'image/jpeg', count: 1 });
+    expect(presignBody).toEqual({
+      files: [{ contentType: 'image/jpeg', byteLength: JPEG_BYTES.byteLength }],
+    });
   });
 
-  it('upload([jpegBytes, pngBytes]) calls presign with count:2 and PUTs both files in parallel', async () => {
+  it('upload([jpegBytes, pngBytes]) sends contentTypes per file and PUTs both files in parallel', async () => {
+    let presignBody: unknown;
     const putUrls: string[] = [];
     server.use(
-      http.post('https://api.deepidv.com/v1/upload/presign', () =>
-        HttpResponse.json({
+      http.post('https://api.deepidv.com/v1/upload/presign', async ({ request }) => {
+        presignBody = await request.json();
+        return HttpResponse.json({
           uploads: [
             { uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' },
             { uploadUrl: 'https://s3.example.com/upload2', fileKey: 'key-2' },
           ],
-        }),
-      ),
+        });
+      }),
       http.put('https://s3.example.com/:id', ({ request }) => {
         putUrls.push(request.url);
         return HttpResponse.text('', { status: 200 });
@@ -276,6 +280,12 @@ describe('FileUploader', () => {
     const result = await uploader.upload([JPEG_BYTES, PNG_BYTES]);
 
     expect(result).toEqual(['key-1', 'key-2']);
+    expect(presignBody).toEqual({
+      files: [
+        { contentType: 'image/jpeg', byteLength: JPEG_BYTES.byteLength },
+        { contentType: 'image/png', byteLength: PNG_BYTES.byteLength },
+      ],
+    });
     expect(putUrls).toHaveLength(2);
     expect(putUrls).toContain('https://s3.example.com/upload1');
     expect(putUrls).toContain('https://s3.example.com/upload2');
@@ -470,7 +480,9 @@ describe('FileUploader', () => {
     // JPEG bytes but override to png
     await uploader.upload(JPEG_BYTES, { contentType: 'image/png' });
 
-    expect(presignBody).toMatchObject({ contentType: 'image/png' });
+    expect(presignBody).toEqual({
+      files: [{ contentType: 'image/png', byteLength: JPEG_BYTES.byteLength }],
+    });
     expect(putContentType).toBe('image/png');
   });
 

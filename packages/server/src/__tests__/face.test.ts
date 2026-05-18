@@ -63,14 +63,21 @@ function mockPresignSingle() {
 }
 
 /**
- * Batch presign for face.compare() — asserts count === 2 (FACE-02 / D-02)
+ * Batch presign for face.compare() — asserts the request carries one `files`
+ * entry per upload (FACE-02 / D-02), each with `contentType` and `byteLength`,
  * and returns two upload slots.
  */
 function mockPresignBatch() {
   return http.post(`${BASE_URL}/v1/upload/presign`, async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>;
-    // Verify batch presign receives count: 2 (FACE-02 / D-02)
-    expect(body['count']).toBe(2);
+    expect(Array.isArray(body['files'])).toBe(true);
+    const files = body['files'] as Array<Record<string, unknown>>;
+    expect(files).toHaveLength(2);
+    for (const file of files) {
+      expect(typeof file['contentType']).toBe('string');
+      expect(typeof file['byteLength']).toBe('number');
+      expect((file['byteLength'] as number) > 0).toBe(true);
+    }
     return HttpResponse.json({
       uploads: [
         { uploadUrl: 'https://s3.example.com/presigned-1', fileKey: 'fk_source_001' },
