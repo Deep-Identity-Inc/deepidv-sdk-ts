@@ -11,7 +11,6 @@
  */
 
 import type { TypedEmitter } from './events.js';
-import type { SDKEventMap } from './events.js';
 import { DeepIDVError, NetworkError, TimeoutError } from './errors.js';
 
 /**
@@ -61,7 +60,7 @@ export function isRetryable(err: unknown): boolean {
  */
 export function extractRetryAfter(err: unknown): number | null {
   if (!(err instanceof DeepIDVError)) return null;
-  const raw = err.response?.headers?.['retry-after'];
+  const raw = err.response?.headers['retry-after'];
   if (!raw) return null;
 
   // Try numeric first
@@ -93,11 +92,7 @@ export function extractRetryAfter(err: unknown): number | null {
  * @param initialDelayMs - Initial delay for exponential backoff calculation.
  * @returns Delay in milliseconds.
  */
-export function computeDelay(
-  err: unknown,
-  attempt: number,
-  initialDelayMs: number,
-): number {
+export function computeDelay(err: unknown, attempt: number, initialDelayMs: number): number {
   const retryAfterSeconds = extractRetryAfter(err);
   if (retryAfterSeconds !== null) {
     return Math.min(retryAfterSeconds * 1_000, RETRY_AFTER_CAP_MS);
@@ -127,7 +122,7 @@ export function computeDelay(
 export async function withRetry<T>(
   fn: () => Promise<T>,
   config: { maxRetries: number; initialDelayMs: number },
-  emitter: TypedEmitter<SDKEventMap>,
+  emitter: TypedEmitter,
 ): Promise<T> {
   let lastError: unknown;
 

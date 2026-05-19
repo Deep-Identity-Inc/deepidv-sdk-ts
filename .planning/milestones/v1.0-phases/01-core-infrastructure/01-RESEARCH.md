@@ -7,6 +7,7 @@
 ---
 
 <user_constraints>
+
 ## User Constraints (from CONTEXT.md)
 
 ### Locked Decisions
@@ -56,31 +57,32 @@ None — discussion stayed within phase scope.
 ---
 
 <phase_requirements>
+
 ## Phase Requirements
 
-| ID | Description | Research Support |
-|----|-------------|------------------|
-| BUILD-01 | pnpm monorepo with `@deepidv/core` (internal) and `@deepidv/server` (public) packages | pnpm workspaces, pnpm-workspace.yaml, workspace:* protocol |
-| BUILD-02 | TypeScript strict mode, ES2022 target, path aliases via `tsconfig.base.json` | TypeScript 6.0 now defaults strict=true; ES2022 target confirmed correct |
-| BUILD-03 | tsup builds dual ESM + CJS output with `.d.ts` generation per package | tsup 8.5.1, `format: ['esm', 'cjs'], dts: true` |
-| BUILD-04 | Package `exports` map correctly exposes `.mjs`, `.cjs`, and `.d.ts` for all entry points | Conditional exports pattern with `import`/`require`/`types` keys |
-| BUILD-05 | ESLint + Prettier configured at workspace root, shared by all packages | ESLint 10.2.0 flat config, Prettier 3.8.1 |
-| HTTP-01 | Base HTTP client using native `fetch` with configurable base URL, JSON parsing, content-type handling | Native fetch in Node 18+, Deno, Bun, CF Workers — no polyfill needed |
-| HTTP-02 | API key authentication via `x-api-key` header on every request | Header injection in request wrapper |
-| HTTP-03 | Configurable timeout per request using `AbortController` with global default override | `AbortController` + `AbortSignal.timeout()` — per-attempt scope (D-01) |
-| HTTP-04 | Retry logic with exponential backoff + jitter on 429 and 5xx only, never 4xx, configurable max retries | Exponential backoff formula with Math.random() jitter; Retry-After cap at 60s (D-02, D-03) |
-| ERR-01 | `DeepIDVError` base class with status code, error code, human-readable message | Custom Error subclass with `toJSON()` (D-08) and `.response` property (D-06) |
-| ERR-02 | `AuthenticationError` (401) with API key redaction in error output | Last-4-chars redaction pattern (D-05) |
-| ERR-03 | `RateLimitError` (429) with retry-after extraction | Parse `Retry-After` header from `.response` |
-| ERR-04 | `ValidationError` (400) with field-level detail from Zod | Phase 2 concern for Zod schemas; Phase 1 just needs the class shell |
-| ERR-05 | `NetworkError` for connection failures and `TimeoutError` for request timeouts | Catch `AbortError` → `TimeoutError`; catch network errors → `NetworkError` |
-| ERR-06 | All errors chain `cause` for stack trace preservation | Native `Error.cause` (ES2022, D-07) |
-| EVT-01 | Typed event emitter for request lifecycle: request start, upload progress, response received, retry, error | Generic typed emitter using Map of listener arrays — no external dep |
-| EVT-02 | Non-blocking (does not intercept return path), allows caller-controlled logging/APM | Synchronous fire-and-forget listeners (D-09); listener throw swallowed (D-10) |
-| COMPAT-01 | Works on Node 18+ without polyfills | Node 22.18.0 available locally; fetch/AbortController/ReadableStream all native in Node 18+ |
-| COMPAT-02 | Works on Deno and Bun using native web APIs | Web Standards only — no Node-specific APIs in core |
-| COMPAT-03 | Works on Cloudflare Workers and edge runtimes (no Node-specific APIs in core) | CF Workers has native fetch, AbortController, AbortSignal — confirmed |
-| COMPAT-04 | File path input uses conditional runtime detection; edge runtimes must pass Buffer/Uint8Array | Phase 2 concern (uploader). Phase 1 core only needs Buffer/Uint8Array support |
+| ID        | Description                                                                                                | Research Support                                                                            |
+| --------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| BUILD-01  | pnpm monorepo with `@deepidv/core` (internal) and `@deepidv/server` (public) packages                      | pnpm workspaces, pnpm-workspace.yaml, workspace:\* protocol                                 |
+| BUILD-02  | TypeScript strict mode, ES2022 target, path aliases via `tsconfig.base.json`                               | TypeScript 6.0 now defaults strict=true; ES2022 target confirmed correct                    |
+| BUILD-03  | tsup builds dual ESM + CJS output with `.d.ts` generation per package                                      | tsup 8.5.1, `format: ['esm', 'cjs'], dts: true`                                             |
+| BUILD-04  | Package `exports` map correctly exposes `.mjs`, `.cjs`, and `.d.ts` for all entry points                   | Conditional exports pattern with `import`/`require`/`types` keys                            |
+| BUILD-05  | ESLint + Prettier configured at workspace root, shared by all packages                                     | ESLint 10.2.0 flat config, Prettier 3.8.1                                                   |
+| HTTP-01   | Base HTTP client using native `fetch` with configurable base URL, JSON parsing, content-type handling      | Native fetch in Node 18+, Deno, Bun, CF Workers — no polyfill needed                        |
+| HTTP-02   | API key authentication via `x-api-key` header on every request                                             | Header injection in request wrapper                                                         |
+| HTTP-03   | Configurable timeout per request using `AbortController` with global default override                      | `AbortController` + `AbortSignal.timeout()` — per-attempt scope (D-01)                      |
+| HTTP-04   | Retry logic with exponential backoff + jitter on 429 and 5xx only, never 4xx, configurable max retries     | Exponential backoff formula with Math.random() jitter; Retry-After cap at 60s (D-02, D-03)  |
+| ERR-01    | `DeepIDVError` base class with status code, error code, human-readable message                             | Custom Error subclass with `toJSON()` (D-08) and `.response` property (D-06)                |
+| ERR-02    | `AuthenticationError` (401) with API key redaction in error output                                         | Last-4-chars redaction pattern (D-05)                                                       |
+| ERR-03    | `RateLimitError` (429) with retry-after extraction                                                         | Parse `Retry-After` header from `.response`                                                 |
+| ERR-04    | `ValidationError` (400) with field-level detail from Zod                                                   | Phase 2 concern for Zod schemas; Phase 1 just needs the class shell                         |
+| ERR-05    | `NetworkError` for connection failures and `TimeoutError` for request timeouts                             | Catch `AbortError` → `TimeoutError`; catch network errors → `NetworkError`                  |
+| ERR-06    | All errors chain `cause` for stack trace preservation                                                      | Native `Error.cause` (ES2022, D-07)                                                         |
+| EVT-01    | Typed event emitter for request lifecycle: request start, upload progress, response received, retry, error | Generic typed emitter using Map of listener arrays — no external dep                        |
+| EVT-02    | Non-blocking (does not intercept return path), allows caller-controlled logging/APM                        | Synchronous fire-and-forget listeners (D-09); listener throw swallowed (D-10)               |
+| COMPAT-01 | Works on Node 18+ without polyfills                                                                        | Node 22.18.0 available locally; fetch/AbortController/ReadableStream all native in Node 18+ |
+| COMPAT-02 | Works on Deno and Bun using native web APIs                                                                | Web Standards only — no Node-specific APIs in core                                          |
+| COMPAT-03 | Works on Cloudflare Workers and edge runtimes (no Node-specific APIs in core)                              | CF Workers has native fetch, AbortController, AbortSignal — confirmed                       |
+| COMPAT-04 | File path input uses conditional runtime detection; edge runtimes must pass Buffer/Uint8Array              | Phase 2 concern (uploader). Phase 1 core only needs Buffer/Uint8Array support               |
 
 </phase_requirements>
 
@@ -102,23 +104,23 @@ ESLint 10.2.0 is the current stable (v9 is now in maintenance); however, since E
 
 ### Core
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| TypeScript | `^6.0.2` | Language | Current stable (GA March 2026). Defaults strict=true. ES2022 target covers private fields, top-level await, Error.cause. |
-| tsup | `^8.5.1` | Bundler | Dual ESM + CJS + `.d.ts` in one config. The locked choice from CLAUDE.md. |
-| zod | `^4.3.6` | Runtime validation | Current stable v4. CLAUDE.md specified `^3.23` but v4 is now latest. See note below. |
-| pnpm | `^10.x` | Package manager + workspace host | npm show pnpm version returns 10.x line. v9 still works but v10 is current. |
-| vitest | `^4.1.2` | Test runner | Current stable. ESM-native, zero config for tsup projects. |
-| msw | `^2.12.14` | HTTP mocking | v2 intercepts native fetch in Node via @mswjs/interceptors. No server to start/stop. |
+| Library    | Version    | Purpose                          | Why Standard                                                                                                             |
+| ---------- | ---------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| TypeScript | `^6.0.2`   | Language                         | Current stable (GA March 2026). Defaults strict=true. ES2022 target covers private fields, top-level await, Error.cause. |
+| tsup       | `^8.5.1`   | Bundler                          | Dual ESM + CJS + `.d.ts` in one config. The locked choice from CLAUDE.md.                                                |
+| zod        | `^4.3.6`   | Runtime validation               | Current stable v4. CLAUDE.md specified `^3.23` but v4 is now latest. See note below.                                     |
+| pnpm       | `^10.x`    | Package manager + workspace host | npm show pnpm version returns 10.x line. v9 still works but v10 is current.                                              |
+| vitest     | `^4.1.2`   | Test runner                      | Current stable. ESM-native, zero config for tsup projects.                                                               |
+| msw        | `^2.12.14` | HTTP mocking                     | v2 intercepts native fetch in Node via @mswjs/interceptors. No server to start/stop.                                     |
 
 ### Supporting
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| ESLint | `^9.39.4` (maintenance) | Linting | v9 is proven stable. v10 (10.2.0) just released April 2026; defer to v10 once typescript-eslint catches up. Use v9 for now. |
-| typescript-eslint | `^8.58.0` | TypeScript rules | Flat config native support. `recommended-type-checked` enforces zero-any. |
-| Prettier | `^3.8.1` | Formatting | Opinionated, no debates. |
-| @changesets/cli | `^2.30.0` | Versioning + changelog | Monorepo-native. Explicit patch/minor/major control. |
+| Library           | Version                 | Purpose                | When to Use                                                                                                                 |
+| ----------------- | ----------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| ESLint            | `^9.39.4` (maintenance) | Linting                | v9 is proven stable. v10 (10.2.0) just released April 2026; defer to v10 once typescript-eslint catches up. Use v9 for now. |
+| typescript-eslint | `^8.58.0`               | TypeScript rules       | Flat config native support. `recommended-type-checked` enforces zero-any.                                                   |
+| Prettier          | `^3.8.1`                | Formatting             | Opinionated, no debates.                                                                                                    |
+| @changesets/cli   | `^2.30.0`               | Versioning + changelog | Monorepo-native. Explicit patch/minor/major control.                                                                        |
 
 > **Zod v3 vs v4 decision required:** CLAUDE.md says `^3.23`. npm registry now shows `4.3.6` as `latest`. Since Phase 1 does not write any Zod schemas (schemas are Phase 2+), the safer approach is to **install zod `^4.3.6` now** and adopt v4 APIs from the start, rather than pinning to v3 only to migrate later. Key v4 change to know: string format validators are now top-level (`z.email()`, `z.uuid()`) not chained methods. The `z.infer<>` pattern is unchanged.
 
@@ -126,11 +128,11 @@ ESLint 10.2.0 is the current stable (v9 is now in maintenance); however, since E
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| tsup 8.x | tsdown | tsdown is tsup's successor from the same author, but is newer and less battle-tested for SDK publishing |
-| ESLint 9.x | ESLint 10.x | v10 just shipped; plugin ecosystem lag. v9 maintenance branch is safer for initial scaffold |
-| zod 4.x | zod 3.x | v3 still works but `latest` tag points to v4. Starting on v3 means a migration later. |
+| Instead of | Could Use   | Tradeoff                                                                                                |
+| ---------- | ----------- | ------------------------------------------------------------------------------------------------------- |
+| tsup 8.x   | tsdown      | tsdown is tsup's successor from the same author, but is newer and less battle-tested for SDK publishing |
+| ESLint 9.x | ESLint 10.x | v10 just shipped; plugin ecosystem lag. v9 maintenance branch is safer for initial scaffold             |
+| zod 4.x    | zod 3.x     | v3 still works but `latest` tag points to v4. Starting on v3 means a migration later.                   |
 
 **Installation:**
 
@@ -142,7 +144,7 @@ pnpm add -Dw typescript tsup eslint typescript-eslint prettier @changesets/cli v
 pnpm add --filter @deepidv/core zod
 pnpm add -D --filter @deepidv/core vitest msw
 
-# @deepidv/server  
+# @deepidv/server
 pnpm add --filter @deepidv/server @deepidv/core@workspace:*
 pnpm add -D --filter @deepidv/server vitest msw
 ```
@@ -329,10 +331,7 @@ export class HttpClient {
   async request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const url = buildUrl(this.config.baseUrl, path); // D-15: strip trailing slash + leading slash
     const controller = new AbortController();
-    const timeoutId = setTimeout(
-      () => controller.abort(),
-      this.config.timeout
-    );
+    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
     try {
       const response = await (this.config.fetch ?? fetch)(url, {
@@ -415,11 +414,11 @@ function isRetryable(err: unknown): boolean {
 type Listener<T> = (payload: T) => void;
 
 export type SDKEventMap = {
-  'request': { method: string; url: string };
-  'response': { status: number; url: string };
-  'retry': { attempt: number; delayMs: number; error: unknown };
-  'error': { error: unknown };
-  'warning': { message: string; error: unknown };
+  request: { method: string; url: string };
+  response: { status: number; url: string };
+  retry: { attempt: number; delayMs: number; error: unknown };
+  error: { error: unknown };
+  warning: { message: string; error: unknown };
 };
 
 export class TypedEmitter<TMap extends Record<string, unknown> = SDKEventMap> {
@@ -447,7 +446,8 @@ export class TypedEmitter<TMap extends Record<string, unknown> = SDKEventMap> {
         fn(payload);
       } catch (err) {
         if (event !== 'warning') {
-          this.emit('warning', { message: 'Listener threw', error: err } as TMap['warning' & keyof TMap]);
+          this.emit('warning', { message: 'Listener threw', error: err } as TMap['warning' &
+            keyof TMap]);
         }
       }
     }
@@ -481,7 +481,7 @@ export class DeepIDVError extends Error {
 
   constructor(
     message: string,
-    options?: { status?: number; code?: string; response?: RawResponse; cause?: unknown }
+    options?: { status?: number; code?: string; response?: RawResponse; cause?: unknown },
   ) {
     super(message, { cause: options?.cause }); // D-07: native Error.cause
     this.name = this.constructor.name;
@@ -492,7 +492,8 @@ export class DeepIDVError extends Error {
     Object.setPrototypeOf(this, new.target.prototype);
   }
 
-  toJSON() { // D-08
+  toJSON() {
+    // D-08
     return {
       type: this.name,
       message: this.message,
@@ -505,7 +506,11 @@ export class DeepIDVError extends Error {
 export class AuthenticationError extends DeepIDVError {
   readonly redactedKey: string;
 
-  constructor(message: string, apiKey: string, options?: { response?: RawResponse; cause?: unknown }) {
+  constructor(
+    message: string,
+    apiKey: string,
+    options?: { response?: RawResponse; cause?: unknown },
+  ) {
     super(message, { status: 401, code: 'authentication_error', ...options });
     this.redactedKey = redactApiKey(apiKey); // D-05: last 4 chars only
   }
@@ -566,13 +571,13 @@ export default tseslint.config(
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| HTTP mocking in tests | Custom mock server, `nock` | `msw v2` via `setupServer()` | msw intercepts native fetch; `nock` patches Node's `http` module which doesn't apply to native fetch |
-| Dual ESM+CJS build | Manual rollup config, two `tsc` passes | `tsup` | tsup handles format splitting, `.d.ts` gen, and `exports` map compatibility in ~15 lines |
-| Runtime input validation | Manual type guards | `zod v4` | Zod's schemas ARE the types via `z.infer<>`. Single source of truth for compile-time + runtime. |
-| Workspace versioning | Manual CHANGELOG + git tags | `changesets` | Changesets enforces explicit semver intent per change; prevents accidental major bumps |
-| API key redaction | Regex replace in logs | Controlled redaction in `AuthenticationError.toJSON()` | Ensures the key is NEVER in any serialized output, not just logs |
+| Problem                  | Don't Build                            | Use Instead                                            | Why                                                                                                  |
+| ------------------------ | -------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| HTTP mocking in tests    | Custom mock server, `nock`             | `msw v2` via `setupServer()`                           | msw intercepts native fetch; `nock` patches Node's `http` module which doesn't apply to native fetch |
+| Dual ESM+CJS build       | Manual rollup config, two `tsc` passes | `tsup`                                                 | tsup handles format splitting, `.d.ts` gen, and `exports` map compatibility in ~15 lines             |
+| Runtime input validation | Manual type guards                     | `zod v4`                                               | Zod's schemas ARE the types via `z.infer<>`. Single source of truth for compile-time + runtime.      |
+| Workspace versioning     | Manual CHANGELOG + git tags            | `changesets`                                           | Changesets enforces explicit semver intent per change; prevents accidental major bumps               |
+| API key redaction        | Regex replace in logs                  | Controlled redaction in `AuthenticationError.toJSON()` | Ensures the key is NEVER in any serialized output, not just logs                                     |
 
 **Key insight:** The only thing hand-rolled in this stack is the typed event emitter, and that is by design — the alternative (`eventemitter3` or Node's `EventEmitter`) would introduce a Node-specific dependency that breaks Cloudflare Workers and Deno compatibility.
 
@@ -715,14 +720,15 @@ export default defineConfig({
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| `zod v3` with chained validators (`z.string().email()`) | `zod v4` with top-level format fns (`z.email()`) | Zod v4 GA 2025 | All schema code uses v4 API from the start |
-| TypeScript `^5.4` (CLAUDE.md) | TypeScript `6.0.2` (current stable) | March 2026 GA | strict is now default; ES2025 target support added |
-| ESLint v9 flat config (CLAUDE.md) | ESLint v10 (April 2026) | April 2026 | Use v9 maintenance initially; v10 is too new for stable ecosystem |
-| `eventemitter3` / Node's `EventEmitter` | Custom typed emitter (~40 lines) | N/A (design constraint) | Zero runtime deps in core; full type safety |
+| Old Approach                                            | Current Approach                                 | When Changed            | Impact                                                            |
+| ------------------------------------------------------- | ------------------------------------------------ | ----------------------- | ----------------------------------------------------------------- |
+| `zod v3` with chained validators (`z.string().email()`) | `zod v4` with top-level format fns (`z.email()`) | Zod v4 GA 2025          | All schema code uses v4 API from the start                        |
+| TypeScript `^5.4` (CLAUDE.md)                           | TypeScript `6.0.2` (current stable)              | March 2026 GA           | strict is now default; ES2025 target support added                |
+| ESLint v9 flat config (CLAUDE.md)                       | ESLint v10 (April 2026)                          | April 2026              | Use v9 maintenance initially; v10 is too new for stable ecosystem |
+| `eventemitter3` / Node's `EventEmitter`                 | Custom typed emitter (~40 lines)                 | N/A (design constraint) | Zero runtime deps in core; full type safety                       |
 
 **Deprecated/outdated:**
+
 - `nock`: Patches Node's `http` module. Incompatible with native `fetch`. Use msw v2 instead.
 - `jest` + `babel-jest` + `ts-jest`: Three-package config for ESM+TS. vitest eliminates all of it.
 - `axios`, `got`, `node-fetch`: Node-specific HTTP libs. Native fetch is universal.
@@ -756,18 +762,20 @@ export default defineConfig({
 
 ## Environment Availability
 
-| Dependency | Required By | Available | Version | Fallback |
-|------------|------------|-----------|---------|----------|
-| Node.js | COMPAT-01, all tests | Yes | v22.18.0 | — |
-| pnpm | BUILD-01, all builds | Yes | 10.28.0 | — |
-| Deno | COMPAT-02 runtime test | No | — | Document manual install step; skip Deno compat test in CI for Phase 1 |
-| Bun | COMPAT-02 runtime test | No | — | Document manual install step; skip Bun compat test in CI for Phase 1 |
-| Wrangler (CF Workers) | COMPAT-03 runtime test | No | — | Skip CF Workers `wrangler dev` test in Phase 1; verify in Phase 7 |
+| Dependency            | Required By            | Available | Version  | Fallback                                                              |
+| --------------------- | ---------------------- | --------- | -------- | --------------------------------------------------------------------- |
+| Node.js               | COMPAT-01, all tests   | Yes       | v22.18.0 | —                                                                     |
+| pnpm                  | BUILD-01, all builds   | Yes       | 10.28.0  | —                                                                     |
+| Deno                  | COMPAT-02 runtime test | No        | —        | Document manual install step; skip Deno compat test in CI for Phase 1 |
+| Bun                   | COMPAT-02 runtime test | No        | —        | Document manual install step; skip Bun compat test in CI for Phase 1  |
+| Wrangler (CF Workers) | COMPAT-03 runtime test | No        | —        | Skip CF Workers `wrangler dev` test in Phase 1; verify in Phase 7     |
 
 **Missing dependencies with no fallback:**
+
 - None that block Phase 1 implementation.
 
 **Missing dependencies with fallback:**
+
 - **Deno, Bun, Wrangler:** Not installed locally. COMPAT-02, COMPAT-03, COMPAT-04 require these for runtime verification. Phase 1 success criterion #4 ("imports without error in a Node 18 script, a Deno script, and a Cloudflare Workers `wrangler dev` session") cannot be fully verified locally. Recommended approach: verify Node 18+ locally (achievable with v22.18.0), document Deno/Bun/CF Workers compat verification as a manual step or defer to CI with appropriate runners.
 
 ---
@@ -776,38 +784,38 @@ export default defineConfig({
 
 ### Test Framework
 
-| Property | Value |
-|----------|-------|
-| Framework | vitest 4.1.2 |
-| Config file | `packages/core/vitest.config.ts` (Wave 0 gap — does not exist yet) |
-| Quick run command | `pnpm --filter @deepidv/core test --run` |
-| Full suite command | `pnpm -r test --run` |
+| Property           | Value                                                              |
+| ------------------ | ------------------------------------------------------------------ |
+| Framework          | vitest 4.1.2                                                       |
+| Config file        | `packages/core/vitest.config.ts` (Wave 0 gap — does not exist yet) |
+| Quick run command  | `pnpm --filter @deepidv/core test --run`                           |
+| Full suite command | `pnpm -r test --run`                                               |
 
 ### Phase Requirements → Test Map
 
-| Req ID | Behavior | Test Type | Automated Command | File Exists? |
-|--------|----------|-----------|-------------------|-------------|
-| BUILD-01 | pnpm install and build complete zero errors | smoke | `pnpm install && pnpm -r build` | Wave 0 (scaffold) |
-| BUILD-02 | TypeScript strict + ES2022 target enforced | static | `pnpm -r build` (tsc errors) | Wave 0 |
-| BUILD-03 | tsup produces `.mjs`, `.cjs`, `.d.ts` | smoke | `ls packages/core/dist` after build | Wave 0 |
-| BUILD-04 | exports map resolves correctly in Node CJS and ESM | smoke | `node -e "require('@deepidv/core')"` + `node --input-type=module` | ❌ Wave 0 |
-| BUILD-05 | ESLint + Prettier pass on all source files | static | `pnpm lint` | ❌ Wave 0 |
-| HTTP-01 | `HttpClient.request()` issues fetch to correct URL with JSON content-type | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
-| HTTP-02 | `x-api-key` header present on every request | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
-| HTTP-03 | Request aborts after timeout window | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
-| HTTP-04 | Retries on 429/5xx; never retries 4xx; max retries respected | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
-| ERR-01 | `DeepIDVError` has status, code, message, toJSON() | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
-| ERR-02 | `AuthenticationError.toJSON()` redacts API key | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
-| ERR-03 | `RateLimitError` exposes retry-after value | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
-| ERR-04 | `ValidationError` exists with correct class name | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
-| ERR-05 | `NetworkError` and `TimeoutError` thrown on correct failure modes | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
-| ERR-06 | All errors preserve `cause` chain | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
-| EVT-01 | `on('retry', fn)` fires before delay with correct payload | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
-| EVT-02 | Listener throw does not propagate to caller | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
-| COMPAT-01 | Built package imports in Node 18+ (v22 locally) | smoke | `node -e "import('@deepidv/core')"` | ❌ Wave 0 |
-| COMPAT-02 | Works in Deno/Bun | manual | Install Deno/Bun, run test script | ❌ manual |
-| COMPAT-03 | Works in CF Workers `wrangler dev` | manual | Install wrangler, create test worker | ❌ manual |
-| COMPAT-04 | Edge runtimes: Buffer/Uint8Array only (file path deferred to Phase 2) | unit | `pnpm --filter @deepidv/core test --run` | ❌ Wave 0 |
+| Req ID    | Behavior                                                                  | Test Type | Automated Command                                                 | File Exists?      |
+| --------- | ------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------- | ----------------- |
+| BUILD-01  | pnpm install and build complete zero errors                               | smoke     | `pnpm install && pnpm -r build`                                   | Wave 0 (scaffold) |
+| BUILD-02  | TypeScript strict + ES2022 target enforced                                | static    | `pnpm -r build` (tsc errors)                                      | Wave 0            |
+| BUILD-03  | tsup produces `.mjs`, `.cjs`, `.d.ts`                                     | smoke     | `ls packages/core/dist` after build                               | Wave 0            |
+| BUILD-04  | exports map resolves correctly in Node CJS and ESM                        | smoke     | `node -e "require('@deepidv/core')"` + `node --input-type=module` | ❌ Wave 0         |
+| BUILD-05  | ESLint + Prettier pass on all source files                                | static    | `pnpm lint`                                                       | ❌ Wave 0         |
+| HTTP-01   | `HttpClient.request()` issues fetch to correct URL with JSON content-type | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
+| HTTP-02   | `x-api-key` header present on every request                               | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
+| HTTP-03   | Request aborts after timeout window                                       | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
+| HTTP-04   | Retries on 429/5xx; never retries 4xx; max retries respected              | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
+| ERR-01    | `DeepIDVError` has status, code, message, toJSON()                        | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
+| ERR-02    | `AuthenticationError.toJSON()` redacts API key                            | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
+| ERR-03    | `RateLimitError` exposes retry-after value                                | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
+| ERR-04    | `ValidationError` exists with correct class name                          | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
+| ERR-05    | `NetworkError` and `TimeoutError` thrown on correct failure modes         | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
+| ERR-06    | All errors preserve `cause` chain                                         | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
+| EVT-01    | `on('retry', fn)` fires before delay with correct payload                 | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
+| EVT-02    | Listener throw does not propagate to caller                               | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
+| COMPAT-01 | Built package imports in Node 18+ (v22 locally)                           | smoke     | `node -e "import('@deepidv/core')"`                               | ❌ Wave 0         |
+| COMPAT-02 | Works in Deno/Bun                                                         | manual    | Install Deno/Bun, run test script                                 | ❌ manual         |
+| COMPAT-03 | Works in CF Workers `wrangler dev`                                        | manual    | Install wrangler, create test worker                              | ❌ manual         |
+| COMPAT-04 | Edge runtimes: Buffer/Uint8Array only (file path deferred to Phase 2)     | unit      | `pnpm --filter @deepidv/core test --run`                          | ❌ Wave 0         |
 
 ### Sampling Rate
 
@@ -832,16 +840,16 @@ export default defineConfig({
 
 These directives are mandatory. Planner must verify all tasks comply.
 
-| Constraint | Directive |
-|------------|-----------|
+| Constraint            | Directive                                                                                                  |
+| --------------------- | ---------------------------------------------------------------------------------------------------------- |
 | Runtime compatibility | No Node-specific APIs in core (`fs`, `crypto`, `http`, `stream` modules are forbidden in `packages/core/`) |
-| Zero AWS SDKs | SDK only talks to `api.deepidv.com` over HTTPS — never directly to AWS |
-| Minimal dependencies | Only `zod` as a production dependency. Everything else is native web APIs. |
-| TypeScript strictness | `strict: true`, zero `any`, full JSDoc on all public API surface |
-| Auth | `x-api-key` header on every request — no exceptions |
-| Retry policy | Exponential backoff + jitter on 429 and 5xx ONLY. Never retry 4xx. |
-| Build output | Dual ESM + CJS via tsup with `.d.ts` generation |
-| GSD workflow | Do not make direct repo edits outside a GSD workflow |
+| Zero AWS SDKs         | SDK only talks to `api.deepidv.com` over HTTPS — never directly to AWS                                     |
+| Minimal dependencies  | Only `zod` as a production dependency. Everything else is native web APIs.                                 |
+| TypeScript strictness | `strict: true`, zero `any`, full JSDoc on all public API surface                                           |
+| Auth                  | `x-api-key` header on every request — no exceptions                                                        |
+| Retry policy          | Exponential backoff + jitter on 429 and 5xx ONLY. Never retry 4xx.                                         |
+| Build output          | Dual ESM + CJS via tsup with `.d.ts` generation                                                            |
+| GSD workflow          | Do not make direct repo edits outside a GSD workflow                                                       |
 
 ---
 
@@ -861,7 +869,7 @@ These directives are mandatory. Planner must verify all tasks comply.
 - [TypeScript 6.0 Announcement](https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/) — confirmed GA, strict default, ES5 target removal
 - [Zod v4 Migration Guide](https://zod.dev/v4/changelog) — confirmed v4 string format API changes
 - [MSW Node Integration](https://mswjs.io/docs/integrations/node/) — confirmed msw v2 setup pattern for vitest
-- [pnpm Workspaces](https://pnpm.io/workspaces) — workspace:* protocol and publish behavior
+- [pnpm Workspaces](https://pnpm.io/workspaces) — workspace:\* protocol and publish behavior
 - [Vitest Request Mocking](https://vitest.dev/guide/mocking/requests) — vitest + msw setup confirmed
 
 ### Tertiary (LOW confidence)
@@ -873,6 +881,7 @@ These directives are mandatory. Planner must verify all tasks comply.
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH — all versions verified via npm registry during session
 - Architecture: HIGH — directly specified in CLAUDE.md + build guide + CONTEXT.md locked decisions
 - Pitfalls: MEDIUM-HIGH — `instanceof` fix and AbortController reuse are well-documented; Retry-After parsing edges verified against RFC; `workspace:*` stripping verified against pnpm docs

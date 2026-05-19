@@ -14,12 +14,7 @@
 
 import express from 'express';
 import multer from 'multer';
-import {
-  DeepIDV,
-  DeepIDVError,
-  AuthenticationError,
-  ValidationError,
-} from '@deepidv/server';
+import { DeepIDV, DeepIDVError, AuthenticationError, ValidationError } from '@deepidv/server';
 
 const app = express();
 app.use(express.json());

@@ -25,10 +25,10 @@ affects: [phase-05, phase-06, publishing-pipeline]
 tech-stack:
   added: []
   patterns:
-    - "msw per-test handler pattern: server.use() inside each it() block"
-    - "Factory function pattern: createDocument()/createFace() with real HttpClient + FileUploader"
-    - "mockPresignBatch: assert count===2 inside handler to prove batch upload (D-02)"
-    - "Barrel export order: class, then types, then schemas"
+    - 'msw per-test handler pattern: server.use() inside each it() block'
+    - 'Factory function pattern: createDocument()/createFace() with real HttpClient + FileUploader'
+    - 'mockPresignBatch: assert count===2 inside handler to prove batch upload (D-02)'
+    - 'Barrel export order: class, then types, then schemas'
 
 key-files:
   created:
@@ -38,12 +38,12 @@ key-files:
     - packages/server/src/index.ts
 
 key-decisions:
-  - "Exported Zod schemas alongside types — enables consumer-side custom validation without importing zod directly"
-  - "mockPresignBatch asserts body.count === 2 inline — verifies batch presign contract in the test that exercises it"
+  - 'Exported Zod schemas alongside types — enables consumer-side custom validation without importing zod directly'
+  - 'mockPresignBatch asserts body.count === 2 inline — verifies batch presign contract in the test that exercises it'
 
 patterns-established:
-  - "Barrel export order: class first, then export type {...}, then export {...schemas}"
-  - "Factory function creates fresh instance per describe block; server.use() per it() block"
+  - 'Barrel export order: class first, then export type {...}, then export {...schemas}'
+  - 'Factory function creates fresh instance per describe block; server.use() per it() block'
 
 requirements-completed: [DOC-01, DOC-02, DOC-03, FACE-01, FACE-02, FACE-03, FACE-04]
 
@@ -106,5 +106,6 @@ None - no external service configuration required.
 - Phase 05 can now import Document and Face from `@deepidv/server` barrel and build on these primitives
 
 ---
-*Phase: 04-document-face-primitives*
-*Completed: 2026-04-05*
+
+_Phase: 04-document-face-primitives_
+_Completed: 2026-04-05_

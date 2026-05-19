@@ -9,8 +9,15 @@
 import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
-import { resolveConfig, TypedEmitter, HttpClient, FileUploader, ValidationError, AuthenticationError, DeepIDVError } from '@deepidv/core';
-import type { SDKEventMap } from '@deepidv/core';
+import {
+  resolveConfig,
+  TypedEmitter,
+  HttpClient,
+  FileUploader,
+  ValidationError,
+  AuthenticationError,
+  DeepIDVError,
+} from '@deepidv/core';
 import { Document } from '../document.js';
 
 const BASE_URL = 'https://api.deepidv.com';
@@ -26,7 +33,7 @@ function createDocument() {
     timeout: 5_000,
     maxRetries: 0,
   });
-  const emitter = new TypedEmitter<SDKEventMap>();
+  const emitter = new TypedEmitter();
   const client = new HttpClient(config, emitter);
   const uploader = new FileUploader(config, client, emitter);
   return new Document(client, uploader);
@@ -37,7 +44,7 @@ function createDocument() {
 // ---------------------------------------------------------------------------
 
 /** Minimal valid JPEG header bytes for test uploads. */
-const JPEG_BYTES = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, ...new Array(100).fill(0)]);
+const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array<number>(100).fill(0)]);
 
 const MOCK_SCAN_RESULT = {
   documentType: 'passport',
@@ -61,7 +68,7 @@ const MOCK_SCAN_RESULT = {
 // ---------------------------------------------------------------------------
 
 function mockPresign() {
-  return http.post(`${BASE_URL}/v1/uploads/presign`, () => {
+  return http.post(`${BASE_URL}/v1/upload/presign`, () => {
     return HttpResponse.json({
       uploads: [{ uploadUrl: 'https://s3.example.com/presigned-1', fileKey: 'fk_doc_001' }],
     });
@@ -164,7 +171,7 @@ describe('Document.scan', () => {
 
   it('returns AuthenticationError on 401 from presign', async () => {
     server.use(
-      http.post(`${BASE_URL}/v1/uploads/presign`, () =>
+      http.post(`${BASE_URL}/v1/upload/presign`, () =>
         HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
       ),
     );

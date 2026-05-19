@@ -7,26 +7,31 @@
 ---
 
 <user_constraints>
+
 ## User Constraints (from CONTEXT.md)
 
 ### Locked Decisions
 
 **File Input Normalization**
+
 - **D-01:** Single `toUint8Array()` function normalizes all input types to `Uint8Array` before upload. Detects input type and converts: Uint8Array passes through, base64 is decoded, file path uses conditional `fs.readFile` on Node/Deno/Bun, ReadableStream is materialized (UPL-06).
 - **D-02:** `FileInput` type is `Uint8Array | ReadableStream | string` only — no `Buffer` in the union. Node Buffers pass the `instanceof Uint8Array` check naturally. Avoids importing Buffer (doesn't exist on edge runtimes).
 - **D-03:** File path vs base64 string detection uses prefix convention: strings starting with `data:` are data URLs; strings matching base64 character pattern with length > 256 are raw base64; everything else is treated as a file path.
 - **D-04:** On edge runtimes where `fs` is unavailable, passing a file path string throws `ValidationError` immediately with message: "File path input requires Node.js, Deno, or Bun. Pass Buffer or Uint8Array on edge runtimes." (COMPAT-04)
 
 **Content-Type Detection**
+
 - **D-05:** Magic byte sniffing detects JPEG (`FF D8 FF`), PNG (`89 50 4E 47`), and WebP (`52 49 46 46...57 45 42 50`) from the first 12 bytes of the normalized `Uint8Array`. Throws `ValidationError` if format is unrecognized.
 - **D-06:** Optional `contentType` field in upload options allows caller override. When provided, skip auto-detection and use the caller's value.
 
 **Upload Timeout & Retry**
+
 - **D-07:** New `uploadTimeout` field added to `DeepIDVConfig` (default: 120,000ms / 2 minutes). Separate from API request `timeout` (30s). S3 PUTs use `uploadTimeout`, presign API calls use `timeout`.
 - **D-08:** S3 PUTs retry on 5xx and network errors using the same exponential backoff policy as API calls. 403 (expired presigned URL) throws immediately — never retry. Other 4xx throw immediately.
 - **D-09:** `FileUploader` uses raw `config.fetch` for S3 PUT requests, not `HttpClient`. S3 PUTs don't need x-api-key headers, JSON parsing, or API error mapping. Presign requests go through `HttpClient` as normal.
 
 **Zod Validation Pattern**
+
 - **D-10:** Zod schemas are co-located with their module — `uploader.ts` defines upload schemas at the top.
 - **D-11:** `z.infer<typeof Schema>` is the single source of truth for TypeScript types. No separate interface definitions for validated inputs. (VAL-03)
 - **D-12:** Zod validation errors are caught and mapped to `ValidationError` from the existing error hierarchy. First issue's path and message extracted: `"{message} at '{path}'"`. Raw `ZodError` attached as `cause`. (VAL-02)
@@ -43,20 +48,22 @@ None — discussion stayed within phase scope.
 ---
 
 <phase_requirements>
+
 ## Phase Requirements
 
-| ID | Description | Research Support |
-|----|-------------|------------------|
-| UPL-01 | Presigned URL upload handler: POST `/v1/uploads/presign` → PUT to S3 → return `fileKey` | Presign flow verified against build guide; `HttpClient.post()` for presign, raw `config.fetch` for S3 PUT |
-| UPL-02 | Accept `Buffer`, `Uint8Array`, `ReadableStream`, file path string, and base64 string as file inputs | `Buffer instanceof Uint8Array` verified true in Node; `toUint8Array()` normalization pattern researched |
-| UPL-03 | Content-type detection from input (JPEG, PNG, WebP) and alignment with presign request | Magic byte patterns verified by test; 12-byte detection window sufficient for all three formats |
-| UPL-04 | Parallel batch presigned uploads for multi-file operations via `Promise.all` | `Promise.all` parallel pattern verified; one presign with `count:N` returns array |
-| UPL-05 | Separate configurable timeout for S3 uploads (independent of API request timeout) | `uploadTimeout` field added to `DeepIDVConfig`; `AbortController` pattern reused from Phase 1 |
-| UPL-06 | ReadableStream materialization before upload (prevent double-read zero-byte bug) | `reader.read()` loop pattern verified; materializes once at SDK boundary |
-| UPL-07 | Zero AWS SDK dependency — all S3 interaction via native `fetch` with presigned URLs | Raw `config.fetch` used for S3 PUT; no AWS SDK imports at all |
-| VAL-01 | Zod schemas validate all public method inputs before network calls | Zod v4.3.6 confirmed in project; schemas run `schema.parse()` before any fetch call |
-| VAL-02 | Clear error messages with param name and expected type | Zod v4 `issue.message` already includes type info; `message at 'path'` format verified |
-| VAL-03 | Zod schemas infer TypeScript types (single source of truth) | `z.infer<typeof Schema>` pattern verified; no duplicate interface definitions |
+| ID     | Description                                                                                         | Research Support                                                                                          |
+| ------ | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| UPL-01 | Presigned URL upload handler: POST `/v1/uploads/presign` → PUT to S3 → return `fileKey`             | Presign flow verified against build guide; `HttpClient.post()` for presign, raw `config.fetch` for S3 PUT |
+| UPL-02 | Accept `Buffer`, `Uint8Array`, `ReadableStream`, file path string, and base64 string as file inputs | `Buffer instanceof Uint8Array` verified true in Node; `toUint8Array()` normalization pattern researched   |
+| UPL-03 | Content-type detection from input (JPEG, PNG, WebP) and alignment with presign request              | Magic byte patterns verified by test; 12-byte detection window sufficient for all three formats           |
+| UPL-04 | Parallel batch presigned uploads for multi-file operations via `Promise.all`                        | `Promise.all` parallel pattern verified; one presign with `count:N` returns array                         |
+| UPL-05 | Separate configurable timeout for S3 uploads (independent of API request timeout)                   | `uploadTimeout` field added to `DeepIDVConfig`; `AbortController` pattern reused from Phase 1             |
+| UPL-06 | ReadableStream materialization before upload (prevent double-read zero-byte bug)                    | `reader.read()` loop pattern verified; materializes once at SDK boundary                                  |
+| UPL-07 | Zero AWS SDK dependency — all S3 interaction via native `fetch` with presigned URLs                 | Raw `config.fetch` used for S3 PUT; no AWS SDK imports at all                                             |
+| VAL-01 | Zod schemas validate all public method inputs before network calls                                  | Zod v4.3.6 confirmed in project; schemas run `schema.parse()` before any fetch call                       |
+| VAL-02 | Clear error messages with param name and expected type                                              | Zod v4 `issue.message` already includes type info; `message at 'path'` format verified                    |
+| VAL-03 | Zod schemas infer TypeScript types (single source of truth)                                         | `z.infer<typeof Schema>` pattern verified; no duplicate interface definitions                             |
+
 </phase_requirements>
 
 ---
@@ -77,23 +84,23 @@ One important nuance: Zod v4 error messages already include the "Invalid input: 
 
 ### Core (already installed in project)
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| zod | 4.3.6 | Schema validation + type inference | Single production dependency; `z.infer<>` eliminates duplicate type declarations |
-| vitest | 4.1.2 | Test runner | Already configured in `packages/core/vitest.config.ts` |
-| msw | 2.12.14 | HTTP mocking | Already in `packages/core/__tests__/setup.ts`; intercepts any URL including S3 |
+| Library | Version | Purpose                            | Why Standard                                                                     |
+| ------- | ------- | ---------------------------------- | -------------------------------------------------------------------------------- |
+| zod     | 4.3.6   | Schema validation + type inference | Single production dependency; `z.infer<>` eliminates duplicate type declarations |
+| vitest  | 4.1.2   | Test runner                        | Already configured in `packages/core/vitest.config.ts`                           |
+| msw     | 2.12.14 | HTTP mocking                       | Already in `packages/core/__tests__/setup.ts`; intercepts any URL including S3   |
 
 **Version verification:** All versions confirmed from `packages/core/package.json` — no npm lookup needed.
 
 ### Supporting (built-ins, zero-install)
 
-| API | Runtime | Purpose |
-|-----|---------|---------|
-| `globalThis.atob` | Node 18+, Deno, Bun, CF Workers | Decode base64 strings without Buffer or external libs |
-| `ReadableStream.getReader()` | All targets | Materialize stream to `Uint8Array` chunks |
-| `AbortController` | All targets | Per-attempt upload timeout (same pattern as Phase 1 D-01) |
-| `Promise.all` | All targets | Parallel S3 PUTs (UPL-04) |
-| `import('fs/promises')` | Node/Deno/Bun only | Dynamic conditional import — never imported on edge runtimes |
+| API                          | Runtime                         | Purpose                                                      |
+| ---------------------------- | ------------------------------- | ------------------------------------------------------------ |
+| `globalThis.atob`            | Node 18+, Deno, Bun, CF Workers | Decode base64 strings without Buffer or external libs        |
+| `ReadableStream.getReader()` | All targets                     | Materialize stream to `Uint8Array` chunks                    |
+| `AbortController`            | All targets                     | Per-attempt upload timeout (same pattern as Phase 1 D-01)    |
+| `Promise.all`                | All targets                     | Parallel S3 PUTs (UPL-04)                                    |
+| `import('fs/promises')`      | Node/Deno/Bun only              | Dynamic conditional import — never imported on edge runtimes |
 
 **Installation:** No new packages needed. All dependencies are already in `packages/core/package.json`.
 
@@ -203,14 +210,13 @@ function base64ToUint8Array(b64: string): Uint8Array {
 ```typescript
 // Source: verified runtime detection approach — process.versions.node absent on CF Workers
 async function readFilePath(path: string): Promise<Uint8Array> {
-  const isNodeLike =
-    typeof process !== 'undefined' && process.versions?.node !== undefined;
+  const isNodeLike = typeof process !== 'undefined' && process.versions?.node !== undefined;
   const isDeno = typeof Deno !== 'undefined';
   const isBun = typeof Bun !== 'undefined';
 
   if (!isNodeLike && !isDeno && !isBun) {
     throw new ValidationError(
-      "File path input requires Node.js, Deno, or Bun. Pass Buffer or Uint8Array on edge runtimes.",
+      'File path input requires Node.js, Deno, or Bun. Pass Buffer or Uint8Array on edge runtimes.',
     );
   }
 
@@ -235,27 +241,31 @@ function detectContentType(bytes: Uint8Array): SupportedContentType {
   }
 
   // JPEG: FF D8 FF
-  if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
     return 'image/jpeg';
   }
 
   // PNG: 89 50 4E 47
-  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
     return 'image/png';
   }
 
   // WebP: RIFF....WEBP (bytes 0-3 = RIFF, bytes 8-11 = WEBP)
   if (
     bytes.length >= 12 &&
-    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
-    bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
   ) {
     return 'image/webp';
   }
 
-  throw new ValidationError(
-    'Unsupported image format. Accepted formats: JPEG, PNG, WebP.',
-  );
+  throw new ValidationError('Unsupported image format. Accepted formats: JPEG, PNG, WebP.');
 }
 ```
 
@@ -310,10 +320,7 @@ export class FileUploader {
    * Uploads one or more files via presigned URL flow.
    * Returns an array of fileKeys in the same order as inputs.
    */
-  async upload(
-    inputs: FileInput | FileInput[],
-    options?: UploadOptions,
-  ): Promise<string[]> {
+  async upload(inputs: FileInput | FileInput[], options?: UploadOptions): Promise<string[]> {
     const opts = validateUploadOptions(options ?? {});
     const inputArray = Array.isArray(inputs) ? inputs : [inputs];
 
@@ -321,15 +328,13 @@ export class FileUploader {
     const byteArrays = await Promise.all(inputArray.map(toUint8Array));
 
     // 2. Detect or use caller-provided content type
-    const contentTypes = byteArrays.map(bytes =>
-      opts.contentType ?? detectContentType(bytes),
-    );
+    const contentTypes = byteArrays.map((bytes) => opts.contentType ?? detectContentType(bytes));
 
     // 3. Request presigned URLs (one API call for all files)
-    const presignResponse = await this.httpClient.post<PresignResponse>(
-      '/v1/uploads/presign',
-      { contentType: contentTypes[0], count: inputArray.length },
-    );
+    const presignResponse = await this.httpClient.post<PresignResponse>('/v1/uploads/presign', {
+      contentType: contentTypes[0],
+      count: inputArray.length,
+    });
 
     // 4. PUT each file to S3 in parallel
     await Promise.all(
@@ -338,7 +343,7 @@ export class FileUploader {
       ),
     );
 
-    return presignResponse.uploads.map(u => u.fileKey);
+    return presignResponse.uploads.map((u) => u.fileKey);
   }
 }
 ```
@@ -465,13 +470,13 @@ uploadTimeout: config.uploadTimeout ?? DEFAULT_UPLOAD_TIMEOUT,
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Retry with backoff for S3 PUTs | Custom retry loop | `withRetry()` from `retry.ts` | Identical policy needed; jitter + Retry-After already handled |
-| Zod error formatting | Custom message builder | `ZodError.issues[0].message + path` | Zod v4 already includes type info in message; extracting `issue.message` is sufficient |
-| AbortController timeout for uploads | Custom timeout mechanism | Same `AbortController` pattern from Phase 1 D-01 | Established pattern; works on all target runtimes |
-| Base64 decode | `Buffer.from(b64, 'base64')` | `globalThis.atob()` | `atob` available on all targets; `Buffer` is Node-only |
-| Content-type detection library | `file-type` npm package | 12-byte magic byte check | Zero-dep; only 3 formats needed; straightforward |
+| Problem                             | Don't Build                  | Use Instead                                      | Why                                                                                    |
+| ----------------------------------- | ---------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Retry with backoff for S3 PUTs      | Custom retry loop            | `withRetry()` from `retry.ts`                    | Identical policy needed; jitter + Retry-After already handled                          |
+| Zod error formatting                | Custom message builder       | `ZodError.issues[0].message + path`              | Zod v4 already includes type info in message; extracting `issue.message` is sufficient |
+| AbortController timeout for uploads | Custom timeout mechanism     | Same `AbortController` pattern from Phase 1 D-01 | Established pattern; works on all target runtimes                                      |
+| Base64 decode                       | `Buffer.from(b64, 'base64')` | `globalThis.atob()`                              | `atob` available on all targets; `Buffer` is Node-only                                 |
+| Content-type detection library      | `file-type` npm package      | 12-byte magic byte check                         | Zero-dep; only 3 formats needed; straightforward                                       |
 
 **Key insight:** Phase 1 established patterns that Phase 2 reuses almost exactly. The S3 PUT is structurally identical to `HttpClient._attempt()` minus auth headers and JSON parsing.
 
@@ -480,36 +485,42 @@ uploadTimeout: config.uploadTimeout ?? DEFAULT_UPLOAD_TIMEOUT,
 ## Common Pitfalls
 
 ### Pitfall 1: Double-Read Zero-Byte Bug (UPL-06)
+
 **What goes wrong:** A `ReadableStream` passed to `toUint8Array()` is consumed once. If `_attemptPut` is called inside `withRetry` with the original `ReadableStream` instead of the normalized `Uint8Array`, the second retry attempt reads from an exhausted stream and sends 0 bytes.
 **Why it happens:** Retry loops re-invoke their wrapped function. If stream materialization is inside the retried function, only the first attempt gets real bytes.
 **How to avoid:** `toUint8Array()` runs once in `upload()` before the retry loop. `_attemptPut` only receives `Uint8Array` — never `FileInput`.
 **Warning signs:** Tests for retry that pass a ReadableStream see the second attempt upload 0 bytes to S3.
 
 ### Pitfall 2: Zod v4 Message Double-Prefix (VAL-02)
+
 **What goes wrong:** The D-12 spec says format is `"Invalid input: {message} at '{path}'"`. In Zod v4, `issue.message` already starts with `"Invalid input: expected X, received Y"`. If you prepend `"Invalid input: "` again, you get `"Invalid input: Invalid input: expected Uint8Array, received string at 'image'"`.
 **Why it happens:** The spec was written thinking of a custom message. Zod v4 changed from v3 in that error messages include the full "Invalid input:" prefix internally.
 **How to avoid:** Use `"${issue.message} at '${path}'"` directly without any prefix addition.
 **Warning signs:** ValidationError messages have doubled "Invalid input:" prefix in test assertions.
 
 ### Pitfall 3: `withRetry` + `isRetryable` for S3 Non-DeepIDVError
+
 **What goes wrong:** `isRetryable()` checks `instanceof DeepIDVError`. A raw S3 5xx response status is just an HTTP Response object — it won't be retried unless wrapped.
 **Why it happens:** `withRetry` was designed for `HttpClient` where all responses are pre-mapped to SDK error types. S3 responses are raw fetch responses.
 **How to avoid:** `_attemptPut` manually maps: 5xx → `new NetworkError(...)`, 403 → `new DeepIDVError(...)`, network errors → `new NetworkError(...)`. This makes `isRetryable` work correctly without any changes to `retry.ts`.
 **Warning signs:** S3 5xx responses are not retried in tests despite retry being configured.
 
 ### Pitfall 4: Magic Byte Buffer Too Small
+
 **What goes wrong:** A 3-byte file (or truncated upload) passes the JPEG check (which only needs 3 bytes) but fails later in S3 or API processing.
 **Why it happens:** No minimum size validation before detection.
 **How to avoid:** Require `bytes.length >= 4` before any magic byte check. Throw `ValidationError` if too small. In practice, any real image will be many kilobytes.
 **Warning signs:** 3-byte Uint8Array is detected as JPEG without error.
 
 ### Pitfall 5: Batch Presign Assumes Same Content Type
+
 **What goes wrong:** The presign API request sends `{ contentType, count }`. If a batch contains mixed types (one JPEG + one PNG), sending only one `contentType` may cause issues.
 **Why it happens:** The build guide spec shows `{ contentType: "image/jpeg", count: 1 }` but doesn't explicitly document mixed-type batches.
 **How to avoid:** For Phase 2, the presign request sends the first file's `contentType` and `count: N`. Service modules (Phase 4+) typically call `FileUploader` with files of the same type. If mixed-type batches are needed in the future, the API would need to accept `contentTypes: string[]` — defer to a blocker note.
 **Warning signs:** Mixed JPEG+PNG batch test returns wrong content-type assignments.
 
 ### Pitfall 6: `fs/promises` Dynamic Import on CF Workers Build
+
 **What goes wrong:** Even though `readFilePath` conditionally imports `fs/promises`, some bundlers (tsup/esbuild) may try to resolve and bundle the import at build time, including Node-specific code in the edge bundle.
 **Why it happens:** Static analysis of `import()` expressions by bundlers.
 **How to avoid:** tsup with `platform: 'neutral'` or CF Workers entry should mark `fs/promises` as external. Verify `packages/core/tsup.config.ts` handles this. The runtime check (no `process.versions.node`) ensures the code path never executes on edge, even if the import is included.
@@ -581,13 +592,14 @@ server.use(
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Zod v3 error messages lack prefix | Zod v4 `issue.message` includes "Invalid input: expected X" | Zod v4 release | D-12 implementation: don't prepend prefix, use message directly |
-| `Buffer.from(b64, 'base64')` for base64 decode | `globalThis.atob()` | Node 16+ | Enables edge runtime compatibility |
-| `require('fs')` for file reads | Dynamic `import('fs/promises')` | Node 14+ ESM | Bundler can exclude from edge builds |
+| Old Approach                                   | Current Approach                                            | When Changed   | Impact                                                          |
+| ---------------------------------------------- | ----------------------------------------------------------- | -------------- | --------------------------------------------------------------- |
+| Zod v3 error messages lack prefix              | Zod v4 `issue.message` includes "Invalid input: expected X" | Zod v4 release | D-12 implementation: don't prepend prefix, use message directly |
+| `Buffer.from(b64, 'base64')` for base64 decode | `globalThis.atob()`                                         | Node 16+       | Enables edge runtime compatibility                              |
+| `require('fs')` for file reads                 | Dynamic `import('fs/promises')`                             | Node 14+ ESM   | Bundler can exclude from edge builds                            |
 
 **Deprecated/outdated:**
+
 - CLAUDE.md references Zod `^3.23` — the project is actually using Zod 4.3.6 (TypeScript 6.0 is also being used). All research uses the installed Zod v4 API.
 
 ---
@@ -608,16 +620,16 @@ server.use(
 
 ## Environment Availability
 
-| Dependency | Required By | Available | Version | Fallback |
-|------------|------------|-----------|---------|----------|
-| Node.js | Runtime | Yes | v22.18.0 | — |
-| zod | Validation | Yes | 4.3.6 | — |
-| vitest | Tests | Yes | 4.1.2 | — |
-| msw | HTTP mocking in tests | Yes | 2.12.14 | — |
-| globalThis.atob | Base64 decode | Yes (Node 18+) | built-in | — |
-| fs/promises | File path reads | Yes (Node-only) | built-in | Throw ValidationError on edge |
-| ReadableStream | Stream materialization | Yes | built-in | — |
-| AbortController | Upload timeout | Yes | built-in | — |
+| Dependency      | Required By            | Available       | Version  | Fallback                      |
+| --------------- | ---------------------- | --------------- | -------- | ----------------------------- |
+| Node.js         | Runtime                | Yes             | v22.18.0 | —                             |
+| zod             | Validation             | Yes             | 4.3.6    | —                             |
+| vitest          | Tests                  | Yes             | 4.1.2    | —                             |
+| msw             | HTTP mocking in tests  | Yes             | 2.12.14  | —                             |
+| globalThis.atob | Base64 decode          | Yes (Node 18+)  | built-in | —                             |
+| fs/promises     | File path reads        | Yes (Node-only) | built-in | Throw ValidationError on edge |
+| ReadableStream  | Stream materialization | Yes             | built-in | —                             |
+| AbortController | Upload timeout         | Yes             | built-in | —                             |
 
 No missing dependencies.
 
@@ -627,27 +639,27 @@ No missing dependencies.
 
 ### Test Framework
 
-| Property | Value |
-|----------|-------|
-| Framework | vitest 4.1.2 |
-| Config file | `packages/core/vitest.config.ts` |
-| Quick run command | `pnpm --filter @deepidv/core test` |
+| Property           | Value                                    |
+| ------------------ | ---------------------------------------- |
+| Framework          | vitest 4.1.2                             |
+| Config file        | `packages/core/vitest.config.ts`         |
+| Quick run command  | `pnpm --filter @deepidv/core test`       |
 | Full suite command | `pnpm --filter @deepidv/core test --run` |
 
 ### Phase Requirements → Test Map
 
-| Req ID | Behavior | Test Type | Automated Command | File Exists? |
-|--------|----------|-----------|-------------------|-------------|
-| UPL-01 | `upload()` calls `POST /v1/uploads/presign` then `PUT` to S3, returns `fileKey` | unit | `pnpm --filter @deepidv/core test uploader` | ❌ Wave 0 |
-| UPL-02 | Buffer, Uint8Array, ReadableStream, file path, base64 all produce non-empty `fileKey` | unit | `pnpm --filter @deepidv/core test uploader` | ❌ Wave 0 |
-| UPL-03 | JPEG/PNG/WebP magic bytes produce correct `contentType` in presign request | unit | `pnpm --filter @deepidv/core test uploader` | ❌ Wave 0 |
-| UPL-04 | Two-file batch issues one presign (`count:2`) and two parallel PUTs | unit | `pnpm --filter @deepidv/core test uploader` | ❌ Wave 0 |
-| UPL-05 | Upload timeout fires `TimeoutError` independently of API timeout | unit | `pnpm --filter @deepidv/core test uploader` | ❌ Wave 0 |
-| UPL-06 | ReadableStream materialized once; second read attempt throws | unit | `pnpm --filter @deepidv/core test uploader` | ❌ Wave 0 |
-| UPL-07 | No `aws-sdk` import; S3 PUT has no `x-api-key` header | unit | verify import graph + msw handler assertion | ❌ Wave 0 |
-| VAL-01 | Missing required field throws `ValidationError` before any fetch | unit | `pnpm --filter @deepidv/core test uploader` | ❌ Wave 0 |
-| VAL-02 | `ValidationError.message` contains param name and type info | unit | `pnpm --filter @deepidv/core test uploader` | ❌ Wave 0 |
-| VAL-03 | No duplicate TypeScript interface — type derived from `z.infer<>` | compile-time | `pnpm --filter @deepidv/core build` (tsc type check) | ❌ Wave 0 |
+| Req ID | Behavior                                                                              | Test Type    | Automated Command                                    | File Exists? |
+| ------ | ------------------------------------------------------------------------------------- | ------------ | ---------------------------------------------------- | ------------ |
+| UPL-01 | `upload()` calls `POST /v1/uploads/presign` then `PUT` to S3, returns `fileKey`       | unit         | `pnpm --filter @deepidv/core test uploader`          | ❌ Wave 0    |
+| UPL-02 | Buffer, Uint8Array, ReadableStream, file path, base64 all produce non-empty `fileKey` | unit         | `pnpm --filter @deepidv/core test uploader`          | ❌ Wave 0    |
+| UPL-03 | JPEG/PNG/WebP magic bytes produce correct `contentType` in presign request            | unit         | `pnpm --filter @deepidv/core test uploader`          | ❌ Wave 0    |
+| UPL-04 | Two-file batch issues one presign (`count:2`) and two parallel PUTs                   | unit         | `pnpm --filter @deepidv/core test uploader`          | ❌ Wave 0    |
+| UPL-05 | Upload timeout fires `TimeoutError` independently of API timeout                      | unit         | `pnpm --filter @deepidv/core test uploader`          | ❌ Wave 0    |
+| UPL-06 | ReadableStream materialized once; second read attempt throws                          | unit         | `pnpm --filter @deepidv/core test uploader`          | ❌ Wave 0    |
+| UPL-07 | No `aws-sdk` import; S3 PUT has no `x-api-key` header                                 | unit         | verify import graph + msw handler assertion          | ❌ Wave 0    |
+| VAL-01 | Missing required field throws `ValidationError` before any fetch                      | unit         | `pnpm --filter @deepidv/core test uploader`          | ❌ Wave 0    |
+| VAL-02 | `ValidationError.message` contains param name and type info                           | unit         | `pnpm --filter @deepidv/core test uploader`          | ❌ Wave 0    |
+| VAL-03 | No duplicate TypeScript interface — type derived from `z.infer<>`                     | compile-time | `pnpm --filter @deepidv/core build` (tsc type check) | ❌ Wave 0    |
 
 ### Sampling Rate
 
@@ -664,17 +676,17 @@ No missing dependencies.
 
 ## Project Constraints (from CLAUDE.md)
 
-| Directive | Impact on Phase 2 |
-|-----------|------------------|
-| No Node-specific APIs in core | `fs/promises` only via dynamic `import()` with runtime detection; `Buffer` never imported |
-| Zero AWS SDKs | S3 PUTs use raw `config.fetch` only — no `@aws-sdk/*` anywhere |
-| Only zod as production dependency | No `file-type`, `mime`, or other type-detection packages |
-| `strict: true`, zero `any` | All Zod schemas use `z.infer<>` for types; no `any` casts |
-| Full JSDoc on all public API surface | `FileUploader.upload()`, `FileInput`, `UploadOptions`, `PresignResponse` need JSDoc |
-| x-api-key on every API request | Via `HttpClient` for presign call; NOT on S3 PUT |
-| Retry: exponential backoff + jitter on 429 and 5xx only | Reuse `withRetry` + `isRetryable`; S3 403 must throw immediately |
-| Build output: dual ESM + CJS via tsup | `FileUploader` exported from `packages/core/src/index.ts` |
-| GSD Workflow Enforcement | All file changes must happen within `/gsd:execute-phase` workflow |
+| Directive                                               | Impact on Phase 2                                                                         |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| No Node-specific APIs in core                           | `fs/promises` only via dynamic `import()` with runtime detection; `Buffer` never imported |
+| Zero AWS SDKs                                           | S3 PUTs use raw `config.fetch` only — no `@aws-sdk/*` anywhere                            |
+| Only zod as production dependency                       | No `file-type`, `mime`, or other type-detection packages                                  |
+| `strict: true`, zero `any`                              | All Zod schemas use `z.infer<>` for types; no `any` casts                                 |
+| Full JSDoc on all public API surface                    | `FileUploader.upload()`, `FileInput`, `UploadOptions`, `PresignResponse` need JSDoc       |
+| x-api-key on every API request                          | Via `HttpClient` for presign call; NOT on S3 PUT                                          |
+| Retry: exponential backoff + jitter on 429 and 5xx only | Reuse `withRetry` + `isRetryable`; S3 403 must throw immediately                          |
+| Build output: dual ESM + CJS via tsup                   | `FileUploader` exported from `packages/core/src/index.ts`                                 |
+| GSD Workflow Enforcement                                | All file changes must happen within `/gsd:execute-phase` workflow                         |
 
 ---
 
@@ -706,6 +718,7 @@ No missing dependencies.
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH — all versions confirmed from installed `package.json`, no lookup required
 - Architecture: HIGH — patterns are direct extensions of Phase 1 code verified by reading source files
 - Pitfalls: HIGH — Zod v4 message format verified by live experiment; retry/stream pitfalls verified by code analysis

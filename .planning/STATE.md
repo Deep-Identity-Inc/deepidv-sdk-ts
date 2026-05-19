@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: deepidv Server SDK
 status: completed
 stopped_at: v1.0 milestone complete — all 7 phases shipped
-last_updated: "2026-04-06T17:00:00.000Z"
+last_updated: '2026-04-06T17:00:00.000Z'
 last_activity: 2026-04-06
 progress:
   total_phases: 7

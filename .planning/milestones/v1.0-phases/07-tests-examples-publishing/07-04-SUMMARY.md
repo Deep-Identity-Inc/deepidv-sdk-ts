@@ -18,8 +18,8 @@ affects: [publishing, documentation, consumers]
 tech-stack:
   added: []
   patterns:
-    - "Example files follow Stripe-like commented showcase style with JSDoc on each method"
-    - "Both new examples initialize client once at module scope for reuse across requests"
+    - 'Example files follow Stripe-like commented showcase style with JSDoc on each method'
+    - 'Both new examples initialize client once at module scope for reuse across requests'
 
 key-files:
   created:
@@ -29,13 +29,13 @@ key-files:
     - examples/node-basic/index.ts
 
 key-decisions:
-  - "All example files use correct SDK field names exactly matching Zod schemas (source/target, isMatch, sessionRecord, expirationDate, overallConfidence)"
-  - "express-app uses multer.memoryStorage() to get Buffer from multipart uploads, compatible with SDK Buffer input"
-  - "nextjs-app converts Web File to Uint8Array via arrayBuffer() — Next.js App Router is fetch-native so no multer needed"
+  - 'All example files use correct SDK field names exactly matching Zod schemas (source/target, isMatch, sessionRecord, expirationDate, overallConfidence)'
+  - 'express-app uses multer.memoryStorage() to get Buffer from multipart uploads, compatible with SDK Buffer input'
+  - 'nextjs-app converts Web File to Uint8Array via arrayBuffer() — Next.js App Router is fetch-native so no multer needed'
 
 patterns-established:
-  - "SDK examples initialize client at module scope, not inside request handlers"
-  - "Error handling in framework examples: ValidationError->400, AuthenticationError->401, DeepIDVError->502, unknown->rethrow"
+  - 'SDK examples initialize client at module scope, not inside request handlers'
+  - 'Error handling in framework examples: ValidationError->400, AuthenticationError->401, DeepIDVError->502, unknown->rethrow'
 
 requirements-completed: [PUB-04, TEST-01, TEST-02, TEST-03, PUB-01, PUB-02, PUB-03]
 
@@ -102,5 +102,6 @@ None — no external service configuration required.
 - Ready for milestone completion and npm publishing pipeline activation
 
 ---
-*Phase: 07-tests-examples-publishing*
-*Completed: 2026-04-06*
+
+_Phase: 07-tests-examples-publishing_
+_Completed: 2026-04-06_

@@ -10,8 +10,15 @@
 import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
-import { resolveConfig, TypedEmitter, HttpClient, FileUploader, ValidationError, AuthenticationError, DeepIDVError } from '@deepidv/core';
-import type { SDKEventMap } from '@deepidv/core';
+import {
+  resolveConfig,
+  TypedEmitter,
+  HttpClient,
+  FileUploader,
+  ValidationError,
+  AuthenticationError,
+  DeepIDVError,
+} from '@deepidv/core';
 import { Face } from '../face.js';
 
 const BASE_URL = 'https://api.deepidv.com';
@@ -27,7 +34,7 @@ function createFace() {
     timeout: 5_000,
     maxRetries: 0,
   });
-  const emitter = new TypedEmitter<SDKEventMap>();
+  const emitter = new TypedEmitter();
   const client = new HttpClient(config, emitter);
   const uploader = new FileUploader(config, client, emitter);
   return new Face(client, uploader);
@@ -38,9 +45,9 @@ function createFace() {
 // ---------------------------------------------------------------------------
 
 /** Minimal valid JPEG header bytes for test uploads (source image). */
-const JPEG_BYTES = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, ...new Array(100).fill(0)]);
+const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array<number>(100).fill(0)]);
 /** Minimal valid JPEG bytes for second image (target in compare). */
-const JPEG_BYTES_2 = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE1, ...new Array(100).fill(0)]);
+const JPEG_BYTES_2 = new Uint8Array([0xff, 0xd8, 0xff, 0xe1, ...new Array<number>(100).fill(0)]);
 
 // ---------------------------------------------------------------------------
 // MSW handler helpers
@@ -48,7 +55,7 @@ const JPEG_BYTES_2 = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE1, ...new Array(100).f
 
 /** Single-file presign — returns one upload slot. */
 function mockPresignSingle() {
-  return http.post(`${BASE_URL}/v1/uploads/presign`, () => {
+  return http.post(`${BASE_URL}/v1/upload/presign`, () => {
     return HttpResponse.json({
       uploads: [{ uploadUrl: 'https://s3.example.com/presigned-1', fileKey: 'fk_face_001' }],
     });
@@ -56,14 +63,21 @@ function mockPresignSingle() {
 }
 
 /**
- * Batch presign for face.compare() — asserts count === 2 (FACE-02 / D-02)
+ * Batch presign for face.compare() — asserts the request carries one `files`
+ * entry per upload (FACE-02 / D-02), each with `contentType` and `byteLength`,
  * and returns two upload slots.
  */
 function mockPresignBatch() {
-  return http.post(`${BASE_URL}/v1/uploads/presign`, async ({ request }) => {
-    const body = await request.json() as Record<string, unknown>;
-    // Verify batch presign receives count: 2 (FACE-02 / D-02)
-    expect(body['count']).toBe(2);
+  return http.post(`${BASE_URL}/v1/upload/presign`, async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    expect(Array.isArray(body['files'])).toBe(true);
+    const files = body['files'] as Array<Record<string, unknown>>;
+    expect(files).toHaveLength(2);
+    for (const file of files) {
+      expect(typeof file['contentType']).toBe('string');
+      expect(typeof file['byteLength']).toBe('number');
+      expect((file['byteLength'] as number) > 0).toBe(true);
+    }
     return HttpResponse.json({
       uploads: [
         { uploadUrl: 'https://s3.example.com/presigned-1', fileKey: 'fk_source_001' },
@@ -134,7 +148,7 @@ describe('Face.detect', () => {
 
   it('returns AuthenticationError on 401 from presign', async () => {
     server.use(
-      http.post(`${BASE_URL}/v1/uploads/presign`, () =>
+      http.post(`${BASE_URL}/v1/upload/presign`, () =>
         HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
       ),
     );
@@ -155,8 +169,8 @@ describe('Face.compare', () => {
       http.post(`${BASE_URL}/v1/face/compare`, () => {
         return HttpResponse.json({
           isMatch: true,
-          confidence: 0.95,
-          threshold: 0.8,
+          confidence: 95,
+          threshold: 80,
           sourceFaceDetected: true,
           targetFaceDetected: true,
         });
@@ -167,10 +181,10 @@ describe('Face.compare', () => {
     const result = await face.compare({ source: JPEG_BYTES, target: JPEG_BYTES_2 });
 
     expect(result.isMatch).toBe(true);
-    expect(result.confidence).toBe(0.95);
+    expect(result.confidence).toBe(95);
   });
 
-  it('sends sourceFileKey and targetFileKey to compare endpoint', async () => {
+  it('sends source and target file keys to compare endpoint', async () => {
     let capturedBody: unknown = null;
 
     server.use(
@@ -180,8 +194,8 @@ describe('Face.compare', () => {
         capturedBody = await request.json();
         return HttpResponse.json({
           isMatch: true,
-          confidence: 0.95,
-          threshold: 0.8,
+          confidence: 95,
+          threshold: 80,
           sourceFaceDetected: true,
           targetFaceDetected: true,
         });
@@ -191,22 +205,18 @@ describe('Face.compare', () => {
     const face = createFace();
     await face.compare({ source: JPEG_BYTES, target: JPEG_BYTES_2 });
 
-    expect((capturedBody as Record<string, unknown>)['sourceFileKey']).toBe('fk_source_001');
-    expect((capturedBody as Record<string, unknown>)['targetFileKey']).toBe('fk_target_001');
+    expect((capturedBody as Record<string, unknown>)['source']).toBe('fk_source_001');
+    expect((capturedBody as Record<string, unknown>)['target']).toBe('fk_target_001');
   });
 
   it('throws ValidationError for missing target image', async () => {
     const face = createFace();
-    await expect(
-      face.compare({ source: JPEG_BYTES } as never),
-    ).rejects.toThrow(ValidationError);
+    await expect(face.compare({ source: JPEG_BYTES } as never)).rejects.toThrow(ValidationError);
   });
 
   it('throws ValidationError when source image is missing', async () => {
     const face = createFace();
-    await expect(
-      face.compare({ target: JPEG_BYTES_2 } as never),
-    ).rejects.toThrow(ValidationError);
+    await expect(face.compare({ target: JPEG_BYTES_2 } as never)).rejects.toThrow(ValidationError);
   });
 });
 
@@ -234,7 +244,7 @@ describe('Face.estimateAge', () => {
     const result = await face.estimateAge({ image: JPEG_BYTES });
 
     expect(result.estimatedAge).toBe(32);
-    expect(result.ageRange.low).toBe(28);
+    expect(result.ageRange?.low).toBe(28);
     expect(result.gender).toBe('female');
   });
 

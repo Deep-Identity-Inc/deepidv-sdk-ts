@@ -23,12 +23,12 @@
 
 ## Progress
 
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 1. Core Infrastructure | v1.0 | 4/4 | Complete | 2026-04-05 |
-| 2. Presigned Upload Handler | v1.0 | 2/2 | Complete | 2026-04-05 |
-| 3. Sessions Module | v1.0 | 2/2 | Complete | 2026-04-05 |
-| 4. Document & Face Primitives | v1.0 | 3/3 | Complete | 2026-04-06 |
-| 5. Identity Module | v1.0 | 2/2 | Complete | 2026-04-06 |
-| 6. Public Entry Point | v1.0 | 1/1 | Complete | 2026-04-06 |
-| 7. Tests, Examples & Publishing | v1.0 | 4/4 | Complete | 2026-04-06 |
+| Phase                           | Milestone | Plans Complete | Status   | Completed  |
+| ------------------------------- | --------- | -------------- | -------- | ---------- |
+| 1. Core Infrastructure          | v1.0      | 4/4            | Complete | 2026-04-05 |
+| 2. Presigned Upload Handler     | v1.0      | 2/2            | Complete | 2026-04-05 |
+| 3. Sessions Module              | v1.0      | 2/2            | Complete | 2026-04-05 |
+| 4. Document & Face Primitives   | v1.0      | 3/3            | Complete | 2026-04-06 |
+| 5. Identity Module              | v1.0      | 2/2            | Complete | 2026-04-06 |
+| 6. Public Entry Point           | v1.0      | 1/1            | Complete | 2026-04-06 |
+| 7. Tests, Examples & Publishing | v1.0      | 4/4            | Complete | 2026-04-06 |

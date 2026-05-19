@@ -50,7 +50,11 @@ describe('DeepIDVError', () => {
   });
 
   it('.response stores raw response (D-06)', () => {
-    const raw = { status: 500, headers: { 'content-type': 'application/json' }, body: { error: 'oops' } };
+    const raw = {
+      status: 500,
+      headers: { 'content-type': 'application/json' },
+      body: { error: 'oops' },
+    };
     const err = new DeepIDVError('msg', { response: raw });
     expect(err.response).toStrictEqual(raw);
   });

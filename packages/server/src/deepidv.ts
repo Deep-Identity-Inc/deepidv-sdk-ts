@@ -38,7 +38,7 @@ export const DeepIDVConfigSchema = z.object({
   /** API key used for authentication. Must be a non-empty string. */
   apiKey: z.string().min(1, 'apiKey is required'),
   /** Override the base API URL. Must be a valid URL if provided. */
-  baseUrl: z.string().url().optional(),
+  baseUrl: z.url().optional(),
   /** Per-attempt request timeout in milliseconds. Must be positive if provided. */
   timeout: z.number().positive().optional(),
   /** Maximum number of retry attempts for 429 and 5xx responses. 0 = no retries. */
@@ -131,7 +131,7 @@ export class DeepIDV {
   readonly identity: Identity;
 
   /** Internal emitter — not exposed directly to consumers. */
-  private readonly emitter: TypedEmitter<SDKEventMap>;
+  private readonly emitter: TypedEmitter;
 
   /**
    * Create a new DeepIDV client.
@@ -155,7 +155,7 @@ export class DeepIDV {
     const resolved = resolveConfig(config);
 
     // Single emitter, single HTTP client, single uploader (shared across all modules)
-    this.emitter = new TypedEmitter<SDKEventMap>();
+    this.emitter = new TypedEmitter();
     const httpClient = new HttpClient(resolved, this.emitter);
     const uploader = new FileUploader(resolved, httpClient, this.emitter);
 

@@ -15,13 +15,13 @@ created: 2026-04-05
 
 ## Test Infrastructure
 
-| Property | Value |
-|----------|-------|
-| **Framework** | vitest |
-| **Config file** | `packages/core/vitest.config.ts` (Wave 0 creates) |
-| **Quick run command** | `pnpm --filter @deepidv/core test` |
-| **Full suite command** | `pnpm test` |
-| **Estimated runtime** | ~5 seconds |
+| Property               | Value                                             |
+| ---------------------- | ------------------------------------------------- |
+| **Framework**          | vitest                                            |
+| **Config file**        | `packages/core/vitest.config.ts` (Wave 0 creates) |
+| **Quick run command**  | `pnpm --filter @deepidv/core test`                |
+| **Full suite command** | `pnpm test`                                       |
+| **Estimated runtime**  | ~5 seconds                                        |
 
 ---
 
@@ -36,13 +36,13 @@ created: 2026-04-05
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | TBD | TBD | TBD | TBD | TBD | ⬜ pending |
+| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status     |
+| ------- | ---- | ---- | ----------- | --------- | ----------------- | ----------- | ---------- |
+| TBD     | TBD  | TBD  | TBD         | TBD       | TBD               | TBD         | ⬜ pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+_Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky_
 
-*Note: Task mappings will be populated after PLAN.md files are created.*
+_Note: Task mappings will be populated after PLAN.md files are created._
 
 ---
 
@@ -52,17 +52,17 @@ created: 2026-04-05
 - [ ] `packages/core/src/__tests__/` — test directory structure
 - [ ] vitest + msw dev dependencies installed in workspace root
 
-*If none: "Existing infrastructure covers all phase requirements."*
+_If none: "Existing infrastructure covers all phase requirements."_
 
 ---
 
 ## Manual-Only Verifications
 
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| Deno import compatibility | COMPAT-02 | Deno not installed locally | `deno run --allow-net test-import.ts` in CI or manual env |
-| Cloudflare Workers import | COMPAT-03 | Wrangler not installed locally | `wrangler dev` with test worker importing @deepidv/core |
-| Bun import compatibility | COMPAT-04 | Bun not installed locally | `bun run test-import.ts` in CI or manual env |
+| Behavior                  | Requirement | Why Manual                     | Test Instructions                                         |
+| ------------------------- | ----------- | ------------------------------ | --------------------------------------------------------- |
+| Deno import compatibility | COMPAT-02   | Deno not installed locally     | `deno run --allow-net test-import.ts` in CI or manual env |
+| Cloudflare Workers import | COMPAT-03   | Wrangler not installed locally | `wrangler dev` with test worker importing @deepidv/core   |
+| Bun import compatibility  | COMPAT-04   | Bun not installed locally      | `bun run test-import.ts` in CI or manual env              |
 
 ---
 

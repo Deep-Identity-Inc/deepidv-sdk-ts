@@ -24,10 +24,10 @@ affects:
 tech-stack:
   added: []
   patterns:
-    - "msw + real HttpClient test pattern (no mocked HttpClient) for service module tests"
-    - "createSessions() helper factory in test file for clean per-test isolation"
-    - "server.use() inside each test (not globally) to prevent handler leakage"
-    - "MOCK_SESSION_RECORD and MOCK_SESSION_SUMMARY constants at top of file for reuse"
+    - 'msw + real HttpClient test pattern (no mocked HttpClient) for service module tests'
+    - 'createSessions() helper factory in test file for clean per-test isolation'
+    - 'server.use() inside each test (not globally) to prevent handler leakage'
+    - 'MOCK_SESSION_RECORD and MOCK_SESSION_SUMMARY constants at top of file for reuse'
 
 key-files:
   created:
@@ -37,14 +37,14 @@ key-files:
     - packages/server/vitest.config.ts
 
 key-decisions:
-  - "All tests use real HttpClient + msw interception (not mocked HttpClient) — consistent with core package test pattern"
-  - "ValidationError tests make no network call — msw onUnhandledRequest: error would fail any unexpected HTTP"
-  - "14 tests created (2 more than the plan minimum of 12) for complete coverage of all SESS CRUD methods"
+  - 'All tests use real HttpClient + msw interception (not mocked HttpClient) — consistent with core package test pattern'
+  - 'ValidationError tests make no network call — msw onUnhandledRequest: error would fail any unexpected HTTP'
+  - '14 tests created (2 more than the plan minimum of 12) for complete coverage of all SESS CRUD methods'
 
 patterns-established:
-  - "Pattern: Test file pair — sessions.test.ts + setup.ts for every service module"
-  - "Pattern: createSessions() factory helper — creates real Sessions instance with real HttpClient; maxRetries: 0"
-  - "Pattern: server.use() per test, not globally — prevents msw handler leakage between tests"
+  - 'Pattern: Test file pair — sessions.test.ts + setup.ts for every service module'
+  - 'Pattern: createSessions() factory helper — creates real Sessions instance with real HttpClient; maxRetries: 0'
+  - 'Pattern: server.use() per test, not globally — prevents msw handler leakage between tests'
 
 requirements-completed: [SESS-01, SESS-02, SESS-03, SESS-04]
 
@@ -107,5 +107,6 @@ None — no external service configuration required.
 - Known test pattern: `server.use()` inside each `it()` block; `maxRetries: 0` in factory helper; `onUnhandledRequest: 'error'` catches any accidental real HTTP calls
 
 ---
-*Phase: 03-sessions-module*
-*Completed: 2026-04-06*
+
+_Phase: 03-sessions-module_
+_Completed: 2026-04-06_

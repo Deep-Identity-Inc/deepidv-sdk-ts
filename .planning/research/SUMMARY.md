@@ -24,6 +24,7 @@ The stack is essentially fully specified by the project's own constraints and is
 Version numbers (TypeScript `^5.4`, zod `^3.23`, vitest `^1.6`/`^2.x`) should be confirmed at npmjs.com before pinning — web search was unavailable during research. Zod v4 may have shipped stable; if so, evaluate migration before starting rather than mid-build.
 
 **Core technologies:**
+
 - **TypeScript `^5.4`** — language; strict mode + `exactOptionalPropertyTypes` + `noUncheckedIndexedAccess` enforces zero-`any` requirement
 - **tsup `^8.x`** — bundler; dual ESM + CJS + `.d.ts` in one pass, zero plugin config
 - **zod `^3.23`** — runtime validation + type inference; single production dependency; works in all target runtimes
@@ -37,6 +38,7 @@ Version numbers (TypeScript `^5.4`, zod `^3.23`, vitest `^1.6`/`^2.x`) should be
 Research cross-referenced five major SDK providers (Stripe Identity, Onfido, Jumio, Veriff, Persona). The patterns are highly stable — every table-stakes item is consistent across all five.
 
 **Must have (table stakes):**
+
 - Full TypeScript types with no `any` — expected by all consumers, hardest to retrofit after publish
 - Named error classes (`AuthenticationError`, `RateLimitError`, `ValidationError`, `NetworkError`, `TimeoutError`) — Stripe set this pattern; consumers rely on `instanceof` checks
 - Retry on 429 and 5xx only, never 4xx — hard contract that must be correct from day one
@@ -51,6 +53,7 @@ Research cross-referenced five major SDK providers (Stripe Identity, Onfido, Jum
 - Presigned URL upload abstraction — hide 3-call S3 flow behind simple method signature
 
 **Should have (competitive differentiators):**
+
 - Multi-input type polymorphism (Buffer, Uint8Array, ReadableStream, base64 string, file path) — eliminates caller boilerplate; no competitor accepts all formats
 - Parallel batch presigned uploads for multi-file calls — halves latency for `face.compare` and `identity.verify`
 - Typed event emitter for request lifecycle (`onRequest`, `onResponse`, `onRetry`, `onError`) — enables APM/logging without stdout pollution
@@ -60,6 +63,7 @@ Research cross-referenced five major SDK providers (Stripe Identity, Onfido, Jum
 - Discriminated union `DocumentScanResult` by `documentType` — typed fields per document variant; eliminates defensive null-checking
 
 **Defer (v2+):**
+
 - Exported Zod schemas for consumer integration testing — novel, validate demand first
 - Workflow management — explicitly out of scope in PROJECT.md
 - Silent screening (PEP/sanctions), address verification, phone verification — future modules
@@ -70,6 +74,7 @@ Research cross-referenced five major SDK providers (Stripe Identity, Onfido, Jum
 The architecture follows a thin-module, fat-core pattern across a two-package pnpm monorepo. `@deepidv/core` (private, not published directly) owns all cross-cutting concerns: HTTP client, auth middleware, retry engine, presigned upload handler, typed event emitter, and error class hierarchy. `@deepidv/server` (public) contains only thin modules — each module is three operations: Zod validation, FileUploader call (if file-bearing), HttpClient call, return typed result. The `DeepIDV` class assembles all modules as named namespace properties (`client.face.detect()`, `client.sessions.create()`), mirroring the API URL structure and matching the Stripe/Twilio namespace convention. All HTTP — including S3 PUTs — flows through deliberate boundaries: processing calls through `HttpClient`, S3 PUTs isolated in `FileUploader` with no auth header.
 
 **Major components:**
+
 1. **`@deepidv/core/client.ts` (HttpClient)** — native `fetch` wrapper handling base URL, auth header injection, JSON serialization, AbortController timeout, retry dispatch, and response-to-typed-error mapping
 2. **`@deepidv/core/uploader.ts` (FileUploader)** — normalizes all input types to `Uint8Array`, requests presigned URLs, PUTs to S3 with matching Content-Type, supports `count: N` batch presigning with `Promise.allSettled` parallel uploads
 3. **`@deepidv/core/errors.ts`** — `DeepIDVError` base class hierarchy; all errors carry `statusCode`, `errorCode`, `requestId`, and `cause` (original error chain preserved)
@@ -151,12 +156,14 @@ The build order is fully determined by component dependencies. Nothing in `@deep
 ### Research Flags
 
 Phases with well-documented patterns (skip research-phase — research is already done):
+
 - **Phase 1:** All patterns (monorepo setup, exports map, TypeScript config, error hierarchy, retry engine) are fully specified in ARCHITECTURE.md and PITFALLS.md with exact code patterns.
 - **Phase 3:** Session CRUD over HTTP is a standard REST module — no novel patterns. HttpClient already designed in Phase 1.
 - **Phase 6:** Entry point assembly is mechanical — wire modules to class, enumerate exports. No design decisions remaining.
 - **Phase 7:** changesets + pnpm publish pipeline is well-documented. vitest + msw patterns are established in earlier phases.
 
 Phases that may benefit from targeted research during planning:
+
 - **Phase 2 (FileUploader):** The presigned URL API contract (what fields the deepidv API returns in the presign response, what error codes S3 returns for specific failures) should be confirmed against the actual API documentation before implementation. The research documents the prevention strategies but cannot confirm the exact presign request/response shape.
 - **Phase 4/5 (module response types):** The exact shape of `DocumentScanResult`, `FaceCompareResult`, and `IdentityVerificationResult` as returned by the deepidv API must be confirmed against the API reference. These are typed assumptions in the research — the actual API response shapes drive the Zod schemas.
 
@@ -164,12 +171,12 @@ Phases that may benefit from targeted research during planning:
 
 ## Confidence Assessment
 
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Stack | HIGH | Tooling choices (tsup, zod, vitest, msw, pnpm, changesets) are mandated by PROJECT.md and well-established. Version numbers need live confirmation — web search unavailable during research session. |
-| Features | HIGH | Table stakes patterns cross-confirmed across Stripe, Onfido, Veriff, Jumio, Persona in training data. Differentiators assessed as genuine market gaps with MEDIUM confidence (market may have moved since August 2025 cutoff). Anti-features are well-documented SDK design mistakes with HIGH confidence. |
-| Architecture | HIGH | Primary source is the repo's own `deepidv-sdk-build-guide.md`. Architecture is already decided; research validated and documented it. Component boundaries and data flow are specified precisely. |
-| Pitfalls | HIGH | All 17 pitfalls are reproducible, documented problems in the TypeScript SDK ecosystem with deterministic prevention strategies. S3 Content-Type and ReadableStream pitfalls are the most project-specific; all others are universal SDK patterns. |
+| Area         | Confidence | Notes                                                                                                                                                                                                                                                                                                      |
+| ------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stack        | HIGH       | Tooling choices (tsup, zod, vitest, msw, pnpm, changesets) are mandated by PROJECT.md and well-established. Version numbers need live confirmation — web search unavailable during research session.                                                                                                       |
+| Features     | HIGH       | Table stakes patterns cross-confirmed across Stripe, Onfido, Veriff, Jumio, Persona in training data. Differentiators assessed as genuine market gaps with MEDIUM confidence (market may have moved since August 2025 cutoff). Anti-features are well-documented SDK design mistakes with HIGH confidence. |
+| Architecture | HIGH       | Primary source is the repo's own `deepidv-sdk-build-guide.md`. Architecture is already decided; research validated and documented it. Component boundaries and data flow are specified precisely.                                                                                                          |
+| Pitfalls     | HIGH       | All 17 pitfalls are reproducible, documented problems in the TypeScript SDK ecosystem with deterministic prevention strategies. S3 Content-Type and ReadableStream pitfalls are the most project-specific; all others are universal SDK patterns.                                                          |
 
 **Overall confidence:** HIGH
 
@@ -186,21 +193,25 @@ Phases that may benefit from targeted research during planning:
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - `deepidv-sdk-build-guide.md` (repo root) — architecture, component map, build order, data flow
 - `.planning/PROJECT.md` — project constraints, mandated tools, scope boundaries
 - ARCHITECTURE.md (`.planning/research/`) — detailed component boundaries, patterns, anti-patterns, phase dependencies
 - PITFALLS.md (`.planning/research/`) — 17 pitfalls with prevention code patterns, phase-specific warnings
 
 ### Secondary (MEDIUM confidence)
+
 - STACK.md (`.planning/research/`) — technology rationale; version numbers need live verification
 - FEATURES.md (`.planning/research/`) — competitor patterns from Stripe, Onfido, Veriff, Jumio, Persona (training data, August 2025 cutoff)
 - Stripe Node SDK (github.com/stripe/stripe-node) — namespace pattern, error hierarchy, thin-module design
 - Twilio Node SDK (github.com/twilio/twilio-node) — namespace pattern
 
 ### Tertiary (needs live verification before use)
+
 - npmjs.com — version confirmation for all dependencies (web search unavailable during research)
 - deepidv API reference — exact response shapes for `DocumentScanResult`, `FaceCompareResult`, `IdentityVerificationResult`, and presign endpoint contract
 
 ---
-*Research completed: 2026-04-05*
-*Ready for roadmap: yes*
+
+_Research completed: 2026-04-05_
+_Ready for roadmap: yes_

@@ -52,6 +52,7 @@ try {
 ### Rotate Keys
 
 If a key is compromised:
+
 1. Generate a new API key in the deepidv dashboard
 2. Update your environment variable
 3. Revoke the old key

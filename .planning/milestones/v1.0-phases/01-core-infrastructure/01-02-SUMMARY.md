@@ -22,10 +22,10 @@ dependency_graph:
 tech-stack:
   added: []
   patterns:
-    - "Error hierarchy with Object.setPrototypeOf(this, new.target.prototype) for cross-CJS/ESM instanceof"
-    - "toJSON() on base error class for structured logging (D-08)"
-    - "Unsubscribe-function pattern for event listeners (D-12)"
-    - "TDD: write failing tests first, then implement to green"
+    - 'Error hierarchy with Object.setPrototypeOf(this, new.target.prototype) for cross-CJS/ESM instanceof'
+    - 'toJSON() on base error class for structured logging (D-08)'
+    - 'Unsubscribe-function pattern for event listeners (D-12)'
+    - 'TDD: write failing tests first, then implement to green'
 
 key-files:
   created:
@@ -41,18 +41,18 @@ key-files:
     - packages/core/tsconfig.json
 
 key-decisions:
-  - "Added lib:[ES2022, DOM] to core tsconfig — DOM lib required for globalThis.fetch, URL, RequestInit, Response types; correct for a Web-API-first SDK"
-  - "Kept FetchFunction as typeof globalThis.fetch (DOM-typed) rather than a custom minimal interface — cleaner, and DOM lib is the right long-term solution"
+  - 'Added lib:[ES2022, DOM] to core tsconfig — DOM lib required for globalThis.fetch, URL, RequestInit, Response types; correct for a Web-API-first SDK'
+  - 'Kept FetchFunction as typeof globalThis.fetch (DOM-typed) rather than a custom minimal interface — cleaner, and DOM lib is the right long-term solution'
 
 patterns-established:
-  - "Error constructor pattern: Object.setPrototypeOf(this, new.target.prototype) in every error subclass — required for instanceof in CJS interop"
-  - "API key redaction: sk_...{last4} format matching Stripe SDK (D-05)"
-  - "Event emitter: snapshot listener array before iterating (spread) so mid-iteration unsubscription is safe"
+  - 'Error constructor pattern: Object.setPrototypeOf(this, new.target.prototype) in every error subclass — required for instanceof in CJS interop'
+  - 'API key redaction: sk_...{last4} format matching Stripe SDK (D-05)'
+  - 'Event emitter: snapshot listener array before iterating (spread) so mid-iteration unsubscription is safe'
 
 requirements-completed: [ERR-01, ERR-02, ERR-03, ERR-04, ERR-05, ERR-06, EVT-01, EVT-02]
 
 duration: 5min
-completed: "2026-04-05"
+completed: '2026-04-05'
 ---
 
 # Phase 01 Plan 02: Config, Errors, and Event Emitter Summary
@@ -85,7 +85,7 @@ _Note: TDD tasks have integrated test+implementation commits per the plan's `tdd
 
 ## Files Created/Modified
 
-- `packages/core/src/config.ts` — DeepIDVConfig, ResolvedConfig, resolveConfig(), DEFAULT_* constants
+- `packages/core/src/config.ts` — DeepIDVConfig, ResolvedConfig, resolveConfig(), DEFAULT\_\* constants
 - `packages/core/src/errors.ts` — DeepIDVError, AuthenticationError, RateLimitError, ValidationError, NetworkError, TimeoutError; RawResponse interface
 - `packages/core/src/events.ts` — TypedEmitter<TMap>, SDKEventMap type
 - `packages/core/vitest.config.ts` — vitest config with globals, node env, MSW setup file
@@ -140,5 +140,6 @@ None — no external service configuration required.
 - 42 tests pass, `pnpm -r build` exits 0
 
 ---
-*Phase: 01-core-infrastructure*
-*Completed: 2026-04-05*
+
+_Phase: 01-core-infrastructure_
+_Completed: 2026-04-05_

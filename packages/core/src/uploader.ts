@@ -4,7 +4,7 @@
  *
  * Provides:
  * - `FileInput` — normalized input type accepted on all upload APIs
- * - `SupportedContentType` — MIME type literals for JPEG, PNG, WebP
+ * - `SupportedContentType` — MIME type literals for JPEG and PNG
  * - `UploadOptions` — validated options accepted by upload methods
  * - `PresignResponse` — shape of the presign API response
  * - `toUint8Array` — normalizes any FileInput to Uint8Array
@@ -21,7 +21,7 @@ import { DeepIDVError, NetworkError, TimeoutError, ValidationError } from './err
 import { withRetry } from './retry.js';
 import type { ResolvedConfig } from './config.js';
 import type { HttpClient } from './client.js';
-import type { TypedEmitter, SDKEventMap } from './events.js';
+import type { TypedEmitter } from './events.js';
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -41,7 +41,7 @@ export type FileInput = Uint8Array | ReadableStream<Uint8Array> | string;
 /**
  * MIME types supported for identity verification uploads.
  */
-export type SupportedContentType = 'image/jpeg' | 'image/png' | 'image/webp';
+export type SupportedContentType = 'image/jpeg' | 'image/png';
 
 // ---------------------------------------------------------------------------
 // Zod schemas (D-10, D-11)
@@ -63,7 +63,7 @@ export type UploadOptions = z.infer<typeof UploadOptionsSchema>;
 // ---------------------------------------------------------------------------
 
 /**
- * Response from `POST /v1/uploads/presign`. Contains presigned S3 URLs
+ * Response from `POST /v1/upload/presign`. Contains presigned S3 URLs
  * and the file keys to reference after upload.
  */
 export interface PresignResponse {
@@ -134,9 +134,8 @@ async function readFilePath(path: string): Promise<Uint8Array> {
   // or Deno type definitions in the runtime-agnostic core package.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const g = globalThis as Record<string, any>;
-  const isNode =
-    typeof g['process'] !== 'undefined' &&
-    g['process']?.versions?.node !== undefined;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  const isNode = typeof g['process'] !== 'undefined' && g['process']?.versions?.node !== undefined;
   const isDeno = typeof g['Deno'] !== 'undefined';
   const isBun = typeof g['Bun'] !== 'undefined';
 
@@ -147,13 +146,17 @@ async function readFilePath(path: string): Promise<Uint8Array> {
   }
 
   // Dynamic import keeps fs out of edge runtime bundles.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const fs = (await import('node:fs/promises' as string)) as any;
+  const fs = (await import('node:fs/promises' as string)) as {
+    readFile: (path: string) => Promise<Uint8Array>;
+  };
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const buffer = (await fs.readFile(path)) as Uint8Array;
   return new Uint8Array(
     (buffer as unknown as { buffer: ArrayBuffer; byteOffset: number; byteLength: number }).buffer,
-    (buffer as unknown as { buffer: ArrayBuffer; byteOffset: number; byteLength: number }).byteOffset,
-    (buffer as unknown as { buffer: ArrayBuffer; byteOffset: number; byteLength: number }).byteLength,
+    (buffer as unknown as { buffer: ArrayBuffer; byteOffset: number; byteLength: number })
+      .byteOffset,
+    (buffer as unknown as { buffer: ArrayBuffer; byteOffset: number; byteLength: number })
+      .byteLength,
   );
 }
 
@@ -205,7 +208,6 @@ export async function toUint8Array(input: FileInput): Promise<Uint8Array> {
  * Supported formats:
  * - JPEG: `FF D8 FF`
  * - PNG: `89 50 4E 47`
- * - WebP: `52 49 46 46 ... 57 45 42 50` (RIFF....WEBP)
  *
  * @param bytes - Image bytes to inspect (minimum 4 bytes required).
  * @returns Detected MIME type.
@@ -213,9 +215,7 @@ export async function toUint8Array(input: FileInput): Promise<Uint8Array> {
  */
 export function detectContentType(bytes: Uint8Array): SupportedContentType {
   if (bytes.length < 4) {
-    throw new ValidationError(
-      'File is too small to detect content type (minimum 4 bytes).',
-    );
+    throw new ValidationError('File is too small to detect content type (minimum 4 bytes).');
   }
 
   // JPEG: FF D8 FF
@@ -224,33 +224,11 @@ export function detectContentType(bytes: Uint8Array): SupportedContentType {
   }
 
   // PNG: 89 50 4E 47
-  if (
-    bytes[0] === 0x89 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x4e &&
-    bytes[3] === 0x47
-  ) {
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
     return 'image/png';
   }
 
-  // WebP: RIFF....WEBP (bytes 0-3 = RIFF, bytes 8-11 = WEBP)
-  if (
-    bytes.length >= 12 &&
-    bytes[0] === 0x52 &&
-    bytes[1] === 0x49 &&
-    bytes[2] === 0x46 &&
-    bytes[3] === 0x46 &&
-    bytes[8] === 0x57 &&
-    bytes[9] === 0x45 &&
-    bytes[10] === 0x42 &&
-    bytes[11] === 0x50
-  ) {
-    return 'image/webp';
-  }
-
-  throw new ValidationError(
-    'Unsupported image format. Accepted formats: JPEG, PNG, WebP.',
-  );
+  throw new ValidationError('Unsupported image format. Accepted formats: JPEG, PNG.');
 }
 
 /**
@@ -301,7 +279,7 @@ export function validateUploadOptions(raw: unknown): UploadOptions {
  * 1. Normalize all inputs to `Uint8Array` (stream materialization happens here,
  *    before the retry loop — no double-read bug, UPL-06).
  * 2. Detect or accept caller-provided content type (D-06).
- * 3. Call `POST /v1/uploads/presign` once for all files.
+ * 3. Call `POST /v1/upload/presign` once for all files.
  * 4. PUT each file to its S3 presigned URL in parallel (UPL-04).
  * 5. Return `fileKey` strings in the same order as the inputs.
  *
@@ -320,7 +298,7 @@ export class FileUploader {
   constructor(
     private readonly config: ResolvedConfig,
     private readonly httpClient: HttpClient,
-    private readonly emitter: TypedEmitter<SDKEventMap>,
+    private readonly emitter: TypedEmitter,
   ) {}
 
   /**
@@ -338,35 +316,35 @@ export class FileUploader {
    * @throws {TimeoutError} If an S3 PUT times out.
    * @throws {NetworkError} If an S3 PUT fails at the network level.
    */
-  async upload(
-    inputs: FileInput | FileInput[],
-    options?: UploadOptions,
-  ): Promise<string[]> {
+  async upload(inputs: FileInput | FileInput[], options?: UploadOptions): Promise<string[]> {
     const opts = validateUploadOptions(options ?? {});
     const inputArray = Array.isArray(inputs) ? inputs : [inputs];
 
-    // 1. Normalize all inputs to Uint8Array (materialization happens here, before retry loop — UPL-06)
-    const byteArrays = await Promise.all(inputArray.map(toUint8Array));
-
-    // 2. Detect or use caller-provided content type
-    const contentTypes = byteArrays.map((bytes) =>
-      opts.contentType ?? detectContentType(bytes),
+    const files = await Promise.all(
+      inputArray.map(async (input) => {
+        const bytes = await toUint8Array(input);
+        const contentType = opts.contentType ?? detectContentType(bytes);
+        return { bytes, contentType };
+      }),
     );
 
-    // 3. Request presigned URLs (one API call for all files)
-    const presignResponse = await this.httpClient.post<PresignResponse>(
-      '/v1/uploads/presign',
-      { contentType: contentTypes[0], count: inputArray.length },
-    );
+    const presignResponse = await this.httpClient.post<PresignResponse>('/v1/upload/presign', {
+      files: files.map((f) => ({
+        contentType: f.contentType,
+        byteLength: f.bytes.byteLength,
+      })),
+    });
 
-    // 4. PUT each file to S3 in parallel (UPL-04)
     await Promise.all(
-      presignResponse.uploads.map((upload, i) =>
-        this._putToS3(upload.uploadUrl, byteArrays[i]!, contentTypes[i]!),
-      ),
+      presignResponse.uploads.map((upload, i) => {
+        const file = files[i];
+        if (!file) {
+          throw new DeepIDVError('Presign returned more uploads than requested.');
+        }
+        return this._putToS3(upload.uploadUrl, file.bytes, file.contentType);
+      }),
     );
 
-    // 5. Return fileKeys in same order as inputs
     return presignResponse.uploads.map((u) => u.fileKey);
   }
 
@@ -402,7 +380,9 @@ export class FileUploader {
   private async _attemptPut(url: string, bytes: Uint8Array, contentType: string): Promise<void> {
     const controller = new AbortController();
     const timeoutMs = this.config.uploadTimeout;
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeoutMs);
 
     this.emitter.emit('upload:start', { url, bytes: bytes.length, contentType });
 
@@ -412,19 +392,16 @@ export class FileUploader {
         response = await this.config.fetch(url, {
           method: 'PUT',
           headers: { 'Content-Type': contentType },
-          // Cast to ArrayBuffer for TypeScript 6 DTS compatibility (Uint8Array<ArrayBufferLike>
-          // is not directly assignable to BodyInit in strict mode — ArrayBuffer is safe)
-          body: bytes.buffer as ArrayBuffer,
+          body: bytes as BodyInit,
           signal: controller.signal,
         });
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') {
-          throw new TimeoutError(`Upload timed out after ${timeoutMs}ms`, { cause: err });
+          throw new TimeoutError(`Upload timed out after ${String(timeoutMs)}ms`, { cause: err });
         }
-        throw new NetworkError(
-          err instanceof Error ? err.message : 'S3 upload network error',
-          { cause: err },
-        );
+        throw new NetworkError(err instanceof Error ? err.message : 'S3 upload network error', {
+          cause: err,
+        });
       }
 
       if (response.ok) {
@@ -442,14 +419,14 @@ export class FileUploader {
 
       // 5xx: wrap as DeepIDVError with status so isRetryable returns true
       if (response.status >= 500) {
-        throw new DeepIDVError(`S3 upload failed: HTTP ${response.status}`, {
+        throw new DeepIDVError(`S3 upload failed: HTTP ${String(response.status)}`, {
           status: response.status,
           code: 'upload_error',
         });
       }
 
       // Other 4xx: throw immediately (non-retryable)
-      throw new DeepIDVError(`S3 upload failed: HTTP ${response.status}`, {
+      throw new DeepIDVError(`S3 upload failed: HTTP ${String(response.status)}`, {
         status: response.status,
         code: 'upload_error',
       });

@@ -3,15 +3,22 @@
  *
  * Uses msw + real HttpClient + real FileUploader to intercept native fetch calls.
  * Covers Identity.verify() — happy path, batch presign count:2 (IDV-02), field
- * forwarding (documentFileKey, faceFileKey, documentType), unknown field stripping
+ * forwarding (documentImage, faceImage, documentType), unknown field stripping
  * (D-06), verified:false case, and Zod validation errors.
  */
 
 import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
-import { resolveConfig, TypedEmitter, HttpClient, FileUploader, ValidationError, AuthenticationError, DeepIDVError } from '@deepidv/core';
-import type { SDKEventMap } from '@deepidv/core';
+import {
+  resolveConfig,
+  TypedEmitter,
+  HttpClient,
+  FileUploader,
+  ValidationError,
+  AuthenticationError,
+  DeepIDVError,
+} from '@deepidv/core';
 import { Identity } from '../identity.js';
 
 const BASE_URL = 'https://api.deepidv.com';
@@ -27,7 +34,7 @@ function createIdentity() {
     timeout: 5_000,
     maxRetries: 0,
   });
-  const emitter = new TypedEmitter<SDKEventMap>();
+  const emitter = new TypedEmitter();
   const client = new HttpClient(config, emitter);
   const uploader = new FileUploader(config, client, emitter);
   return new Identity(client, uploader);
@@ -38,23 +45,31 @@ function createIdentity() {
 // ---------------------------------------------------------------------------
 
 /** Minimal valid JPEG header bytes for document image upload. */
-const JPEG_BYTES = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, ...new Array(100).fill(0)]);
+const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array<number>(100).fill(0)]);
 /** Minimal valid JPEG bytes for face image upload. */
-const JPEG_BYTES_2 = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE1, ...new Array(100).fill(0)]);
+const JPEG_BYTES_2 = new Uint8Array([0xff, 0xd8, 0xff, 0xe1, ...new Array<number>(100).fill(0)]);
 
 // ---------------------------------------------------------------------------
 // MSW handler helpers
 // ---------------------------------------------------------------------------
 
 /**
- * Batch presign for identity.verify() — asserts count === 2 (IDV-02 / D-02)
- * and returns two upload slots with file keys for document and face.
+ * Batch presign for identity.verify() — asserts the request carries one
+ * `files` entry per upload (IDV-02 / D-02), each with `contentType` and
+ * `byteLength`, and returns two upload slots with file keys for document
+ * and face.
  */
 function mockPresignBatch() {
-  return http.post(`${BASE_URL}/v1/uploads/presign`, async ({ request }) => {
-    const body = await request.json() as Record<string, unknown>;
-    // Verify batch presign receives count: 2 (IDV-02 / D-02)
-    expect(body['count']).toBe(2);
+  return http.post(`${BASE_URL}/v1/upload/presign`, async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    expect(Array.isArray(body['files'])).toBe(true);
+    const files = body['files'] as Array<Record<string, unknown>>;
+    expect(files).toHaveLength(2);
+    for (const file of files) {
+      expect(typeof file['contentType']).toBe('string');
+      expect(typeof file['byteLength']).toBe('number');
+      expect((file['byteLength'] as number) > 0).toBe(true);
+    }
     return HttpResponse.json({
       uploads: [
         { uploadUrl: 'https://s3.example.com/presigned-1', fileKey: 'fk_doc_001' },
@@ -86,11 +101,11 @@ const MOCK_IDENTITY_RESULT = {
     documentNumber: 'AB1234567',
     expirationDate: '2030-06-01',
     issuingCountry: 'US',
-    confidence: 0.97,
+    confidence: 97,
   },
-  faceDetection: { faceDetected: true, confidence: 0.99 },
-  faceMatch: { isMatch: true, confidence: 0.95, threshold: 0.8 },
-  overallConfidence: 0.94,
+  faceDetection: { faceDetected: true, confidence: 99 },
+  faceMatch: { isMatch: true, confidence: 95, threshold: 80 },
+  overallConfidence: 94,
 };
 
 /** POST /v1/identity/verify handler returning the standard mock result with optional overrides. */
@@ -107,11 +122,7 @@ function mockIdentityVerify(overrides?: Record<string, unknown>) {
 describe('Identity', () => {
   describe('verify()', () => {
     it('returns typed IdentityVerificationResult on success', async () => {
-      server.use(
-        mockPresignBatch(),
-        ...mockS3Puts(),
-        mockIdentityVerify(),
-      );
+      server.use(mockPresignBatch(), ...mockS3Puts(), mockIdentityVerify());
 
       const identity = createIdentity();
       const result = await identity.verify({ documentImage: JPEG_BYTES, faceImage: JPEG_BYTES_2 });
@@ -120,22 +131,18 @@ describe('Identity', () => {
       expect(result.document.fullName).toBe('John Doe');
       expect(result.faceDetection.faceDetected).toBe(true);
       expect(result.faceMatch.isMatch).toBe(true);
-      expect(result.overallConfidence).toBe(0.94);
+      expect(result.overallConfidence).toBe(94);
     });
 
     it('sends batch presign with count: 2', async () => {
       // mockPresignBatch() asserts count === 2 inline — test passes if assertion does not throw
-      server.use(
-        mockPresignBatch(),
-        ...mockS3Puts(),
-        mockIdentityVerify(),
-      );
+      server.use(mockPresignBatch(), ...mockS3Puts(), mockIdentityVerify());
 
       const identity = createIdentity();
       await identity.verify({ documentImage: JPEG_BYTES, faceImage: JPEG_BYTES_2 });
     });
 
-    it('forwards documentFileKey, faceFileKey, and documentType to API', async () => {
+    it('forwards documentImage, faceImage, and documentType to API', async () => {
       let capturedBody: unknown = null;
 
       server.use(
@@ -148,11 +155,15 @@ describe('Identity', () => {
       );
 
       const identity = createIdentity();
-      await identity.verify({ documentImage: JPEG_BYTES, faceImage: JPEG_BYTES_2, documentType: 'passport' });
+      await identity.verify({
+        documentImage: JPEG_BYTES,
+        faceImage: JPEG_BYTES_2,
+        documentType: 'passport',
+      });
 
       const body = capturedBody as Record<string, unknown>;
-      expect(body['documentFileKey']).toBe('fk_doc_001');
-      expect(body['faceFileKey']).toBe('fk_face_001');
+      expect(body['documentImage']).toBe('fk_doc_001');
+      expect(body['faceImage']).toBe('fk_face_001');
       expect(body['documentType']).toBe('passport');
     });
 
@@ -183,8 +194,8 @@ describe('Identity', () => {
         ...mockS3Puts(),
         mockIdentityVerify({
           verified: false,
-          faceMatch: { isMatch: false, confidence: 0.3, threshold: 0.8 },
-          overallConfidence: 0.4,
+          faceMatch: { isMatch: false, confidence: 30, threshold: 80 },
+          overallConfidence: 40,
         }),
       );
 
@@ -197,31 +208,25 @@ describe('Identity', () => {
 
     it('throws ValidationError when documentImage is missing', async () => {
       const identity = createIdentity();
-      await expect(
-        identity.verify({ faceImage: JPEG_BYTES } as never),
-      ).rejects.toThrow(ValidationError);
+      await expect(identity.verify({ faceImage: JPEG_BYTES } as never)).rejects.toThrow(
+        ValidationError,
+      );
     });
 
     it('throws ValidationError when faceImage is missing', async () => {
       const identity = createIdentity();
-      await expect(
-        identity.verify({ documentImage: JPEG_BYTES } as never),
-      ).rejects.toThrow(ValidationError);
+      await expect(identity.verify({ documentImage: JPEG_BYTES } as never)).rejects.toThrow(
+        ValidationError,
+      );
     });
 
     it('throws ValidationError when input is empty object', async () => {
       const identity = createIdentity();
-      await expect(
-        identity.verify({} as never),
-      ).rejects.toThrow(ValidationError);
+      await expect(identity.verify({} as never)).rejects.toThrow(ValidationError);
     });
 
     it('accepts optional documentType parameter', async () => {
-      server.use(
-        mockPresignBatch(),
-        ...mockS3Puts(),
-        mockIdentityVerify(),
-      );
+      server.use(mockPresignBatch(), ...mockS3Puts(), mockIdentityVerify());
 
       const identity = createIdentity();
       const result = await identity.verify({
@@ -236,7 +241,7 @@ describe('Identity', () => {
 
     it('returns AuthenticationError on 401 from presign', async () => {
       server.use(
-        http.post(`${BASE_URL}/v1/uploads/presign`, () =>
+        http.post(`${BASE_URL}/v1/upload/presign`, () =>
           HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
         ),
       );

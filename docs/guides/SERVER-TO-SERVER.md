@@ -4,13 +4,13 @@ Use the SDK's primitive methods to build your own verification flow — scan doc
 
 ## When to Use This vs. Hosted Sessions
 
-| Use Case | Approach |
-|----------|----------|
-| Standard KYC onboarding | Hosted sessions — easier, includes UI |
-| Custom verification UX | Server-to-server — full control |
-| Batch document processing | Server-to-server — no user interaction |
-| Backend automation / screening | Server-to-server — programmatic |
-| Quick integration, minimal code | Hosted sessions |
+| Use Case                        | Approach                               |
+| ------------------------------- | -------------------------------------- |
+| Standard KYC onboarding         | Hosted sessions — easier, includes UI  |
+| Custom verification UX          | Server-to-server — full control        |
+| Batch document processing       | Server-to-server — no user interaction |
+| Backend automation / screening  | Server-to-server — programmatic        |
+| Quick integration, minimal code | Hosted sessions                        |
 
 ## Flow Overview
 
@@ -60,23 +60,23 @@ The `documentType` defaults to `'auto'` — the API will detect the document typ
 
 ### DocumentScanResult Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `documentType` | `string` | Detected document type |
-| `fullName` | `string` | Full name as printed on the document |
-| `firstName` | `string` | First / given name |
-| `lastName` | `string` | Last / family name |
-| `dateOfBirth` | `string` | Date of birth |
-| `gender` | `string` | Gender |
-| `nationality` | `string` | Nationality |
-| `documentNumber` | `string` | Document number / ID number |
-| `expirationDate` | `string` | Document expiration date |
-| `issuingCountry` | `string` | Country that issued the document |
-| `address` | `string?` | Address (if present on document) |
-| `mrzData` | `string?` | Machine-readable zone data |
-| `faceImage` | `string?` | Extracted face image (base64) |
-| `rawFields` | `Record<string, string>` | All extracted key-value pairs |
-| `confidence` | `number` | Overall OCR confidence (0–1) |
+| Field            | Type                     | Description                          |
+| ---------------- | ------------------------ | ------------------------------------ |
+| `documentType`   | `string`                 | Detected document type               |
+| `fullName`       | `string`                 | Full name as printed on the document |
+| `firstName`      | `string`                 | First / given name                   |
+| `lastName`       | `string`                 | Last / family name                   |
+| `dateOfBirth`    | `string`                 | Date of birth                        |
+| `gender`         | `string`                 | Gender                               |
+| `nationality`    | `string`                 | Nationality                          |
+| `documentNumber` | `string`                 | Document number / ID number          |
+| `expirationDate` | `string`                 | Document expiration date             |
+| `issuingCountry` | `string`                 | Country that issued the document     |
+| `address`        | `string?`                | Address (if present on document)     |
+| `mrzData`        | `string?`                | Machine-readable zone data           |
+| `faceImage`      | `string?`                | Extracted face image (base64)        |
+| `rawFields`      | `Record<string, string>` | All extracted key-value pairs        |
+| `confidence`     | `number`                 | Overall OCR confidence (0–1)         |
 
 ## Face Detection
 
@@ -105,12 +105,12 @@ if (result.faceDetected) {
 
 ### FaceDetectResult Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `faceDetected` | `boolean` | Whether a face was found |
-| `confidence` | `number` | Detection confidence (0–1) |
-| `boundingBox` | `{ top, left, width, height }?` | Face bounding box coordinates |
-| `landmarks` | `Array<{ type, x, y }>?` | Facial landmark positions |
+| Field          | Type                            | Description                   |
+| -------------- | ------------------------------- | ----------------------------- |
+| `faceDetected` | `boolean`                       | Whether a face was found      |
+| `confidence`   | `number`                        | Detection confidence (0–1)    |
+| `boundingBox`  | `{ top, left, width, height }?` | Face bounding box coordinates |
+| `landmarks`    | `Array<{ type, x, y }>?`        | Facial landmark positions     |
 
 ## Face Comparison
 
@@ -131,13 +131,13 @@ if (result.isMatch) {
 
 ### FaceCompareResult Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `isMatch` | `boolean` | Whether the faces match (confidence >= threshold) |
-| `confidence` | `number` | Match confidence (0–1) |
-| `threshold` | `number` | Minimum confidence for a match |
-| `sourceFaceDetected` | `boolean` | Face found in source image |
-| `targetFaceDetected` | `boolean` | Face found in target image |
+| Field                | Type      | Description                                       |
+| -------------------- | --------- | ------------------------------------------------- |
+| `isMatch`            | `boolean` | Whether the faces match (confidence >= threshold) |
+| `confidence`         | `number`  | Match confidence (0–100)                          |
+| `threshold`          | `number`  | Minimum confidence for a match (0–100)            |
+| `sourceFaceDetected` | `boolean` | Face found in source image                        |
+| `targetFaceDetected` | `boolean` | Face found in target image                        |
 
 ## Age Estimation
 
@@ -155,13 +155,13 @@ console.log(`Gender: ${result.gender} (${result.genderConfidence})`);
 
 ### FaceEstimateAgeResult Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `estimatedAge` | `number` | Best-estimate age |
-| `ageRange` | `{ low: number, high: number }` | Confidence range |
-| `gender` | `'male' \| 'female'` | Estimated gender |
-| `genderConfidence` | `number` | Gender estimation confidence (0–1) |
-| `faceDetected` | `boolean` | Whether a face was found |
+| Field              | Type                            | Description                        |
+| ------------------ | ------------------------------- | ---------------------------------- |
+| `estimatedAge`     | `number`                        | Best-estimate age                  |
+| `ageRange`         | `{ low: number, high: number }` | Confidence range                   |
+| `gender`           | `'male' \| 'female'`            | Estimated gender                   |
+| `genderConfidence` | `number`                        | Gender estimation confidence (0–1) |
+| `faceDetected`     | `boolean`                       | Whether a face was found           |
 
 ## Identity Verification (Shortcut)
 
@@ -174,8 +174,8 @@ const result = await client.identity.verify({
   documentType: 'passport', // optional, defaults to auto-detect
 });
 
-console.log(result.verified);           // true/false
-console.log(result.overallConfidence);  // 0.96
+console.log(result.verified); // true/false
+console.log(result.overallConfidence); // 96
 
 // Document data
 console.log(result.document.fullName);
@@ -192,13 +192,13 @@ console.log(result.faceMatch.confidence);
 
 ### IdentityVerificationResult Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `verified` | `boolean` | Overall pass/fail |
-| `overallConfidence` | `number` | Aggregate confidence (0–1) |
-| `document` | `IdentityDocumentResult` | OCR data from the document |
-| `faceDetection` | `IdentityFaceDetectionResult` | Face detection from the selfie |
-| `faceMatch` | `IdentityFaceMatchResult` | Face comparison result |
+| Field               | Type                          | Description                    |
+| ------------------- | ----------------------------- | ------------------------------ |
+| `verified`          | `boolean`                     | Overall pass/fail              |
+| `overallConfidence` | `number`                      | Aggregate confidence (0–100)   |
+| `document`          | `IdentityDocumentResult`      | OCR data from the document     |
+| `faceDetection`     | `IdentityFaceDetectionResult` | Face detection from the selfie |
+| `faceMatch`         | `IdentityFaceMatchResult`     | Face comparison result         |
 
 All three sub-results are always present on a 2xx response, even if `verified` is `false`.
 

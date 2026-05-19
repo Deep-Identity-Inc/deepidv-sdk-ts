@@ -141,3 +141,8 @@ vite.config.ts.timestamp-*
 # Turbo
 .turbo/
 
+# Guides
+deepidv-sdk-build-guide.md
+
+# Macos 
+.DS_Store

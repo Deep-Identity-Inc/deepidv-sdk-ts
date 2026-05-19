@@ -3,18 +3,8 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { buildHeaders, buildUrl } from '../auth.js';
-import {
-  withRetry,
-  isRetryable,
-  computeDelay,
-  extractRetryAfter,
-} from '../retry.js';
-import {
-  DeepIDVError,
-  NetworkError,
-  TimeoutError,
-  RateLimitError,
-} from '../errors.js';
+import { withRetry, isRetryable, computeDelay, extractRetryAfter } from '../retry.js';
+import { DeepIDVError, NetworkError, TimeoutError, RateLimitError } from '../errors.js';
 import { TypedEmitter } from '../events.js';
 import type { SDKEventMap } from '../events.js';
 
@@ -165,8 +155,10 @@ describe('extractRetryAfter', () => {
     });
     const result = extractRetryAfter(err);
     expect(result).not.toBeNull();
-    expect(result!).toBeGreaterThan(0);
-    expect(result!).toBeLessThanOrEqual(11);
+    // NOTE: Null check above; Have nullish coalesence below
+    // to satify elsint and CI
+    expect(result ?? -1).toBeGreaterThan(0);
+    expect(result ?? -1).toBeLessThanOrEqual(11);
   });
 
   it('returns null when retry-after header is missing', () => {
@@ -232,9 +224,7 @@ describe('computeDelay', () => {
 
   it('uses exponential backoff with jitter when no Retry-After header', () => {
     const err = new DeepIDVError('Server error', { status: 500 });
-    const delays = Array.from({ length: 10 }, (_, i) =>
-      computeDelay(err, i, 500),
-    );
+    const delays = Array.from({ length: 10 }, (_, i) => computeDelay(err, i, 500));
     // All delays should be non-negative
     for (const d of delays) {
       expect(d).toBeGreaterThanOrEqual(0);
@@ -261,11 +251,11 @@ describe('computeDelay', () => {
 // ---------------------------------------------------------------------------
 
 describe('withRetry', () => {
-  let emitter: TypedEmitter<SDKEventMap>;
+  let emitter: TypedEmitter;
   const config = { maxRetries: 3, initialDelayMs: 10 };
 
   beforeEach(() => {
-    emitter = new TypedEmitter<SDKEventMap>();
+    emitter = new TypedEmitter();
     vi.useFakeTimers();
   });
 
@@ -329,10 +319,7 @@ describe('withRetry', () => {
   });
 
   it('retries on TimeoutError', async () => {
-    const fn = vi
-      .fn()
-      .mockRejectedValueOnce(new TimeoutError('Timed out'))
-      .mockResolvedValue('ok');
+    const fn = vi.fn().mockRejectedValueOnce(new TimeoutError('Timed out')).mockResolvedValue('ok');
 
     const promise = withRetry(fn, config, emitter);
     await vi.runAllTimersAsync();
@@ -366,7 +353,7 @@ describe('withRetry', () => {
     // isolating this test from timer mechanics
     const zeroDelayConfig = { maxRetries: 3, initialDelayMs: 0 };
     const calls: number[] = [];
-    const fn = vi.fn().mockImplementation(async () => {
+    const fn = vi.fn().mockImplementation(() => {
       calls.push(Date.now());
       throw new DeepIDVError('Server error', { status: 500 });
     });
@@ -402,8 +389,8 @@ describe('withRetry', () => {
     expect(retryEvents).toHaveLength(1);
     expect(retryEvents[0]).toMatchObject({
       attempt: 1,
-      error: expect.any(DeepIDVError),
+      error: expect.any(DeepIDVError) as DeepIDVError,
     });
-    expect(typeof retryEvents[0].delayMs).toBe('number');
+    expect(typeof retryEvents[0]?.delayMs).toBe('number');
   });
 });

@@ -2,7 +2,9 @@
   "name": "@deepidv/server",
   "version": "0.0.0",
   "type": "module",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -24,12 +26,12 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@deepidv/core": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "msw": "^2.12.14",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.2",
+    "@deepidv/core": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

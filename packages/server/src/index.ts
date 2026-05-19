@@ -67,11 +67,7 @@ export {
 // ---------------------------------------------------------------------------
 // 6. Document types and schemas
 // ---------------------------------------------------------------------------
-export type {
-  DocumentScanInput,
-  DocumentScanResult,
-  DocumentType,
-} from './document.types.js';
+export type { DocumentScanInput, DocumentScanResult, DocumentType } from './document.types.js';
 export {
   DocumentScanInputSchema,
   DocumentScanResultSchema,

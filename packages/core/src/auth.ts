@@ -16,10 +16,7 @@
  * @param body - Optional request body. When provided, Content-Type is set.
  * @returns Plain object of HTTP headers.
  */
-export function buildHeaders(
-  apiKey: string,
-  body?: unknown,
-): Record<string, string> {
+export function buildHeaders(apiKey: string, body?: unknown): Record<string, string> {
   const headers: Record<string, string> = {
     'x-api-key': apiKey,
     Accept: 'application/json',

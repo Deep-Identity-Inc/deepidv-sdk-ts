@@ -139,9 +139,7 @@ export class Sessions {
     if (typeof sessionId !== 'string' || sessionId.trim() === '') {
       throw new ValidationError("expected non-empty string at 'sessionId'");
     }
-    return this.client.get<SessionRetrieveResult>(
-      `/v1/sessions/${encodeURIComponent(sessionId)}`,
-    );
+    return this.client.get<SessionRetrieveResult>(`/v1/sessions/${encodeURIComponent(sessionId)}`);
   }
 
   /**

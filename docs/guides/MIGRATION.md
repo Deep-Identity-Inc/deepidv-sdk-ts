@@ -4,16 +4,16 @@ If you're currently calling `api.deepidv.com` directly with `fetch` or `curl`, t
 
 ## Endpoint Mapping
 
-| REST Endpoint | SDK Method |
-|--------------|------------|
-| `POST /v1/sessions` | `client.sessions.create(input)` |
-| `GET /v1/sessions/:id` | `client.sessions.retrieve(id)` |
-| `GET /v1/sessions` | `client.sessions.list(params)` |
-| `PATCH /v1/sessions/:id` | `client.sessions.updateStatus(id, status)` |
-| `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/document/scan` | `client.document.scan({ image })` |
-| `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/face/detect` | `client.face.detect({ image })` |
-| `POST /v1/uploads/presign` (count:2) → 2x `PUT` to S3 → `POST /v1/face/compare` | `client.face.compare({ source, target })` |
-| `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/face/estimate-age` | `client.face.estimateAge({ image })` |
+| REST Endpoint                                                                      | SDK Method                                             |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `POST /v1/sessions`                                                                | `client.sessions.create(input)`                        |
+| `GET /v1/sessions/:id`                                                             | `client.sessions.retrieve(id)`                         |
+| `GET /v1/sessions`                                                                 | `client.sessions.list(params)`                         |
+| `PATCH /v1/sessions/:id`                                                           | `client.sessions.updateStatus(id, status)`             |
+| `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/document/scan`                | `client.document.scan({ image })`                      |
+| `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/face/detect`                  | `client.face.detect({ image })`                        |
+| `POST /v1/uploads/presign` (count:2) → 2x `PUT` to S3 → `POST /v1/face/compare`    | `client.face.compare({ source, target })`              |
+| `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/face/estimate-age`            | `client.face.estimateAge({ image })`                   |
 | `POST /v1/uploads/presign` (count:2) → 2x `PUT` to S3 → `POST /v1/identity/verify` | `client.identity.verify({ documentImage, faceImage })` |
 
 ## Before / After Examples
@@ -21,13 +21,14 @@ If you're currently calling `api.deepidv.com` directly with `fetch` or `curl`, t
 ### Create a Session
 
 **Before (fetch):**
+
 ```typescript
 const response = await fetch('https://api.deepidv.com/v1/sessions', {
   method: 'POST',
   headers: {
     'x-api-key': process.env.DEEPIDV_API_KEY!,
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
   body: JSON.stringify({
     firstName: 'Jane',
@@ -45,6 +46,7 @@ const session = await response.json();
 ```
 
 **After (SDK):**
+
 ```typescript
 const session = await client.sessions.create({
   firstName: 'Jane',
@@ -57,6 +59,7 @@ const session = await client.sessions.create({
 ### Scan a Document
 
 **Before (fetch) — 3 API calls, manual S3 upload:**
+
 ```typescript
 import { readFileSync } from 'fs';
 
@@ -64,7 +67,7 @@ const image = readFileSync('passport.jpg');
 const headers = {
   'x-api-key': process.env.DEEPIDV_API_KEY!,
   'Content-Type': 'application/json',
-  'Accept': 'application/json',
+  Accept: 'application/json',
 };
 
 // Step 1: Get presigned URL
@@ -97,6 +100,7 @@ const result = await scanRes.json();
 ```
 
 **After (SDK) — one method call:**
+
 ```typescript
 const result = await client.document.scan({
   image: readFileSync('passport.jpg'),
@@ -107,6 +111,7 @@ const result = await client.document.scan({
 ### Compare Two Faces
 
 **Before (fetch) — 4 API calls, manual parallel upload:**
+
 ```typescript
 const source = readFileSync('id-photo.jpg');
 const target = readFileSync('selfie.jpg');
@@ -146,6 +151,7 @@ const result = await compareRes.json();
 ```
 
 **After (SDK):**
+
 ```typescript
 const result = await client.face.compare({
   source: readFileSync('id-photo.jpg'),
@@ -155,16 +161,16 @@ const result = await client.face.compare({
 
 ## What the SDK Handles for You
 
-| Concern | Manual (fetch) | SDK |
-|---------|---------------|-----|
-| Auth headers | Add `x-api-key` to every request | Automatic |
-| Content-Type | Set `application/json` manually | Automatic |
-| Presigned URL flow | 3+ API calls per file operation | One method call |
-| Parallel uploads | Manual `Promise.all` | Automatic |
-| Content-type detection | Read magic bytes yourself | Automatic |
-| Retry on 429/5xx | Write retry loop with backoff | Automatic (configurable) |
-| Timeout handling | Manual `AbortController` | Automatic (per-attempt) |
-| Error classification | Parse status codes | Typed error classes |
-| Input validation | Manual checks | Zod schemas (compile + runtime) |
-| TypeScript types | Write your own interfaces | Inferred from schemas |
-| API key redaction | Implement yourself | Built into error classes |
+| Concern                | Manual (fetch)                   | SDK                             |
+| ---------------------- | -------------------------------- | ------------------------------- |
+| Auth headers           | Add `x-api-key` to every request | Automatic                       |
+| Content-Type           | Set `application/json` manually  | Automatic                       |
+| Presigned URL flow     | 3+ API calls per file operation  | One method call                 |
+| Parallel uploads       | Manual `Promise.all`             | Automatic                       |
+| Content-type detection | Read magic bytes yourself        | Automatic                       |
+| Retry on 429/5xx       | Write retry loop with backoff    | Automatic (configurable)        |
+| Timeout handling       | Manual `AbortController`         | Automatic (per-attempt)         |
+| Error classification   | Parse status codes               | Typed error classes             |
+| Input validation       | Manual checks                    | Zod schemas (compile + runtime) |
+| TypeScript types       | Write your own interfaces        | Inferred from schemas           |
+| API key redaction      | Implement yourself               | Built into error classes        |

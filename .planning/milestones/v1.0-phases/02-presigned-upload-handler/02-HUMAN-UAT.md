@@ -13,6 +13,7 @@ updated: 2026-04-05T23:18:00Z
 ## Tests
 
 ### 1. Pass a real file path string through FileUploader.upload() and confirm a non-empty fileKey is returned
+
 expected: upload() reads the file from disk, detects content type from magic bytes, calls presign, PUTs to S3, returns a fileKey string
 result: [pending]
 

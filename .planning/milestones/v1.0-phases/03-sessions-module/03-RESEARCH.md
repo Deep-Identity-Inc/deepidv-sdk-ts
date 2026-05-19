@@ -7,6 +7,7 @@
 ---
 
 <user_constraints>
+
 ## User Constraints (from CONTEXT.md)
 
 ### Locked Decisions
@@ -34,13 +35,14 @@
 ---
 
 <phase_requirements>
+
 ## Phase Requirements
 
-| ID | Description | Research Support |
-|----|-------------|------------------|
-| SESS-01 | `client.sessions.create()` — create hosted verification session with typed input/output | `SessionCreateInputSchema` + `SessionCreateResultSchema` + `Sessions.create()` calling `POST /v1/sessions` |
-| SESS-02 | `client.sessions.retrieve()` — retrieve full session with all analysis data and presigned resource URLs | `SessionRetrieveResultSchema` (deeply nested) + `Sessions.retrieve(id)` calling `GET /v1/sessions/{id}` |
-| SESS-03 | `client.sessions.list()` — list sessions with pagination (limit, offset) and status filter | `SessionListParamsSchema` + `PaginatedResponse<Session>` wrapper + `Sessions.list()` calling `GET /v1/sessions` |
+| ID      | Description                                                                                                                     | Research Support                                                                                                 |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| SESS-01 | `client.sessions.create()` — create hosted verification session with typed input/output                                         | `SessionCreateInputSchema` + `SessionCreateResultSchema` + `Sessions.create()` calling `POST /v1/sessions`       |
+| SESS-02 | `client.sessions.retrieve()` — retrieve full session with all analysis data and presigned resource URLs                         | `SessionRetrieveResultSchema` (deeply nested) + `Sessions.retrieve(id)` calling `GET /v1/sessions/{id}`          |
+| SESS-03 | `client.sessions.list()` — list sessions with pagination (limit, offset) and status filter                                      | `SessionListParamsSchema` + `PaginatedResponse<Session>` wrapper + `Sessions.list()` calling `GET /v1/sessions`  |
 | SESS-04 | `client.sessions.updateStatus()` — update session status (VERIFIED, REJECTED, VOIDED), compile-time rejection of invalid values | `SessionStatusEnum` literal union in Zod + `Sessions.updateStatus(id, status)` calling `PATCH /v1/sessions/{id}` |
 
 </phase_requirements>
@@ -63,23 +65,23 @@ The existing codebase already provides everything needed: `HttpClient` with `get
 
 ### Core (all inherited from Phases 1-2 — no new dependencies)
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| zod | 4.3.6 (installed) | Schema definition + type inference | D-03, D-04, VAL-03: `z.infer<>` is the single source of truth for types. Already the only production dependency. |
-| TypeScript | 6.0.2 (installed) | Language | strict mode, zero `any`, full JSDoc. Already configured. |
-| vitest | installed | Test runner | ESM-native, used in `@deepidv/core` tests already. |
-| msw | installed | HTTP mocking | `setupServer` + `http.*` handlers already used in `setup.ts` and `client.test.ts`. |
+| Library    | Version           | Purpose                            | Why Standard                                                                                                     |
+| ---------- | ----------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| zod        | 4.3.6 (installed) | Schema definition + type inference | D-03, D-04, VAL-03: `z.infer<>` is the single source of truth for types. Already the only production dependency. |
+| TypeScript | 6.0.2 (installed) | Language                           | strict mode, zero `any`, full JSDoc. Already configured.                                                         |
+| vitest     | installed         | Test runner                        | ESM-native, used in `@deepidv/core` tests already.                                                               |
+| msw        | installed         | HTTP mocking                       | `setupServer` + `http.*` handlers already used in `setup.ts` and `client.test.ts`.                               |
 
 No new packages to install for Phase 3.
 
 ### Reusable Assets from Existing Code
 
-| Asset | Location | How Phase 3 Uses It |
-|-------|----------|---------------------|
-| `HttpClient` | `packages/core/src/client.ts` | Sessions class receives it via constructor (D-01). Call `.get()`, `.post()`, `.patch()` directly. |
-| `mapZodError` | `packages/core/src/uploader.ts` | Maps `ZodError` to `ValidationError` on input validation failure (D-12 from Phase 2). |
-| `ValidationError` | `packages/core/src/errors.ts` | Thrown when caller passes invalid input (e.g., empty `sessionId`, bad status value). |
-| `setupServer` / msw pattern | `packages/core/src/__tests__/setup.ts` | Create equivalent `setup.ts` in `packages/server/src/__tests__/` for sessions tests. |
+| Asset                       | Location                               | How Phase 3 Uses It                                                                               |
+| --------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `HttpClient`                | `packages/core/src/client.ts`          | Sessions class receives it via constructor (D-01). Call `.get()`, `.post()`, `.patch()` directly. |
+| `mapZodError`               | `packages/core/src/uploader.ts`        | Maps `ZodError` to `ValidationError` on input validation failure (D-12 from Phase 2).             |
+| `ValidationError`           | `packages/core/src/errors.ts`          | Thrown when caller passes invalid input (e.g., empty `sessionId`, bad status value).              |
+| `setupServer` / msw pattern | `packages/core/src/__tests__/setup.ts` | Create equivalent `setup.ts` in `packages/server/src/__tests__/` for sessions tests.              |
 
 ---
 
@@ -142,7 +144,9 @@ export class Sessions {
     return this.client.get<SessionRetrieveResult>(`/v1/sessions/${sessionId}`);
   }
 
-  async list(params?: z.input<typeof SessionListParamsSchema>): Promise<PaginatedResponse<Session>> {
+  async list(
+    params?: z.input<typeof SessionListParamsSchema>,
+  ): Promise<PaginatedResponse<Session>> {
     let validated: z.infer<typeof SessionListParamsSchema>;
     try {
       validated = SessionListParamsSchema.parse(params ?? {});
@@ -152,9 +156,7 @@ export class Sessions {
     }
     // Build query string from params
     const qs = buildQueryString(validated);
-    const raw = await this.client.get<Session[] | PaginatedResponse<Session>>(
-      `/v1/sessions${qs}`,
-    );
+    const raw = await this.client.get<Session[] | PaginatedResponse<Session>>(`/v1/sessions${qs}`);
     // Wrap raw array if API returns one (D-05)
     return wrapPaginated(raw, validated);
   }
@@ -181,11 +183,19 @@ import { z } from 'zod';
 
 // ---- Enums used across multiple schemas ----
 export const SessionStatusSchema = z.enum([
-  'PENDING', 'SUBMITTED', 'VERIFIED', 'REJECTED', 'VOIDED',
+  'PENDING',
+  'SUBMITTED',
+  'VERIFIED',
+  'REJECTED',
+  'VOIDED',
 ]);
 
 export const SessionTypeSchema = z.enum([
-  'session', 'verification', 'credit-application', 'silent-screening', 'deep-doc',
+  'session',
+  'verification',
+  'credit-application',
+  'silent-screening',
+  'deep-doc',
 ]);
 
 export const SessionProgressSchema = z.enum(['PENDING', 'STARTED', 'COMPLETED']);
@@ -195,7 +205,7 @@ export const SessionCreateInputSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   email: z.string().email(),
-  phone: z.string().min(1),           // E.164 format — min validation only, API validates format
+  phone: z.string().min(1), // E.164 format — min validation only, API validates format
   externalId: z.string().optional(),
   workflowId: z.string().optional(),
   redirectUrl: z.string().url().optional(),
@@ -209,21 +219,30 @@ export const SessionCreateResultSchema = z.object({
   id: z.string(),
   sessionUrl: z.string(),
   externalId: z.string().optional(),
-  links: z.array(z.object({
-    url: z.string(),
-    type: z.string(),
-  })),
+  links: z.array(
+    z.object({
+      url: z.string(),
+      type: z.string(),
+    }),
+  ),
 });
 export type SessionCreateResult = z.infer<typeof SessionCreateResultSchema>;
 
 // ---- Nested sub-schemas for retrieve() ----
-const FaceDetectionSchema = z.object({
-  // Shape from build guide (FaceDetection sub-type used in idAnalysisData)
-  confidence: z.number().optional(),
-  boundingBox: z.object({
-    top: z.number(), left: z.number(), width: z.number(), height: z.number(),
-  }).optional(),
-}).passthrough(); // passthrough for fields not yet documented
+const FaceDetectionSchema = z
+  .object({
+    // Shape from build guide (FaceDetection sub-type used in idAnalysisData)
+    confidence: z.number().optional(),
+    boundingBox: z
+      .object({
+        top: z.number(),
+        left: z.number(),
+        width: z.number(),
+        height: z.number(),
+      })
+      .optional(),
+  })
+  .passthrough(); // passthrough for fields not yet documented
 
 const ExtractedTextItemSchema = z.object({
   type: z.string(),
@@ -231,73 +250,93 @@ const ExtractedTextItemSchema = z.object({
   confidence: z.number(),
 });
 
-const IdAnalysisDataSchema = z.object({
-  detectFaceData: z.array(FaceDetectionSchema),
-  idExtractedText: z.array(ExtractedTextItemSchema),
-  expiryDatePass: z.boolean(),
-  validStatePass: z.boolean(),
-  ageRestrictionPass: z.boolean(),
-}).optional();
+const IdAnalysisDataSchema = z
+  .object({
+    detectFaceData: z.array(FaceDetectionSchema),
+    idExtractedText: z.array(ExtractedTextItemSchema),
+    expiryDatePass: z.boolean(),
+    validStatePass: z.boolean(),
+    ageRestrictionPass: z.boolean(),
+  })
+  .optional();
 
-const CompareFacesDataSchema = z.object({
-  faceMatchConfidence: z.number(),
-  faceMatchResult: z.record(z.unknown()),
-}).optional();
+const CompareFacesDataSchema = z
+  .object({
+    faceMatchConfidence: z.number(),
+    faceMatchResult: z.record(z.unknown()),
+  })
+  .optional();
 
-const PepMatchSchema = z.object({
-  // Fields not fully documented in build guide — use passthrough
-}).passthrough();
+const PepMatchSchema = z
+  .object({
+    // Fields not fully documented in build guide — use passthrough
+  })
+  .passthrough();
 
 const SanctionMatchSchema = z.object({}).passthrough();
 
-const PepSanctionsDataSchema = z.object({
-  peps: z.array(PepMatchSchema).nullable(),
-  sanctions: z.array(SanctionMatchSchema).nullable(),
-  both: z.array(PepMatchSchema).nullable(),
-}).optional();
+const PepSanctionsDataSchema = z
+  .object({
+    peps: z.array(PepMatchSchema).nullable(),
+    sanctions: z.array(SanctionMatchSchema).nullable(),
+    both: z.array(PepMatchSchema).nullable(),
+  })
+  .optional();
 
-const AdverseMediaDataSchema = z.object({
-  totalHits: z.number(),
-  newsExposures: z.record(z.unknown()),
-  timestamp: z.string(),
-}).optional();
+const AdverseMediaDataSchema = z
+  .object({
+    totalHits: z.number(),
+    newsExposures: z.record(z.unknown()),
+    timestamp: z.string(),
+  })
+  .optional();
 
 const DocumentRiskAnalysisSchema = z.object({}).passthrough();
-const DocumentRiskDataSchema = z.object({
-  overallRiskScore: z.number(),
-  documentsAnalyzed: z.number(),
-  documentsWithSignals: z.number(),
-  documentAnalysis: z.array(DocumentRiskAnalysisSchema),
-}).optional();
+const DocumentRiskDataSchema = z
+  .object({
+    overallRiskScore: z.number(),
+    documentsAnalyzed: z.number(),
+    documentsWithSignals: z.number(),
+    documentAnalysis: z.array(DocumentRiskAnalysisSchema),
+  })
+  .optional();
 
-const AnalysisDataSchema = z.object({
-  createdAt: z.string(),
-  idMatchesSelfie: z.boolean().optional(),
-  facelivenessScore: z.number().optional(),
-  idAnalysisData: IdAnalysisDataSchema,
-  secondaryIdAnalysisData: z.unknown().optional(),
-  tertiaryIdAnalysisData: z.unknown().optional(),
-  compareFacesData: CompareFacesDataSchema,
-  pepSanctionsData: PepSanctionsDataSchema,
-  adverseMediaData: AdverseMediaDataSchema,
-  documentRiskData: DocumentRiskDataSchema,
-  titleSearchData: z.unknown().optional(),
-  customFormData: z.array(z.object({
-    question: z.string(),
-    answer: z.string(),
-    type: z.string(),
-  })).optional(),
-}).optional();
+const AnalysisDataSchema = z
+  .object({
+    createdAt: z.string(),
+    idMatchesSelfie: z.boolean().optional(),
+    facelivenessScore: z.number().optional(),
+    idAnalysisData: IdAnalysisDataSchema,
+    secondaryIdAnalysisData: z.unknown().optional(),
+    tertiaryIdAnalysisData: z.unknown().optional(),
+    compareFacesData: CompareFacesDataSchema,
+    pepSanctionsData: PepSanctionsDataSchema,
+    adverseMediaData: AdverseMediaDataSchema,
+    documentRiskData: DocumentRiskDataSchema,
+    titleSearchData: z.unknown().optional(),
+    customFormData: z
+      .array(
+        z.object({
+          question: z.string(),
+          answer: z.string(),
+          type: z.string(),
+        }),
+      )
+      .optional(),
+  })
+  .optional();
 
-const UserSchema = z.object({
-  id: z.string(),
-  email: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  phone: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-}).optional();
+const UserSchema = z
+  .object({
+    id: z.string(),
+    email: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    phone: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  })
+  .optional();
 
 // ---- Session (used in list() data array) ----
 export const SessionSchema = z.object({
@@ -316,12 +355,14 @@ export const SessionSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   submittedAt: z.string().optional(),
-  metaData: z.object({
-    applicantSubmissionIp: z.string().optional(),
-    applicantSubmissionDevice: z.string().optional(),
-    applicantViewTime: z.string().optional(),
-    applicantSubmissionBrowser: z.string().optional(),
-  }).optional(),
+  metaData: z
+    .object({
+      applicantSubmissionIp: z.string().optional(),
+      applicantSubmissionDevice: z.string().optional(),
+      applicantViewTime: z.string().optional(),
+      applicantSubmissionBrowser: z.string().optional(),
+    })
+    .optional(),
   uploads: z.record(z.boolean()).optional(),
   analysisData: AnalysisDataSchema,
 });
@@ -421,13 +462,13 @@ afterAll(() => server.close());
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Zod-to-ValidationError mapping | Custom error mapper | `mapZodError` from `@deepidv/core` | Already built in Phase 2, handles path info, edge cases handled |
-| HTTP error class mapping | Custom switch/if in sessions.ts | `HttpClient.get/post/patch` | HttpClient already maps 401/429/400/5xx to typed SDK errors |
-| Retry logic | Custom retry in sessions.ts | `HttpClient` (wraps `withRetry`) | Retry is in `withRetry`, already called by all HttpClient methods |
-| Query string building | URLSearchParams wrapper | `URLSearchParams` directly | Native API, works on all runtimes, no abstraction needed |
-| Status enum validation | Custom string guard | `z.enum(['VERIFIED', 'REJECTED', 'VOIDED'])` | Zod handles compile-time + runtime rejection of non-enumerated values (SESS-04) |
+| Problem                        | Don't Build                     | Use Instead                                  | Why                                                                             |
+| ------------------------------ | ------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------- |
+| Zod-to-ValidationError mapping | Custom error mapper             | `mapZodError` from `@deepidv/core`           | Already built in Phase 2, handles path info, edge cases handled                 |
+| HTTP error class mapping       | Custom switch/if in sessions.ts | `HttpClient.get/post/patch`                  | HttpClient already maps 401/429/400/5xx to typed SDK errors                     |
+| Retry logic                    | Custom retry in sessions.ts     | `HttpClient` (wraps `withRetry`)             | Retry is in `withRetry`, already called by all HttpClient methods               |
+| Query string building          | URLSearchParams wrapper         | `URLSearchParams` directly                   | Native API, works on all runtimes, no abstraction needed                        |
+| Status enum validation         | Custom string guard             | `z.enum(['VERIFIED', 'REJECTED', 'VOIDED'])` | Zod handles compile-time + runtime rejection of non-enumerated values (SESS-04) |
 
 **Key insight:** Sessions is a pure consumer of Phase 1 and Phase 2 infrastructure. It should contain zero infrastructure code — only schemas, a class, and HTTP method calls.
 
@@ -524,11 +565,14 @@ export function validateUploadOptions(raw: unknown): UploadOptions {
 // Declare handler before the test or in beforeEach
 server.use(
   http.post('https://api.deepidv.com/v1/sessions', () => {
-    return HttpResponse.json({
-      id: 'sess_abc123',
-      sessionUrl: 'https://verify.deepidv.com/sess_abc123',
-      links: [],
-    }, { status: 200 });
+    return HttpResponse.json(
+      {
+        id: 'sess_abc123',
+        sessionUrl: 'https://verify.deepidv.com/sess_abc123',
+        links: [],
+      },
+      { status: 200 },
+    );
   }),
 );
 
@@ -583,11 +627,11 @@ function wrapPaginated(
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Separate `interface` types + Zod schemas | `z.infer<typeof Schema>` as sole type source | Phase 2 D-11 | No duplication; schema IS the type |
-| `z.ZodError` thrown directly | `mapZodError(err)` → `ValidationError` | Phase 2 D-12 | Consistent error class hierarchy |
-| Custom fetch wrapper per module | Shared `HttpClient` with built-in retry/auth | Phase 1 | Sessions gets retry, auth, events for free |
+| Old Approach                             | Current Approach                             | When Changed | Impact                                     |
+| ---------------------------------------- | -------------------------------------------- | ------------ | ------------------------------------------ |
+| Separate `interface` types + Zod schemas | `z.infer<typeof Schema>` as sole type source | Phase 2 D-11 | No duplication; schema IS the type         |
+| `z.ZodError` thrown directly             | `mapZodError(err)` → `ValidationError`       | Phase 2 D-12 | Consistent error class hierarchy           |
+| Custom fetch wrapper per module          | Shared `HttpClient` with built-in retry/auth | Phase 1      | Sessions gets retry, auth, events for free |
 
 ---
 
@@ -620,25 +664,25 @@ Step 2.6: SKIPPED — Phase 3 is pure code changes (new TypeScript files + tests
 
 ### Test Framework
 
-| Property | Value |
-|----------|-------|
-| Framework | vitest (version from pnpm-lock, installed) |
-| Config file | `packages/server/vitest.config.ts` (exists — `passWithNoTests: true`) |
-| Quick run command | `pnpm --filter @deepidv/server test` |
-| Full suite command | `pnpm --filter @deepidv/server test` (same — small package) |
+| Property           | Value                                                                 |
+| ------------------ | --------------------------------------------------------------------- |
+| Framework          | vitest (version from pnpm-lock, installed)                            |
+| Config file        | `packages/server/vitest.config.ts` (exists — `passWithNoTests: true`) |
+| Quick run command  | `pnpm --filter @deepidv/server test`                                  |
+| Full suite command | `pnpm --filter @deepidv/server test` (same — small package)           |
 
 ### Phase Requirements → Test Map
 
-| Req ID | Behavior | Test Type | Automated Command | File Exists? |
-|--------|----------|-----------|-------------------|-------------|
-| SESS-01 | `sessions.create()` returns `SessionCreateResult` with `id`, `sessionUrl`, `links` | unit | `pnpm --filter @deepidv/server test -- sessions` | Wave 0 |
-| SESS-01 | `sessions.create()` throws `ValidationError` on invalid input (missing required fields) | unit | `pnpm --filter @deepidv/server test -- sessions` | Wave 0 |
-| SESS-02 | `sessions.retrieve(id)` returns full session with nested `analysisData` fields | unit | `pnpm --filter @deepidv/server test -- sessions` | Wave 0 |
-| SESS-02 | `sessions.retrieve('')` throws `ValidationError` on empty string | unit | `pnpm --filter @deepidv/server test -- sessions` | Wave 0 |
-| SESS-03 | `sessions.list({ limit, offset, status })` sends correct query params and returns `PaginatedResponse` | unit | `pnpm --filter @deepidv/server test -- sessions` | Wave 0 |
-| SESS-03 | `sessions.list()` wraps raw array API response into `PaginatedResponse` | unit | `pnpm --filter @deepidv/server test -- sessions` | Wave 0 |
-| SESS-04 | `sessions.updateStatus(id, 'VERIFIED')` sends PATCH with correct body | unit | `pnpm --filter @deepidv/server test -- sessions` | Wave 0 |
-| SESS-04 | TypeScript compile error when passing `'PENDING'` to `updateStatus()` | compile-time | `pnpm --filter @deepidv/server build` (tsc errors) | manual verify |
+| Req ID  | Behavior                                                                                              | Test Type    | Automated Command                                  | File Exists?  |
+| ------- | ----------------------------------------------------------------------------------------------------- | ------------ | -------------------------------------------------- | ------------- |
+| SESS-01 | `sessions.create()` returns `SessionCreateResult` with `id`, `sessionUrl`, `links`                    | unit         | `pnpm --filter @deepidv/server test -- sessions`   | Wave 0        |
+| SESS-01 | `sessions.create()` throws `ValidationError` on invalid input (missing required fields)               | unit         | `pnpm --filter @deepidv/server test -- sessions`   | Wave 0        |
+| SESS-02 | `sessions.retrieve(id)` returns full session with nested `analysisData` fields                        | unit         | `pnpm --filter @deepidv/server test -- sessions`   | Wave 0        |
+| SESS-02 | `sessions.retrieve('')` throws `ValidationError` on empty string                                      | unit         | `pnpm --filter @deepidv/server test -- sessions`   | Wave 0        |
+| SESS-03 | `sessions.list({ limit, offset, status })` sends correct query params and returns `PaginatedResponse` | unit         | `pnpm --filter @deepidv/server test -- sessions`   | Wave 0        |
+| SESS-03 | `sessions.list()` wraps raw array API response into `PaginatedResponse`                               | unit         | `pnpm --filter @deepidv/server test -- sessions`   | Wave 0        |
+| SESS-04 | `sessions.updateStatus(id, 'VERIFIED')` sends PATCH with correct body                                 | unit         | `pnpm --filter @deepidv/server test -- sessions`   | Wave 0        |
+| SESS-04 | TypeScript compile error when passing `'PENDING'` to `updateStatus()`                                 | compile-time | `pnpm --filter @deepidv/server build` (tsc errors) | manual verify |
 
 ### Sampling Rate
 
@@ -652,21 +696,21 @@ Step 2.6: SKIPPED — Phase 3 is pure code changes (new TypeScript files + tests
 - [ ] `packages/server/src/__tests__/sessions.test.ts` — test cases for all four SESS requirements
 - [ ] Update `packages/server/vitest.config.ts` if needed to register setup file
 
-*(No framework install needed — vitest already in server package)*
+_(No framework install needed — vitest already in server package)_
 
 ---
 
 ## Project Constraints (from CLAUDE.md)
 
-| Directive | Impact on Phase 3 |
-|-----------|-------------------|
-| Runtime compatibility: Node 18+, Deno, Bun, Cloudflare Workers | Use `URLSearchParams` (native) for query string building. No `Buffer` type in sessions.ts. |
-| Zero AWS SDKs | N/A — sessions module is pure JSON HTTP |
-| Minimal dependencies — only zod | No new packages. Sessions uses HttpClient + zod already in place. |
-| TypeScript strict: true, zero `any`, full JSDoc | Every public method needs JSDoc. No `as any`. Use `z.unknown()` or `.passthrough()` for undocumented fields instead of `any`. |
-| Auth: x-api-key on every request | Inherited from HttpClient — Sessions never touches headers directly. |
-| Retry policy: exponential backoff on 429/5xx only | Inherited from HttpClient. Sessions never implements retry. |
-| Build output: dual ESM + CJS via tsup | Sessions files follow the `.js` extension import convention already established (e.g., `from './sessions.types.js'`). |
+| Directive                                                      | Impact on Phase 3                                                                                                             |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Runtime compatibility: Node 18+, Deno, Bun, Cloudflare Workers | Use `URLSearchParams` (native) for query string building. No `Buffer` type in sessions.ts.                                    |
+| Zero AWS SDKs                                                  | N/A — sessions module is pure JSON HTTP                                                                                       |
+| Minimal dependencies — only zod                                | No new packages. Sessions uses HttpClient + zod already in place.                                                             |
+| TypeScript strict: true, zero `any`, full JSDoc                | Every public method needs JSDoc. No `as any`. Use `z.unknown()` or `.passthrough()` for undocumented fields instead of `any`. |
+| Auth: x-api-key on every request                               | Inherited from HttpClient — Sessions never touches headers directly.                                                          |
+| Retry policy: exponential backoff on 429/5xx only              | Inherited from HttpClient. Sessions never implements retry.                                                                   |
+| Build output: dual ESM + CJS via tsup                          | Sessions files follow the `.js` extension import convention already established (e.g., `from './sessions.types.js'`).         |
 
 ---
 
@@ -696,6 +740,7 @@ Step 2.6: SKIPPED — Phase 3 is pure code changes (new TypeScript files + tests
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH — all versions confirmed from installed packages in STATE.md and existing code
 - Architecture: HIGH — all patterns locked in CONTEXT.md, existing code provides templates
 - Pitfalls: HIGH — derived from direct reading of existing code and Phase 2 decisions

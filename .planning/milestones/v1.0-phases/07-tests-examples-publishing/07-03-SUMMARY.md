@@ -10,8 +10,8 @@ requires:
     provides: changesets config, consumer type-check, tsup noExternal bundle
 
 provides:
-  - "CI workflow: Node 18 + 22 matrix, build, test, lint, format:check, consumer type-check on every PR"
-  - "Publish workflow: changesets/action Version PR + npm publish with provenance on push to main"
+  - 'CI workflow: Node 18 + 22 matrix, build, test, lint, format:check, consumer type-check on every PR'
+  - 'Publish workflow: changesets/action Version PR + npm publish with provenance on push to main'
 
 affects:
   - publishing pipeline
@@ -20,16 +20,16 @@ affects:
 
 tech-stack:
   added:
-    - "github-actions/checkout@v4"
-    - "pnpm/action-setup@v4"
-    - "actions/setup-node@v4"
-    - "changesets/action@v1"
+    - 'github-actions/checkout@v4'
+    - 'pnpm/action-setup@v4'
+    - 'actions/setup-node@v4'
+    - 'changesets/action@v1'
   patterns:
-    - "Node matrix testing: [18, 22] per D-07 minimum supported + current LTS"
-    - "pnpm/action-setup@v4 with version: 10 — v4 required for pnpm v10 support"
-    - "Changesets PR-flow: changesets/action handles both Version PR creation and publish"
-    - "npm provenance via id-token:write + --provenance flag links package to GitHub Actions run"
-    - "concurrency guard prevents parallel publish runs on rapid pushes to main"
+    - 'Node matrix testing: [18, 22] per D-07 minimum supported + current LTS'
+    - 'pnpm/action-setup@v4 with version: 10 — v4 required for pnpm v10 support'
+    - 'Changesets PR-flow: changesets/action handles both Version PR creation and publish'
+    - 'npm provenance via id-token:write + --provenance flag links package to GitHub Actions run'
+    - 'concurrency guard prevents parallel publish runs on rapid pushes to main'
 
 key-files:
   created:
@@ -38,13 +38,13 @@ key-files:
   modified: []
 
 key-decisions:
-  - "pnpm/action-setup@v4 (not v3) — v3 does not support pnpm v10; project uses pnpm@10.28.0"
-  - "Node matrix [18, 22]: Node 18 is minimum supported runtime per project constraints; Node 22 is current LTS"
-  - "id-token:write permission enables npm provenance attestation — strongly recommended for public SDKs"
-  - "concurrency: github.workflow-github.ref prevents parallel publish runs when multiple pushes land in quick succession"
-  - "pnpm build runs before pnpm test in CI — consumer type-check and msw setup depend on build output"
-  - "Publish workflow uses Node 22 only (not matrix) — only one node version needed to publish"
-  - "NPM_TOKEN must be set as GitHub repo secret manually — documented here as user setup requirement"
+  - 'pnpm/action-setup@v4 (not v3) — v3 does not support pnpm v10; project uses pnpm@10.28.0'
+  - 'Node matrix [18, 22]: Node 18 is minimum supported runtime per project constraints; Node 22 is current LTS'
+  - 'id-token:write permission enables npm provenance attestation — strongly recommended for public SDKs'
+  - 'concurrency: github.workflow-github.ref prevents parallel publish runs when multiple pushes land in quick succession'
+  - 'pnpm build runs before pnpm test in CI — consumer type-check and msw setup depend on build output'
+  - 'Publish workflow uses Node 22 only (not matrix) — only one node version needed to publish'
+  - 'NPM_TOKEN must be set as GitHub repo secret manually — documented here as user setup requirement'
 
 requirements-completed: [PUB-03]
 

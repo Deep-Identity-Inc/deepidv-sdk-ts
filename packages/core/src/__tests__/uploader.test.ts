@@ -4,7 +4,7 @@
  * Covers: toUint8Array, detectContentType, mapZodError, UploadOptionsSchema, FileUploader.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, assert } from 'vitest';
 import { z } from 'zod';
 import { http, HttpResponse } from 'msw';
 import {
@@ -14,9 +14,8 @@ import {
   validateUploadOptions,
   FileUploader,
 } from '../uploader.js';
-import { ValidationError, DeepIDVError } from '../errors.js';
+import { ValidationError } from '../errors.js';
 import { TypedEmitter } from '../events.js';
-import type { SDKEventMap } from '../events.js';
 import { HttpClient } from '../client.js';
 import { resolveConfig } from '../config.js';
 import { server } from './setup.js';
@@ -131,18 +130,18 @@ describe('detectContentType', () => {
     expect(detectContentType(bytes)).toBe('image/png');
   });
 
-  it('returns "image/webp" for bytes with RIFF header and WEBP at offset 8', () => {
+  it('throws ValidationError for WebP bytes (RIFF...WEBP) — only JPEG and PNG are supported', () => {
     const bytes = new Uint8Array(12);
     bytes[0] = 0x52; // R
     bytes[1] = 0x49; // I
     bytes[2] = 0x46; // F
     bytes[3] = 0x46; // F
-    // bytes 4-7: file size (don't matter)
-    bytes[8] = 0x57;  // W
-    bytes[9] = 0x45;  // E
+    bytes[8] = 0x57; // W
+    bytes[9] = 0x45; // E
     bytes[10] = 0x42; // B
     bytes[11] = 0x50; // P
-    expect(detectContentType(bytes)).toBe('image/webp');
+    expect(() => detectContentType(bytes)).toThrow(ValidationError);
+    expect(() => detectContentType(bytes)).toThrow('Unsupported image format');
   });
 
   it('throws ValidationError for unknown magic bytes', () => {
@@ -172,8 +171,8 @@ describe('mapZodError', () => {
       if (err instanceof z.ZodError) zodError = err;
     }
     expect(zodError).toBeDefined();
-
-    const validationError = mapZodError(zodError!);
+    assert(zodError);
+    const validationError = mapZodError(zodError);
     expect(validationError).toBeInstanceOf(ValidationError);
     // Message should contain the path 'name'
     expect(validationError.message).toContain("at 'name'");
@@ -190,8 +189,8 @@ describe('mapZodError', () => {
       if (err instanceof z.ZodError) zodError = err;
     }
     expect(zodError).toBeDefined();
-
-    const validationError = mapZodError(zodError!);
+    assert(zodError);
+    const validationError = mapZodError(zodError);
     expect(validationError.message).toContain("at '(root)'");
   });
 });
@@ -217,13 +216,17 @@ describe('UploadOptionsSchema', () => {
 // ---------------------------------------------------------------------------
 
 // JPEG magic bytes + padding
-const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array(100).fill(0)]);
+const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array<number>(100).fill(0)]);
 // PNG magic bytes + padding
-const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, ...new Array(100).fill(0)]);
+const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, ...new Array<number>(100).fill(0)]);
 
-function makeUploader(configOverrides?: { uploadTimeout?: number; maxRetries?: number; fetch?: typeof globalThis.fetch }) {
+function makeUploader(configOverrides?: {
+  uploadTimeout?: number;
+  maxRetries?: number;
+  fetch?: typeof globalThis.fetch;
+}) {
   const config = resolveConfig({ apiKey: 'test-key', ...configOverrides });
-  const emitter = new TypedEmitter<SDKEventMap>();
+  const emitter = new TypedEmitter();
   const httpClient = new HttpClient(config, emitter);
   return { uploader: new FileUploader(config, httpClient, emitter), emitter, config };
 }
@@ -233,10 +236,10 @@ function makeUploader(configOverrides?: { uploadTimeout?: number; maxRetries?: n
 // ---------------------------------------------------------------------------
 
 describe('FileUploader', () => {
-  it('upload(jpegBytes) calls POST /v1/uploads/presign with contentType and count:1, then PUTs to S3 and returns [fileKey]', async () => {
+  it('upload(jpegBytes) calls POST /v1/upload/presign with a single-entry files array carrying contentType + byteLength', async () => {
     let presignBody: unknown;
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', async ({ request }) => {
+      http.post('https://api.deepidv.com/v1/upload/presign', async ({ request }) => {
         presignBody = await request.json();
         return HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
@@ -249,20 +252,24 @@ describe('FileUploader', () => {
     const result = await uploader.upload(JPEG_BYTES);
 
     expect(result).toEqual(['key-1']);
-    expect(presignBody).toMatchObject({ contentType: 'image/jpeg', count: 1 });
+    expect(presignBody).toEqual({
+      files: [{ contentType: 'image/jpeg', byteLength: JPEG_BYTES.byteLength }],
+    });
   });
 
-  it('upload([jpegBytes, pngBytes]) calls presign with count:2 and PUTs both files in parallel', async () => {
+  it('upload([jpegBytes, pngBytes]) sends contentTypes per file and PUTs both files in parallel', async () => {
+    let presignBody: unknown;
     const putUrls: string[] = [];
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
-        HttpResponse.json({
+      http.post('https://api.deepidv.com/v1/upload/presign', async ({ request }) => {
+        presignBody = await request.json();
+        return HttpResponse.json({
           uploads: [
             { uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' },
             { uploadUrl: 'https://s3.example.com/upload2', fileKey: 'key-2' },
           ],
-        }),
-      ),
+        });
+      }),
       http.put('https://s3.example.com/:id', ({ request }) => {
         putUrls.push(request.url);
         return HttpResponse.text('', { status: 200 });
@@ -273,6 +280,12 @@ describe('FileUploader', () => {
     const result = await uploader.upload([JPEG_BYTES, PNG_BYTES]);
 
     expect(result).toEqual(['key-1', 'key-2']);
+    expect(presignBody).toEqual({
+      files: [
+        { contentType: 'image/jpeg', byteLength: JPEG_BYTES.byteLength },
+        { contentType: 'image/png', byteLength: PNG_BYTES.byteLength },
+      ],
+    });
     expect(putUrls).toHaveLength(2);
     expect(putUrls).toContain('https://s3.example.com/upload1');
     expect(putUrls).toContain('https://s3.example.com/upload2');
@@ -281,7 +294,7 @@ describe('FileUploader', () => {
   it('S3 PUT request has correct Content-Type header and no x-api-key header', async () => {
     let putRequest: Request | undefined;
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
         }),
@@ -296,8 +309,10 @@ describe('FileUploader', () => {
     await uploader.upload(JPEG_BYTES);
 
     expect(putRequest).toBeDefined();
-    expect(putRequest!.headers.get('content-type')).toBe('image/jpeg');
-    expect(putRequest!.headers.get('x-api-key')).toBeNull();
+    assert(putRequest);
+
+    expect(putRequest.headers.get('content-type')).toBe('image/jpeg');
+    expect(putRequest.headers.get('x-api-key')).toBeNull();
   });
 
   it('S3 PUT uses uploadTimeout (not API timeout) — PUT uses config.fetch directly with AbortController', async () => {
@@ -325,15 +340,20 @@ describe('FileUploader', () => {
     }) as typeof globalThis.fetch;
 
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
         }),
       ),
     );
 
-    const config = resolveConfig({ apiKey: 'test-key', uploadTimeout: 50, maxRetries: 0, fetch: mockFetch });
-    const emitter = new TypedEmitter<SDKEventMap>();
+    const config = resolveConfig({
+      apiKey: 'test-key',
+      uploadTimeout: 50,
+      maxRetries: 0,
+      fetch: mockFetch,
+    });
+    const emitter = new TypedEmitter();
     const httpClient = new HttpClient(config, emitter);
     const uploader = new FileUploader(config, httpClient, emitter);
 
@@ -346,7 +366,7 @@ describe('FileUploader', () => {
     const retryEvents: Array<{ attempt: number }> = [];
 
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
         }),
@@ -361,7 +381,7 @@ describe('FileUploader', () => {
     );
 
     const config = resolveConfig({ apiKey: 'test-key', maxRetries: 2, initialRetryDelay: 1 });
-    const emitter = new TypedEmitter<SDKEventMap>();
+    const emitter = new TypedEmitter();
     const httpClient = new HttpClient(config, emitter);
     const uploader = new FileUploader(config, httpClient, emitter);
 
@@ -373,13 +393,13 @@ describe('FileUploader', () => {
     expect(result).toEqual(['key-1']);
     expect(callCount).toBe(2);
     expect(retryEvents).toHaveLength(1);
-    expect(retryEvents[0]!.attempt).toBe(1);
+    expect(retryEvents[0]?.attempt).toBe(1);
   });
 
   it('S3 PUT on 403 throws DeepIDVError with code "upload_url_expired" immediately (no retry)', async () => {
     let callCount = 0;
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
         }),
@@ -403,7 +423,7 @@ describe('FileUploader', () => {
     let callCount = 0;
     let secondRequestBodyLength = 0;
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
         }),
@@ -430,7 +450,7 @@ describe('FileUploader', () => {
     });
 
     const config = resolveConfig({ apiKey: 'test-key', maxRetries: 2, initialRetryDelay: 1 });
-    const emitter = new TypedEmitter<SDKEventMap>();
+    const emitter = new TypedEmitter();
     const httpClient = new HttpClient(config, emitter);
     const uploader = new FileUploader(config, httpClient, emitter);
 
@@ -444,7 +464,7 @@ describe('FileUploader', () => {
     let presignBody: unknown;
     let putContentType: string | null = null;
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', async ({ request }) => {
+      http.post('https://api.deepidv.com/v1/upload/presign', async ({ request }) => {
         presignBody = await request.json();
         return HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
@@ -457,16 +477,18 @@ describe('FileUploader', () => {
     );
 
     const { uploader } = makeUploader();
-    // JPEG bytes but override to webp
-    await uploader.upload(JPEG_BYTES, { contentType: 'image/webp' });
+    // JPEG bytes but override to png
+    await uploader.upload(JPEG_BYTES, { contentType: 'image/png' });
 
-    expect(presignBody).toMatchObject({ contentType: 'image/webp' });
-    expect(putContentType).toBe('image/webp');
+    expect(presignBody).toEqual({
+      files: [{ contentType: 'image/png', byteLength: JPEG_BYTES.byteLength }],
+    });
+    expect(putContentType).toBe('image/png');
   });
 
   it('upload emits upload:start before PUT and upload:complete after success', async () => {
     server.use(
-      http.post('https://api.deepidv.com/v1/uploads/presign', () =>
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
         HttpResponse.json({
           uploads: [{ uploadUrl: 'https://s3.example.com/upload1', fileKey: 'key-1' }],
         }),
@@ -475,7 +497,7 @@ describe('FileUploader', () => {
     );
 
     const config = resolveConfig({ apiKey: 'test-key' });
-    const emitter = new TypedEmitter<SDKEventMap>();
+    const emitter = new TypedEmitter();
     const httpClient = new HttpClient(config, emitter);
     const uploader = new FileUploader(config, httpClient, emitter);
 

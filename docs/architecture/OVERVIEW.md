@@ -14,11 +14,11 @@ The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [
 
 ## Three Service Tiers
 
-| Tier | Pattern | Examples |
-|------|---------|----------|
-| **Synchronous** | One call, one result. Image in, structured data out. | `document.scan()`, `face.detect()`, `face.compare()`, `face.estimateAge()` |
-| **Orchestrated** | One call, multiple operations coordinated server-side. | `identity.verify()` (document scan + face detect + face compare) |
-| **Session-based** | Create session, user completes steps, retrieve results. | `sessions.create()`, `sessions.retrieve()` |
+| Tier              | Pattern                                                 | Examples                                                                   |
+| ----------------- | ------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **Synchronous**   | One call, one result. Image in, structured data out.    | `document.scan()`, `face.detect()`, `face.compare()`, `face.estimateAge()` |
+| **Orchestrated**  | One call, multiple operations coordinated server-side.  | `identity.verify()` (document scan + face detect + face compare)           |
+| **Session-based** | Create session, user completes steps, retrieve results. | `sessions.create()`, `sessions.retrieve()`                                 |
 
 ## Public API Surface
 
@@ -162,6 +162,7 @@ graph LR
 ```
 
 This means:
+
 - `npm install @deepidv/server` is the only install command
 - No `workspace:*` protocol resolution issues
 - No peer dependency on `@deepidv/core`
@@ -169,16 +170,16 @@ This means:
 
 ## What the SDK Does NOT Do
 
-| Excluded | Reason |
-|----------|--------|
-| AWS SDK dependency | All S3 interaction uses presigned URLs via native `fetch` |
-| UI components | This is a server SDK. See `@deepidv/web` (future) |
-| Image processing | No resizing, conversion, or format detection beyond magic-byte MIME sniffing |
-| Logging to stdout | Uses a typed event emitter — the consumer decides what to log |
-| Polling or webhooks | v1 services are synchronous; session-based polling is deferred |
-| Error swallowing | Always throws typed errors; never returns `null` for failure |
-| Retry on 4xx | 4xx errors are caller bugs, not transient failures. Only 429 and 5xx are retried |
-| Mutable singletons | Each `new DeepIDV()` is independent; constructor is cheap |
+| Excluded            | Reason                                                                           |
+| ------------------- | -------------------------------------------------------------------------------- |
+| AWS SDK dependency  | All S3 interaction uses presigned URLs via native `fetch`                        |
+| UI components       | This is a server SDK. See `@deepidv/web` (future)                                |
+| Image processing    | No resizing, conversion, or format detection beyond magic-byte MIME sniffing     |
+| Logging to stdout   | Uses a typed event emitter — the consumer decides what to log                    |
+| Polling or webhooks | v1 services are synchronous; session-based polling is deferred                   |
+| Error swallowing    | Always throws typed errors; never returns `null` for failure                     |
+| Retry on 4xx        | 4xx errors are caller bugs, not transient failures. Only 429 and 5xx are retried |
+| Mutable singletons  | Each `new DeepIDV()` is independent; constructor is cheap                        |
 
 ## Dependency Injection
 

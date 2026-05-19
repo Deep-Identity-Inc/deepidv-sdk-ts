@@ -58,20 +58,20 @@ classDiagram
 
 The base class for all SDK errors. Carries HTTP context when available.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `message` | `string` | Human-readable error description |
-| `status` | `number \| undefined` | HTTP status code (undefined for network/timeout errors) |
-| `code` | `string \| undefined` | Machine-readable error code from the API |
-| `response` | `RawResponse \| undefined` | Raw HTTP response with `status`, `headers`, and `body` |
-| `cause` | `unknown` | Original error that triggered this one (Error.cause chain) |
+| Field      | Type                       | Description                                                |
+| ---------- | -------------------------- | ---------------------------------------------------------- |
+| `message`  | `string`                   | Human-readable error description                           |
+| `status`   | `number \| undefined`      | HTTP status code (undefined for network/timeout errors)    |
+| `code`     | `string \| undefined`      | Machine-readable error code from the API                   |
+| `response` | `RawResponse \| undefined` | Raw HTTP response with `status`, `headers`, and `body`     |
+| `cause`    | `unknown`                  | Original error that triggered this one (Error.cause chain) |
 
 ### `AuthenticationError`
 
 Thrown on HTTP 401. Your API key is invalid, expired, or missing.
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field         | Type     | Description                                                          |
+| ------------- | -------- | -------------------------------------------------------------------- |
 | `redactedKey` | `string` | API key with only the last 4 characters visible (e.g., `"****abcd"`) |
 
 ```typescript
@@ -89,8 +89,8 @@ try {
 
 Thrown on HTTP 429 **after all retries are exhausted**. The SDK already retried with exponential backoff — you've hit a sustained rate limit.
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field        | Type                  | Description                                                 |
+| ------------ | --------------------- | ----------------------------------------------------------- |
 | `retryAfter` | `number \| undefined` | Seconds to wait before retrying (from `Retry-After` header) |
 
 ```typescript

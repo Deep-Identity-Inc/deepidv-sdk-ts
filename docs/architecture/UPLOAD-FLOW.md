@@ -69,13 +69,13 @@ Key difference: a **single** presign request with `count: 2` returns two upload 
 
 The `FileInput` type accepts five formats. The `toUint8Array()` function normalizes all of them before upload:
 
-| Input Type | Detection | Behavior |
-|-----------|-----------|----------|
-| `Uint8Array` | `instanceof Uint8Array` | Pass through unchanged. Node `Buffer` extends `Uint8Array`, so buffers work automatically. |
-| `ReadableStream<Uint8Array>` | `instanceof ReadableStream` | Fully materialized to `Uint8Array` by reading all chunks. This happens **before** the retry loop to prevent double-read bugs (UPL-06). |
-| Data URL string | Starts with `data:` | Base64 portion extracted and decoded to bytes. |
-| Base64 string | `typeof string` + length > 256 + matches base64 pattern | Decoded to bytes via `atob()`. |
-| File path string | `typeof string` (fallback) | Read from disk via `fs.readFile`. Only works on Node.js, Deno, and Bun — throws `ValidationError` on edge runtimes. |
+| Input Type                   | Detection                                               | Behavior                                                                                                                               |
+| ---------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `Uint8Array`                 | `instanceof Uint8Array`                                 | Pass through unchanged. Node `Buffer` extends `Uint8Array`, so buffers work automatically.                                             |
+| `ReadableStream<Uint8Array>` | `instanceof ReadableStream`                             | Fully materialized to `Uint8Array` by reading all chunks. This happens **before** the retry loop to prevent double-read bugs (UPL-06). |
+| Data URL string              | Starts with `data:`                                     | Base64 portion extracted and decoded to bytes.                                                                                         |
+| Base64 string                | `typeof string` + length > 256 + matches base64 pattern | Decoded to bytes via `atob()`.                                                                                                         |
+| File path string             | `typeof string` (fallback)                              | Read from disk via `fs.readFile`. Only works on Node.js, Deno, and Bun — throws `ValidationError` on edge runtimes.                    |
 
 ```typescript
 // All of these work:
@@ -90,11 +90,10 @@ await client.document.scan({ image: '/path/to/id.jpg' });                   // F
 
 The SDK detects image format from magic bytes — the first few bytes of the file:
 
-| Format | Magic Bytes | MIME Type |
-|--------|------------|-----------|
-| JPEG | `FF D8 FF` | `image/jpeg` |
-| PNG | `89 50 4E 47` | `image/png` |
-| WebP | `52 49 46 46 ... 57 45 42 50` | `image/webp` |
+| Format | Magic Bytes   | MIME Type    |
+| ------ | ------------- | ------------ |
+| JPEG   | `FF D8 FF`    | `image/jpeg` |
+| PNG    | `89 50 4E 47` | `image/png`  |
 
 If the bytes don't match any known format, a `ValidationError` is thrown before any network call.
 
@@ -104,17 +103,17 @@ You can override detection by passing `contentType` in upload options (used inte
 
 Two independent timeouts control different parts of the flow:
 
-| Config | Default | Controls |
-|--------|---------|----------|
-| `timeout` | 30,000ms (30s) | Per-attempt timeout for API requests (presign, processing endpoints) |
-| `uploadTimeout` | 120,000ms (2min) | Per-attempt timeout for S3 PUT uploads |
+| Config          | Default          | Controls                                                             |
+| --------------- | ---------------- | -------------------------------------------------------------------- |
+| `timeout`       | 30,000ms (30s)   | Per-attempt timeout for API requests (presign, processing endpoints) |
+| `uploadTimeout` | 120,000ms (2min) | Per-attempt timeout for S3 PUT uploads                               |
 
 The upload timeout is longer because file uploads can be significantly larger than API request/response payloads.
 
 ```typescript
 const client = new DeepIDV({
   apiKey: 'your-key',
-  timeout: 15_000,       // 15s for API calls
+  timeout: 15_000, // 15s for API calls
   uploadTimeout: 60_000, // 60s for uploads
 });
 ```
@@ -133,9 +132,9 @@ S3 PUTs use the raw `fetch` implementation from config — **not** the `HttpClie
 
 The event emitter fires two events during uploads:
 
-| Event | Payload | When |
-|-------|---------|------|
-| `upload:start` | `{ url, bytes, contentType }` | Before each S3 PUT |
-| `upload:complete` | `{ url, contentType }` | After each successful S3 PUT |
+| Event             | Payload                       | When                         |
+| ----------------- | ----------------------------- | ---------------------------- |
+| `upload:start`    | `{ url, bytes, contentType }` | Before each S3 PUT           |
+| `upload:complete` | `{ url, contentType }`        | After each successful S3 PUT |
 
 For batch uploads, you'll receive one `upload:start` and one `upload:complete` per file.

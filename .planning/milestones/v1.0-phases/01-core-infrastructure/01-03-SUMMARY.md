@@ -27,10 +27,10 @@ affects:
 tech-stack:
   added: []
   patterns:
-    - "Per-attempt AbortController pattern: new controller created inside retry loop fn, never reused (D-01)"
-    - "Error mapping pattern: HTTP status -> typed SDK error class in switch statement"
-    - "Pure helper pattern: auth.ts exports only pure functions, no state"
-    - "TDD pattern: failing test first, then implementation, tests green before commit"
+    - 'Per-attempt AbortController pattern: new controller created inside retry loop fn, never reused (D-01)'
+    - 'Error mapping pattern: HTTP status -> typed SDK error class in switch statement'
+    - 'Pure helper pattern: auth.ts exports only pure functions, no state'
+    - 'TDD pattern: failing test first, then implementation, tests green before commit'
 
 key-files:
   created:
@@ -43,15 +43,15 @@ key-files:
     - packages/core/src/index.ts
 
 key-decisions:
-  - "Per-attempt AbortController: created inside withRetry fn, not outside the loop — ensures each retry gets a fresh timeout window (D-01)"
-  - "Retry-After cap at 60s: prevents adversarial servers from forcing arbitrarily long waits (D-02)"
-  - "error event emitted at HttpClient level, not withRetry level: HttpClient has full context (url, method) for meaningful error events"
-  - "extractRetryAfter as standalone export: enables retry.ts to compute delay without coupling to client.ts"
+  - 'Per-attempt AbortController: created inside withRetry fn, not outside the loop — ensures each retry gets a fresh timeout window (D-01)'
+  - 'Retry-After cap at 60s: prevents adversarial servers from forcing arbitrarily long waits (D-02)'
+  - 'error event emitted at HttpClient level, not withRetry level: HttpClient has full context (url, method) for meaningful error events'
+  - 'extractRetryAfter as standalone export: enables retry.ts to compute delay without coupling to client.ts'
 
 patterns-established:
-  - "Per-attempt AbortController: create AbortController inside the attempt fn passed to withRetry, not in the outer scope"
-  - "Error first, response second: catch fetch TypeError before reading response, so network errors are caught correctly"
-  - "buildHeaders(apiKey, body): pass body as second arg to control Content-Type presence rather than a boolean flag"
+  - 'Per-attempt AbortController: create AbortController inside the attempt fn passed to withRetry, not in the outer scope'
+  - 'Error first, response second: catch fetch TypeError before reading response, so network errors are caught correctly'
+  - 'buildHeaders(apiKey, body): pass body as second arg to control Content-Type presence rather than a boolean flag'
 
 requirements-completed: [HTTP-01, HTTP-02, HTTP-03, HTTP-04]
 
@@ -100,17 +100,18 @@ Each task was committed atomically:
 - Per-attempt AbortController created inside the fn passed to withRetry (not outside the loop) — ensures each retry attempt gets a full timeout window rather than inheriting a partially-consumed controller
 - error event emitted at HttpClient.request() level after withRetry throws, so the event has full context (was considered emitting inside withRetry but HttpClient has URL/method context that withRetry doesn't)
 - extractRetryAfter exported as standalone public function from retry.ts — enables the retry loop to parse Retry-After without importing from client.ts, avoiding circular dependencies
-- computeDelay uses full jitter (Math.random() * cap) not equal jitter (base + Math.random() * cap) — avoids thundering herd with many concurrent retries
+- computeDelay uses full jitter (Math.random() _ cap) not equal jitter (base + Math.random() _ cap) — avoids thundering herd with many concurrent retries
 
 ## Deviations from Plan
 
 ### Auto-fixed Issues
 
 **1. [Rule 1 - Bug] Fixed unhandled promise rejection in "throws last error when all retries are exhausted" test**
+
 - **Found during:** Task 1 (retry.test.ts RED phase)
 - **Issue:** `vi.mockRejectedValue()` + fake timers caused Node to see promise rejections handled asynchronously, triggering a PromiseRejectionHandledWarning that made vitest report an error even though all tests passed
 - **Fix:** Rewrote the exhausted-retries test to temporarily use `vi.useRealTimers()` with `initialDelayMs: 0` and a `try/catch` pattern, avoiding the timing conflict between fake timers and promise rejection tracking
-- **Files modified:** packages/core/src/__tests__/retry.test.ts
+- **Files modified:** packages/core/src/**tests**/retry.test.ts
 - **Verification:** 79 tests passing with no unhandled errors
 - **Committed in:** `313b9bc` (Task 1 commit)
 
@@ -140,9 +141,10 @@ None — no external service configuration required.
 - `@deepidv/core` now exports `HttpClient`, `buildHeaders`, `buildUrl`, `withRetry`, `isRetryable`, `computeDelay`, `extractRetryAfter` for use by `@deepidv/server`
 
 ---
+
 ## Self-Check: PASSED
 
 All created files found on disk. Both task commits verified in git log.
 
-*Phase: 01-core-infrastructure*
-*Completed: 2026-04-05*
+_Phase: 01-core-infrastructure_
+_Completed: 2026-04-05_
