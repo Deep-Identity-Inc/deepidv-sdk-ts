@@ -48,13 +48,13 @@ importers:
 
   packages/server:
     dependencies:
-      '@deepidv/core':
-        specifier: workspace:*
-        version: link:../core
       zod:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
+      '@deepidv/core':
+        specifier: workspace:*
+        version: link:../core
       msw:
         specifier: ^2.12.14
         version: 2.12.14(typescript@6.0.2)

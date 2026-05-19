@@ -26,12 +26,12 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@deepidv/core": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "msw": "^2.12.14",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.2",
+    "@deepidv/core": "workspace:*"
   },
   "publishConfig": {
     "access": "public"
