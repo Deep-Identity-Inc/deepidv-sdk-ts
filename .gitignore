@@ -143,3 +143,6 @@ vite.config.ts.timestamp-*
 
 # Guides
 deepidv-sdk-build-guide.md
+
+# Macos 
+.DS_Store
