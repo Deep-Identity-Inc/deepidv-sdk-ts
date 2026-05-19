@@ -5,6 +5,7 @@
 First v1 major release of `@deepidv/server`, the backend TypeScript SDK for the deepidv identity verification API.
 
 **What's included**
+
 - `sessions` — create and retrieve verification sessions
 - `document.scan` — extract structured data from ID documents (multipart or S3 `fileKey`)
 - `face.detect` / `face.compare` / `face.estimateAge` — face analysis primitives
