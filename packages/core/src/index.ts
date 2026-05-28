@@ -19,9 +19,13 @@ export {
 
 export type { RawResponse } from './errors.js';
 export {
+  AdverseMediaFailedError,
   AuthenticationError,
+  AuthorizationError,
   DeepIDVError,
   NetworkError,
+  NotFoundError,
+  PollTimeoutError,
   RateLimitError,
   TimeoutError,
   ValidationError,

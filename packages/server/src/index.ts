@@ -33,10 +33,14 @@ export type { DeepIDVConfig } from '@deepidv/core';
 export {
   DeepIDVError,
   AuthenticationError,
+  AuthorizationError,
   RateLimitError,
   ValidationError,
+  NotFoundError,
   NetworkError,
   TimeoutError,
+  AdverseMediaFailedError,
+  PollTimeoutError,
 } from '@deepidv/core';
 export type { RawResponse } from '@deepidv/core';
 
@@ -114,6 +118,50 @@ export {
   IdentityFaceMatchResultSchema,
 } from './identity.types.js';
 
-// NOTE: Sessions, Document, Face, Identity classes are NOT exported.
-// Consumers access them exclusively through client.sessions, client.document,
-// client.face, and client.identity (per D-01, API-05).
+// ---------------------------------------------------------------------------
+// 9. Screening types and schemas
+// ---------------------------------------------------------------------------
+export type {
+  ScreeningService,
+  PepSanctionsInput,
+  PepSanctionsResult,
+  AdverseMediaInput,
+  AdverseMediaQueuedResponse,
+  AdverseMediaResult,
+  AdverseMediaJobSnapshot,
+  TitleCheckInput,
+  TitleCheckResult,
+  ScreeningListInput,
+  ScreeningSession,
+  ScreeningListResult,
+} from './screening.types.js';
+export {
+  ScreeningServiceSchema,
+  PepSanctionsInputSchema,
+  PepSanctionsResultSchema,
+  AdverseMediaInputSchema,
+  AdverseMediaQueuedResponseSchema,
+  AdverseMediaResultSchema,
+  AdverseMediaJobSnapshotSchema,
+  TitleCheckInputSchema,
+  TitleCheckResultSchema,
+  ScreeningListInputSchema,
+  ScreeningSessionSchema,
+  ScreeningListResultSchema,
+} from './screening.types.js';
+export type { AdverseMediaHandle, AdverseMediaWaitOptions } from './asyncJobHandle.js';
+
+// ---------------------------------------------------------------------------
+// 10. Async-jobs types and schemas
+// ---------------------------------------------------------------------------
+export type { AsyncJobStatus, AsyncJobSnapshot } from './asyncJobs.types.js';
+export {
+  AsyncJobStatusSchema,
+  AsyncJobSnapshotSchema,
+  AsyncJobResponseSchema,
+} from './asyncJobs.types.js';
+
+// NOTE: Sessions, Document, Face, Identity, Screening, AsyncJobs classes are
+// NOT exported. Consumers access them exclusively through client.sessions,
+// client.document, client.face, client.identity, client.screening, and
+// client.asyncJobs (per D-01, API-05).

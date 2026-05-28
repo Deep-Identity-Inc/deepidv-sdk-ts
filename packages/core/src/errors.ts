@@ -167,6 +167,31 @@ export class ValidationError extends DeepIDVError {
 }
 
 /**
+ * Thrown when the API responds with HTTP 403 (Forbidden).
+ * The caller authenticated successfully but is not permitted to access
+ * the requested resource (e.g., a job belonging to a different organization).
+ */
+export class AuthorizationError extends DeepIDVError {
+  constructor(message: string, options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'>) {
+    super(message, { status: 403, code: 'authorization_error', ...options });
+    this.name = 'AuthorizationError';
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/**
+ * Thrown when the API responds with HTTP 404 (Not Found).
+ * Also surfaces when an async job has been pruned by the server-side TTL.
+ */
+export class NotFoundError extends DeepIDVError {
+  constructor(message: string, options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'>) {
+    super(message, { status: 404, code: 'not_found_error', ...options });
+    this.name = 'NotFoundError';
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/**
  * Thrown when a network-level failure occurs (e.g., DNS resolution failure,
  * connection refused, socket hang-up).
  */
@@ -186,5 +211,71 @@ export class TimeoutError extends DeepIDVError {
     super(message, { code: 'timeout_error', ...options });
     this.name = 'TimeoutError';
     Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/**
+ * Thrown when an adverse-media async job reaches the terminal `failed` state.
+ *
+ * The `message` is the underlying `error` string from the job snapshot.
+ * `.jobId` is exposed for diagnostics and is included in `toJSON()`.
+ */
+export class AdverseMediaFailedError extends DeepIDVError {
+  /** Async job ID that terminated in the failed state. */
+  readonly jobId: string | undefined;
+
+  constructor(
+    message: string,
+    options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'> & { jobId?: string },
+  ) {
+    super(message, {
+      code: 'adverse_media_failed',
+      response: options?.response,
+      cause: options?.cause,
+    });
+
+    this.name = 'AdverseMediaFailedError';
+    this.jobId = options?.jobId;
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+
+  override toJSON(): Record<string, unknown> {
+    return {
+      ...super.toJSON(),
+      type: 'AdverseMediaFailedError',
+      jobId: this.jobId,
+    };
+  }
+}
+
+/**
+ * Thrown when `AdverseMediaHandle.wait()` exceeds its `timeoutMs` budget
+ * before the async job reaches a terminal state. The job may still complete
+ * server-side — callers can poll again with `client.asyncJobs.get(jobId)`.
+ */
+export class PollTimeoutError extends DeepIDVError {
+  /** Configured timeout (ms) that was exceeded. */
+  readonly timeoutMs: number | undefined;
+  /** Async job ID still in flight when the timeout expired. */
+  readonly jobId: string | undefined;
+
+  constructor(
+    message: string,
+    options?: Pick<DeepIDVErrorOptions, 'cause'> & { timeoutMs?: number; jobId?: string },
+  ) {
+    super(message, { code: 'poll_timeout_error', cause: options?.cause });
+    this.name = 'PollTimeoutError';
+    this.timeoutMs = options?.timeoutMs;
+    this.jobId = options?.jobId;
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+
+  override toJSON(): Record<string, unknown> {
+    return {
+      ...super.toJSON(),
+      type: 'PollTimeoutError',
+      timeoutMs: this.timeoutMs,
+      jobId: this.jobId,
+    };
   }
 }

@@ -18,6 +18,8 @@ import { TypedEmitter } from './events.js';
 import {
   DeepIDVError,
   AuthenticationError,
+  AuthorizationError,
+  NotFoundError,
   RateLimitError,
   ValidationError,
   NetworkError,
@@ -36,6 +38,13 @@ export interface RequestOptions {
    * Falls back to `ResolvedConfig.timeout` when not provided.
    */
   timeout?: number;
+  /**
+   *
+   * SDK-managed headers (`x-api-key`, `Accept`, `Content-Type`)
+   * take precedence and cannot be overridden. Use this for headers
+   * like `Idempotency-Key`.
+   */
+  headers?: Record<string, string>;
 }
 
 /**
@@ -83,6 +92,8 @@ export class HttpClient {
    * @param options - Optional request body and timeout override.
    * @returns Parsed JSON response body typed as `T`.
    * @throws {AuthenticationError} On 401 responses.
+   * @throws {AuthorizationError} On 403 responses.
+   * @throws {NotFoundError} On 404 responses.
    * @throws {RateLimitError} On 429 responses.
    * @throws {ValidationError} On 400 responses.
    * @throws {DeepIDVError} On other 4xx/5xx responses.
@@ -96,7 +107,7 @@ export class HttpClient {
     let result: T;
     try {
       result = await withRetry(
-        () => this._attempt<T>(method, url, options?.body, timeoutMs),
+        () => this._attempt<T>(method, url, options?.body, timeoutMs, options?.headers),
         {
           maxRetries: this.config.maxRetries,
           initialDelayMs: this.config.initialRetryDelay,
@@ -124,6 +135,7 @@ export class HttpClient {
     url: string,
     body: unknown,
     timeoutMs: number,
+    customHeaders?: Record<string, string>,
   ): Promise<T> {
     // New AbortController per attempt — never reuse (D-01, HTTP-03)
     const controller = new AbortController();
@@ -140,7 +152,7 @@ export class HttpClient {
       try {
         response = await this.config.fetch(url, {
           method,
-          headers: buildHeaders(this.config.apiKey, body),
+          headers: { ...customHeaders, ...buildHeaders(this.config.apiKey, body) },
           body: body !== undefined ? JSON.stringify(body) : undefined,
           signal: controller.signal,
         });
@@ -188,6 +200,12 @@ export class HttpClient {
 
         case 400:
           throw new ValidationError(errorMessage, { response: rawResponse });
+
+        case 403:
+          throw new AuthorizationError(errorMessage, { response: rawResponse });
+
+        case 404:
+          throw new NotFoundError(errorMessage, { response: rawResponse });
 
         default:
           throw new DeepIDVError(errorMessage, {

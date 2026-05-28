@@ -22,6 +22,8 @@ import { Sessions } from './sessions.js';
 import { Document } from './document.js';
 import { Face } from './face.js';
 import { Identity } from './identity.js';
+import { Screening } from './screening.js';
+import { AsyncJobs } from './asyncJobs.js';
 
 // ---------------------------------------------------------------------------
 // Config schema (exported for consumers per D-02)
@@ -130,6 +132,23 @@ export class DeepIDV {
    */
   readonly identity: Identity;
 
+  /**
+   * Screening namespace. Provides silent screening operations: PEP & Sanctions, adverse media, title check, and session history.
+   *
+   * @remarks Access via `client.screening.pepSanctions(...)`, `client.screening.adverseMedia(...)`, `client.screening.titleCheck(...)`, `client.screening.list(...)`.
+   */
+  readonly screening: Screening;
+
+  /**
+   * Async-jobs namespace. Provides direct access to long-running server-side
+   * job state — primarily for callers who persisted a `jobId` and want to
+   * resume polling later. Most callers should use the typed handle returned
+   * by the originating method (e.g. `screening.adverseMedia(...)`).
+   *
+   * @remarks Access via `client.asyncJobs.get(jobId)`.
+   */
+  readonly asyncJobs: AsyncJobs;
+
   /** Internal emitter — not exposed directly to consumers. */
   private readonly emitter: TypedEmitter;
 
@@ -158,12 +177,15 @@ export class DeepIDV {
     this.emitter = new TypedEmitter();
     const httpClient = new HttpClient(resolved, this.emitter);
     const uploader = new FileUploader(resolved, httpClient, this.emitter);
+    const asyncJobs = new AsyncJobs(httpClient);
 
     // Eagerly instantiate all module namespaces (D-06, D-07)
     this.sessions = new Sessions(httpClient);
     this.document = new Document(httpClient, uploader);
     this.face = new Face(httpClient, uploader);
     this.identity = new Identity(httpClient, uploader);
+    this.asyncJobs = asyncJobs;
+    this.screening = new Screening(httpClient, asyncJobs);
   }
 
   /**
