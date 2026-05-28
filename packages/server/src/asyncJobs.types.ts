@@ -25,12 +25,7 @@ import { z } from 'zod';
  * Mapped to the public lowercase form (`AsyncJobStatus`) by the transform
  * below — consumers of the SDK never see these values.
  */
-export const RawAsyncJobStatusSchema = z.enum([
-  'PENDING',
-  'PROCESSING',
-  'COMPLETED',
-  'FAILED',
-]);
+export const RawAsyncJobStatusSchema = z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']);
 
 /**
  * Raw response shape returned by `GET /v1/async-jobs/{jobId}`.

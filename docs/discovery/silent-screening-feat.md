@@ -4,7 +4,7 @@
 **Server-side counterpart:** [DIDV-504](https://deepidentity.atlassian.net/browse/DIDV-504) — Open-API routes + async-jobs infrastructure.
 **Date:** 2026-05-28 (last updated mid-implementation, same day)
 **Author:** Luka Piplica (with Claude)
-**Status:** Phase A in progress — 12 of 14 tasks complete. SDK foundation, schemas, namespaces, wiring, exports, and unit tests landed; `pepSanctions` validated end-to-end against local open-api. Remaining: handle polling tests (fake timers) + type-level assertions. Phase B still blocked on server work.
+**Status:** Phase A COMPLETE — 14 of 14 tasks done. SDK foundation, schemas, namespaces, wiring, exports, and all unit tests landed (incl. fake-timer polling tests + `expectTypeOf` assertions); `pepSanctions` validated end-to-end against local open-api. Phase B still blocked on server work.
 
 ---
 
@@ -13,12 +13,12 @@
 Extend `@deepidv/server` so SDK consumers can call:
 
 ```ts
-client.screening.pepSanctions(input)
-client.screening.adverseMedia(input)   // returns AdverseMediaHandle
-client.screening.titleCheck(input)
-client.screening.list({ limit, offset, service })
+client.screening.pepSanctions(input);
+client.screening.adverseMedia(input); // returns AdverseMediaHandle
+client.screening.titleCheck(input);
+client.screening.list({ limit, offset, service });
 
-client.asyncJobs.get(jobId)            // also exposed top-level
+client.asyncJobs.get(jobId); // also exposed top-level
 ```
 
 No new package. The four-method screening surface and the async-jobs surface both attach to the existing `DeepIDV` client class, alongside `document` / `face` / `identity` / `sessions`.
@@ -69,26 +69,26 @@ Branch `DIDV-504` — head commit just landed the async-jobs + screening foundat
 
 ### Endpoints that exist
 
-| Endpoint | Status | Notes |
-|---|---|---|
-| `POST /v1/screening/pep-sanctions` | Implemented | Schema: `{ firstName, lastName, dateOfBirth }` — **no `country`** |
-| `POST /v1/screening/adverse-media` | Implemented | Returns **201** `{ jobId, status: "PENDING", message }`. Spawns background job. No Zod schema for the 201 response. |
-| `POST /v1/screening/title-check` | Implemented | Returns 200 with discriminated union on `status` |
-| `GET /v1/async-jobs/{jobId}` | Implemented | Cross-org isolation via composite key (404 on mismatch) |
-| `GET /v1/screening/sessions` | **Does not exist** | Blocker for `screening.list()` |
+| Endpoint                           | Status             | Notes                                                                                                               |
+| ---------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `POST /v1/screening/pep-sanctions` | Implemented        | Schema: `{ firstName, lastName, dateOfBirth }` — **no `country`**                                                   |
+| `POST /v1/screening/adverse-media` | Implemented        | Returns **201** `{ jobId, status: "PENDING", message }`. Spawns background job. No Zod schema for the 201 response. |
+| `POST /v1/screening/title-check`   | Implemented        | Returns 200 with discriminated union on `status`                                                                    |
+| `GET /v1/async-jobs/{jobId}`       | Implemented        | Cross-org isolation via composite key (404 on mismatch)                                                             |
+| `GET /v1/screening/sessions`       | **Does not exist** | Blocker for `screening.list()`                                                                                      |
 
 ### Server contract vs. ticket — mismatches
 
-| # | Ticket says | Server actually does | SDK impact |
-|---|---|---|---|
-| 1 | PEP/S accepts `country` | Schema doesn't accept it | **Blocker** — drop from v1 SDK surface or wait for server schema bump |
-| 2 | Adverse-media returns 202 | Returns 201 | Cosmetic — SDK treats both as success |
-| 3 | Job status `pending/processing/ready/failed` (lowercase) | `PENDING/PROCESSING/COMPLETED/FAILED` (uppercase, `COMPLETED` not `ready`) | SDK normalizes at parse boundary so public type matches the ticket |
-| 4 | 422 unsupported region → discriminated union | Returns 200 with `status: "unsupported_region"` member | Better — SDK just parses it; no special error mapping |
-| 5 | 403 cross-org on async-jobs | Returns 404 (key lookup miss) | SDK maps 404 → `NotFoundError`. `AuthorizationError` stays in the catalog but won't fire today |
-| 6 | `GET /v1/screening/sessions` exists | Not implemented | **Blocker** for `screening.list()` |
-| 7 | `Idempotency-Key` honored, 24h dedup | No dedup logic | SDK sends the header anyway; server ignores gracefully. "Same key → same jobId" integration test cannot pass yet |
-| 8 | Sandbox bypass for instant adverse-media | `sandboxMiddleware` doesn't intercept screening/async-jobs routes | Adverse-media smoke test takes real wall-clock time |
+| #   | Ticket says                                              | Server actually does                                                       | SDK impact                                                                                                       |
+| --- | -------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 1   | PEP/S accepts `country`                                  | Schema doesn't accept it                                                   | **Blocker** — drop from v1 SDK surface or wait for server schema bump                                            |
+| 2   | Adverse-media returns 202                                | Returns 201                                                                | Cosmetic — SDK treats both as success                                                                            |
+| 3   | Job status `pending/processing/ready/failed` (lowercase) | `PENDING/PROCESSING/COMPLETED/FAILED` (uppercase, `COMPLETED` not `ready`) | SDK normalizes at parse boundary so public type matches the ticket                                               |
+| 4   | 422 unsupported region → discriminated union             | Returns 200 with `status: "unsupported_region"` member                     | Better — SDK just parses it; no special error mapping                                                            |
+| 5   | 403 cross-org on async-jobs                              | Returns 404 (key lookup miss)                                              | SDK maps 404 → `NotFoundError`. `AuthorizationError` stays in the catalog but won't fire today                   |
+| 6   | `GET /v1/screening/sessions` exists                      | Not implemented                                                            | **Blocker** for `screening.list()`                                                                               |
+| 7   | `Idempotency-Key` honored, 24h dedup                     | No dedup logic                                                             | SDK sends the header anyway; server ignores gracefully. "Same key → same jobId" integration test cannot pass yet |
+| 8   | Sandbox bypass for instant adverse-media                 | `sandboxMiddleware` doesn't intercept screening/async-jobs routes          | Adverse-media smoke test takes real wall-clock time                                                              |
 
 ---
 
@@ -147,29 +147,35 @@ Branch `DIDV-504` — head commit just landed the async-jobs + screening foundat
 
 ## 8. Progress (2026-05-28)
 
-### Phase A — 12 of 14 tasks complete
+### Phase A — 14 of 14 tasks complete ✅
 
-| # | Task | Status | Files |
-|---|---|---|---|
-| 1 | Add new error classes to `@deepidv/core` | ✅ Done | `packages/core/src/errors.ts`, `packages/core/src/index.ts`, `packages/server/src/index.ts` |
-| 2 | Add custom-headers support to `HttpClient` | ✅ Done | `packages/core/src/client.ts` |
-| 3 | Map 403/404 to new error classes | ✅ Done | `packages/core/src/client.ts` |
-| 4 | Write `screening.types.ts` Zod schemas | ✅ Done | `packages/server/src/screening.types.ts` |
-| 5 | Write `asyncJobs.types.ts` with status normalization | ✅ Done | `packages/server/src/asyncJobs.types.ts` |
-| 6 | Implement `AsyncJobs` namespace class | ✅ Done | `packages/server/src/asyncJobs.ts` |
-| 7 | Implement `Screening` namespace class | ✅ Done | `packages/server/src/screening.ts` |
-| 8 | Implement `AdverseMediaHandle` factory | ✅ Done | `packages/server/src/asyncJobHandle.ts` |
-| 9 | Wire `Screening` + `AsyncJobs` into `DeepIDV` client | ✅ Done | `packages/server/src/deepidv.ts` |
-| 10 | Update `index.ts` public exports | ✅ Done | `packages/server/src/index.ts` |
-| 11 | Write `screening.test.ts` (msw v2) | ✅ Done — 21 tests | `packages/server/src/__tests__/screening.test.ts` |
-| 12 | Write `asyncJobs.test.ts` (msw v2) | ✅ Done — 12 tests | `packages/server/src/__tests__/asyncJobs.test.ts` |
-| 13 | Write `AdverseMediaHandle` polling tests (fake timers) | ⏳ Pending | `packages/server/src/__tests__/adverseMediaHandle.test.ts` |
-| 14 | Add `expectTypeOf` assertions for discriminated unions | ⏳ Pending | TBD |
+| #   | Task                                                   | Status             | Files                                                                                                                  |
+| --- | ------------------------------------------------------ | ------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| 1   | Add new error classes to `@deepidv/core`               | ✅ Done            | `packages/core/src/errors.ts`, `packages/core/src/index.ts`, `packages/server/src/index.ts`                            |
+| 2   | Add custom-headers support to `HttpClient`             | ✅ Done            | `packages/core/src/client.ts`                                                                                          |
+| 3   | Map 403/404 to new error classes                       | ✅ Done            | `packages/core/src/client.ts`                                                                                          |
+| 4   | Write `screening.types.ts` Zod schemas                 | ✅ Done            | `packages/server/src/screening.types.ts`                                                                               |
+| 5   | Write `asyncJobs.types.ts` with status normalization   | ✅ Done            | `packages/server/src/asyncJobs.types.ts`                                                                               |
+| 6   | Implement `AsyncJobs` namespace class                  | ✅ Done            | `packages/server/src/asyncJobs.ts`                                                                                     |
+| 7   | Implement `Screening` namespace class                  | ✅ Done            | `packages/server/src/screening.ts`                                                                                     |
+| 8   | Implement `AdverseMediaHandle` factory                 | ✅ Done            | `packages/server/src/asyncJobHandle.ts`                                                                                |
+| 9   | Wire `Screening` + `AsyncJobs` into `DeepIDV` client   | ✅ Done            | `packages/server/src/deepidv.ts`                                                                                       |
+| 10  | Update `index.ts` public exports                       | ✅ Done            | `packages/server/src/index.ts`                                                                                         |
+| 11  | Write `screening.test.ts` (msw v2)                     | ✅ Done — 21 tests | `packages/server/src/__tests__/screening.test.ts`                                                                      |
+| 12  | Write `asyncJobs.test.ts` (msw v2)                     | ✅ Done — 12 tests | `packages/server/src/__tests__/asyncJobs.test.ts`                                                                      |
+| 13  | Write `AdverseMediaHandle` polling tests (fake timers) | ✅ Done — 11 tests | `packages/server/src/__tests__/adverseMediaHandle.test.ts`                                                             |
+| 14  | Add `expectTypeOf` assertions for discriminated unions | ✅ Done            | `__tests__/adverseMediaHandle.test.ts` (`AdverseMediaJobSnapshot`), `__tests__/screening.test.ts` (`TitleCheckResult`) |
 
 ### Validation
 
-- **92/92 server tests** pass; **126/126 core tests** pass; both packages typecheck clean.
+- **105/105 server tests** pass (was 92; +13 from tasks 13/14); **126/126 core tests** pass; both packages typecheck clean.
+- **Type assertions are enforced.** `expectTypeOf` is a runtime no-op, so the two contracts are validated by `tsc --noEmit -p packages/server/tsconfig.json` (the server tsconfig's `include: ["src"]` covers `__tests__`). Verified by injecting a deliberately-wrong member and confirming `tsc` fails (exit 2), then reverting. Per the chosen "inline, runtime config" approach, no `vitest typecheck` config was added.
+- **Fake-timer strategy.** The polling suite fakes only `setTimeout` / `clearTimeout` / `Date` (`vi.useFakeTimers({ toFake: [...] })`) — the only globals `wait()` touches — leaving msw/fetch on real microtasks. The loop is driven with `vi.advanceTimersByTimeAsync()`; terminal-on-first-poll cases (failed / 500) need no advance.
 - **End-to-end against local open-api** — `scripts/pep-sanctions-test.js` validated `pepSanctions` happy path (clean record + populated matches array on Putin) and 400 → `ValidationError` mapping.
+
+### Schema finding from task 13 (server contract confirmed, no SDK change)
+
+The `ready`-path re-parse (`AdverseMediaJobSnapshotSchema` → `AdverseMediaResultSchema`) was exercised against a realistic payload for the first time (the existing `asyncJobs.test.ts` only ever passed `result` as opaque `unknown`). `AdverseMediaResultSchema.exposuresByCategory` is `z.record(ExposureCategorySchema, ExposureBucketSchema)`, which in **Zod 4 is exhaustive** — all 9 exposure categories required. This is **correct**: the server's `buildExposureBuckets` (`deepidv-open-api/.../services/adverse-media/scoring.ts`) pre-seeds every category with `{ hits: 0, articles: [] }` before populating, so it always returns all 9. Test mocks must include all 9 keys.
 
 ### Observations from end-to-end testing (server-side, NOT SDK)
 

@@ -5,7 +5,7 @@
  * Covers all four methods: pepSanctions, adverseMedia, titleCheck, list.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, expectTypeOf } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
 import {
@@ -18,6 +18,7 @@ import {
 } from '@deepidv/core';
 import { Screening } from '../screening.js';
 import { AsyncJobs } from '../asyncJobs.js';
+import type { TitleCheckResult } from '../screening.types.js';
 
 const BASE_URL = 'https://api.deepidv.com';
 
@@ -146,9 +147,7 @@ describe('Screening.pepSanctions', () => {
         HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
       ),
     );
-    await expect(createScreening().pepSanctions(SAMPLE_INPUT)).rejects.toThrow(
-      AuthenticationError,
-    );
+    await expect(createScreening().pepSanctions(SAMPLE_INPUT)).rejects.toThrow(AuthenticationError);
   });
 
   it('maps 500 → DeepIDVError', async () => {
@@ -347,5 +346,33 @@ describe('Screening.list', () => {
 
   it('throws even when params are passed', () => {
     expect(() => createScreening().list({ limit: 10 })).toThrow(/not yet implemented/i);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Type-level contract (DIDV-505 task 14) — enforced by tsc, no-op at runtime
+// ---------------------------------------------------------------------------
+
+describe('TitleCheckResult — type-level contract', () => {
+  it('is a discriminated union on status with the four documented members', () => {
+    expectTypeOf<TitleCheckResult['status']>().toEqualTypeOf<
+      'found' | 'multiple_properties' | 'unsupported_region' | 'not_found'
+    >();
+
+    type Found = Extract<TitleCheckResult, { status: 'found' }>;
+    expectTypeOf<Found>().toHaveProperty('subjectProperty');
+    expectTypeOf<Found>().toHaveProperty('ownerInformation');
+    expectTypeOf<Found>().not.toHaveProperty('properties');
+
+    type Multiple = Extract<TitleCheckResult, { status: 'multiple_properties' }>;
+    expectTypeOf<Multiple['availableUnits']>().toEqualTypeOf<string[]>();
+    expectTypeOf<Multiple>().toHaveProperty('properties');
+    expectTypeOf<Multiple>().not.toHaveProperty('subjectProperty');
+
+    type Unsupported = Extract<TitleCheckResult, { status: 'unsupported_region' }>;
+    expectTypeOf<Unsupported['message']>().toEqualTypeOf<string>();
+
+    type NotFound = Extract<TitleCheckResult, { status: 'not_found' }>;
+    expectTypeOf<NotFound['message']>().toEqualTypeOf<string>();
   });
 });
