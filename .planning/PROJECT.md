@@ -60,7 +60,7 @@ All 57 requirements shipped and verified. Full list in `.planning/milestones/v1.
 - Silent screening (PEP, sanctions, adverse media, title check) — future module
 - Address verification (session-based) — future module
 - Phone verification (session-based) — future module
-- UI components (`@deepidv/web`) — future package
+- ~~UI components (`@deepidv/web`)~~ — **now active** as `@deepidv/ui-*` packages under `packages/web/`
 - iOS/Android native SDKs — future packages
 - OAuth/token-based auth — x-api-key is sufficient for v1
 - AWS SDKs — all AWS orchestration lives in the API backend
@@ -109,6 +109,8 @@ Shipped v1.0 with 6,730 LOC TypeScript across 2 packages. 185 tests passing. Rea
 | noExternal core into server bundle                                    | `@deepidv/core` inlined into `@deepidv/server` — consumers install one package, no workspace:\* resolution needed at runtime                                                     | Validated Phase 7 |
 | Changesets over semantic-release                                      | Explicit version control — developer decides patch/minor/major, not commit message parsing                                                                                       | Validated Phase 7 |
 | msw over nock/fetch-mock                                              | Handler-based HTTP interception compatible with native fetch; isomorphic for future `@deepidv/web`                                                                               | Validated Phase 7 |
+| `@deepidv/ui-*` under `packages/web/` with own CSS                    | React-only peer, `deepidv--` prefixed classes, CSS custom properties for theming. No MUI/emotion/Jotai — fully self-contained components that work in any React host             | Active            |
+| Amplify Face Liveness CSS model (`./styles.css` export)               | Consumer imports component + stylesheet separately. Prefixed classes prevent collision with Tailwind, Chakra, vanilla CSS                                                        | Active            |
 
 ## Evolution
 

@@ -4,9 +4,15 @@
 
 **deepidv Server SDK**
 
-A backend-first TypeScript SDK (`@deepidv/server`) that wraps the deepidv identity verification API. Developers install it on their server (Node 18+, Deno, Bun, Cloudflare Workers, edge runtimes) and programmatically create verification sessions, scan IDs, compare faces, estimate age, and verify identities. The SDK handles file uploads to S3 via presigned URLs under the hood — developers just pass image buffers and get typed results back. This is not a UI kit.
+A TypeScript SDK monorepo for deepidv identity verification. Contains:
 
-**Core Value:** Developers pass images in and get typed verification results back — all presigned URL orchestration, retry logic, and error handling is invisible.
+- **`@deepidv/server`** — Backend SDK that wraps the deepidv API. Developers install it on their server (Node 18+, Deno, Bun, Cloudflare Workers, edge runtimes) and programmatically create verification sessions, scan IDs, compare faces, estimate age, and verify identities.
+- **`@deepidv/ui-*`** — React UI component packages (React-only peer, own prefixed CSS, no MUI/emotion). First: `@deepidv/ui-workflow-builder` — visual workflow builder for identity verification pipelines.
+- **`@deepidv/core`** — Private shared internal package (HTTP client, errors, retry, auth). Bundled into public packages via tsup `noExternal`.
+
+**Core Value (server):** Developers pass images in and get typed verification results back — all presigned URL orchestration, retry logic, and error handling is invisible.
+
+**Core Value (UI):** `import { WorkflowBuilder } from '@deepidv/ui-workflow-builder'; import '@deepidv/ui-workflow-builder/styles.css';` — self-contained React components with own CSS, no host style dependencies.
 
 ### Constraints
 
@@ -17,6 +23,15 @@ A backend-first TypeScript SDK (`@deepidv/server`) that wraps the deepidv identi
 - **Auth**: x-api-key header on every request
 - **Retry policy**: Exponential backoff with jitter on 429 and 5xx only, never retry 4xx
 - **Build output**: Dual ESM + CJS via tsup with .d.ts generation
+
+### UI Package Constraints (`@deepidv/ui-*`)
+
+- **React-only peer**: `react >=18.0.0` + `react-dom >=18.0.0` — no MUI, no emotion, no CSS-in-JS
+- **Own CSS**: All class names prefixed `deepidv--`. Ship `dist/styles.css` via `./styles.css` export. No host style dependencies
+- **Theming**: CSS custom properties (design tokens) under `.deepidv--workflow-builder` root, overridable by consumer
+- **Monorepo location**: `packages/web/ui-*` (workspace glob: `packages/web/*`)
+- **Build**: tsup with `splitting: true`, `noExternal: ['@deepidv/core']`, `external: ['react', 'react-dom']`
+- **State**: Controlled `value`/`onChange` API + internal React context/reducer. No Jotai or global state
 <!-- GSD:project-end -->
 
 <!-- GSD:stack-start source:research/STACK.md -->
