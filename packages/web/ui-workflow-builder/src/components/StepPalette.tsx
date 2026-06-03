@@ -42,17 +42,12 @@ function PaletteCard({ step, disabled, onAdd }: PaletteCardProps): React.ReactEl
       onDragStart={handleDragStart}
       onClick={handleClick}
     >
-      <div
-        className="deepidv--step-icon"
-        style={{ background: getStepGradient(step.id) }}
-      >
+      <div className="deepidv--step-icon" style={{ background: getStepGradient(step.id) }}>
         <Icon icon={step.icon ?? 'solar:widget-bold-duotone'} width={20} />
       </div>
       <div style={{ flexGrow: 1, minWidth: 0 }}>
         <div className="deepidv--step-label">{step.label}</div>
-        {step.description && (
-          <div className="deepidv--step-description">{step.description}</div>
-        )}
+        {step.description && <div className="deepidv--step-description">{step.description}</div>}
       </div>
     </div>
   );
@@ -87,8 +82,7 @@ export function StepPalette({
       const q = search.toLowerCase();
       filtered = filtered.filter(
         (s) =>
-          s.label.toLowerCase().includes(q) ||
-          (s.description?.toLowerCase().includes(q) ?? false),
+          s.label.toLowerCase().includes(q) || (s.description?.toLowerCase().includes(q) ?? false),
       );
     }
 
@@ -106,14 +100,14 @@ export function StepPalette({
   return (
     <div className="deepidv--palette">
       <div className="deepidv--palette-header">
-        <h3 className="deepidv--palette-title">
-          {labels.paletteTitle ?? 'Available Services'}
-        </h3>
+        <h3 className="deepidv--palette-title">{labels.paletteTitle ?? 'Available Services'}</h3>
         <input
           className="deepidv--palette-search"
           placeholder={labels.searchPlaceholder ?? 'Search services...'}
           value={search}
-          onChange={(e) => { setSearch(e.target.value); }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+          }}
         />
       </div>
 
@@ -124,7 +118,9 @@ export function StepPalette({
             type="button"
             className="deepidv--category-tab"
             data-active={categoryTab === tab.value ? 'true' : undefined}
-            onClick={() => { setCategoryTab(tab.value); }}
+            onClick={() => {
+              setCategoryTab(tab.value);
+            }}
           >
             {tab.label}
           </button>

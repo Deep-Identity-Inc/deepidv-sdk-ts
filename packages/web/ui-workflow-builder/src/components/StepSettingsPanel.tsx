@@ -1,6 +1,12 @@
 import React, { useMemo } from 'react';
 import { Icon } from '@iconify/react';
-import type { StepProperty, StepPropertyGroup, WorkflowBuilderLabels, WorkflowStep, WorkflowValue } from '../types.js';
+import type {
+  StepProperty,
+  StepPropertyGroup,
+  WorkflowBuilderLabels,
+  WorkflowStep,
+  WorkflowValue,
+} from '../types.js';
 import { getStepGradient, getStepIcon } from '../utils/helpers.js';
 import type { StepDefinition } from '../types.js';
 import { PropertyRenderer } from './PropertyRenderer.js';
@@ -48,7 +54,8 @@ export function StepSettingsPanel({
           {labels.noSelection ?? 'Configure Settings'}
         </p>
         <p className="deepidv--settings-empty-hint">
-          {labels.noSelectionHint ?? 'Select a step from the workflow\nto view and edit its settings'}
+          {labels.noSelectionHint ??
+            'Select a step from the workflow\nto view and edit its settings'}
         </p>
       </div>
     );
@@ -143,7 +150,9 @@ export function StepSettingsPanel({
                   <PropertyRenderer
                     key={prop.id}
                     property={prop}
-                    onChange={(propId, val) => { updatePropertyValue(group.groupId, propId, val); }}
+                    onChange={(propId, val) => {
+                      updatePropertyValue(group.groupId, propId, val);
+                    }}
                     allProperties={allProperties}
                     groupProperties={group.properties}
                   />

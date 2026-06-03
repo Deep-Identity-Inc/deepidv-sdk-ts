@@ -9,7 +9,12 @@ export { StepPalette } from './components/StepPalette.js';
 export { StepSettingsPanel } from './components/StepSettingsPanel.js';
 
 // Constants
-export { DEFAULT_STEPS, DEFAULT_TEMPLATES, COUPLED_STEPS, STEP_ICON_GRADIENTS } from './data/constants.js';
+export {
+  DEFAULT_STEPS,
+  DEFAULT_TEMPLATES,
+  COUPLED_STEPS,
+  STEP_ICON_GRADIENTS,
+} from './data/constants.js';
 
 // Utilities
 export {

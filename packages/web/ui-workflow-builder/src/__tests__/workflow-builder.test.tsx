@@ -2,8 +2,17 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { WorkflowBuilder } from '../components/WorkflowBuilder.js';
-import { DEFAULT_STEPS, DEFAULT_TEMPLATES, COUPLED_STEPS, STEP_ICON_GRADIENTS } from '../data/constants.js';
-import { serializeWorkflowForSave, buildWorkflowFromTemplate, getStepGradient } from '../utils/helpers.js';
+import {
+  DEFAULT_STEPS,
+  DEFAULT_TEMPLATES,
+  COUPLED_STEPS,
+  STEP_ICON_GRADIENTS,
+} from '../data/constants.js';
+import {
+  serializeWorkflowForSave,
+  buildWorkflowFromTemplate,
+  getStepGradient,
+} from '../utils/helpers.js';
 import type { WorkflowValue } from '../types.js';
 
 // ----------------------------------------------------------------------
@@ -25,9 +34,7 @@ describe('WorkflowBuilder', () => {
   it('renders with a controlled value', () => {
     const value: WorkflowValue = {
       name: 'Test Workflow',
-      steps: [
-        { id: 'id-verification', label: 'ID Verification', instanceId: 'id-verification-1' },
-      ],
+      steps: [{ id: 'id-verification', label: 'ID Verification', instanceId: 'id-verification-1' }],
     };
     render(<WorkflowBuilder value={value} />);
     expect(screen.getByText('ID Verification')).toBeTruthy();
@@ -68,9 +75,7 @@ describe('WorkflowBuilder', () => {
   it('all CSS classes are deepidv-- prefixed', () => {
     const value: WorkflowValue = {
       name: 'Test',
-      steps: [
-        { id: 'id-verification', label: 'ID Verification', instanceId: 'id-1' },
-      ],
+      steps: [{ id: 'id-verification', label: 'ID Verification', instanceId: 'id-1' }],
     };
     const { container } = render(<WorkflowBuilder value={value} />);
     const allElements = container.querySelectorAll('[class]');
@@ -131,7 +136,12 @@ describe('serializeWorkflowForSave', () => {
             groupId: 'fraud-analysis-settings',
             groupName: 'Fraud Analysis',
             properties: [
-              { id: 'enable-fraud-analysis', label: 'Enable', type: 'boolean' as const, value: true },
+              {
+                id: 'enable-fraud-analysis',
+                label: 'Enable',
+                type: 'boolean' as const,
+                value: true,
+              },
             ],
           },
         ],
@@ -152,9 +162,7 @@ describe('serializeWorkflowForSave', () => {
           {
             groupId: 'age',
             groupName: 'Age',
-            properties: [
-              { id: 'range', label: 'Range', type: 'range' as const, value: [18, 65] },
-            ],
+            properties: [{ id: 'range', label: 'Range', type: 'range' as const, value: [18, 65] }],
           },
         ],
       },

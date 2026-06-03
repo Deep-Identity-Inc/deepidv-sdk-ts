@@ -11,9 +11,13 @@ import type { WorkflowBuilderTheme } from '../types.js';
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const clean = hex.replace('#', '');
   if (clean.length !== 6 && clean.length !== 3) return null;
-  const full = clean.length === 3
-    ? clean.split('').map((c) => c + c).join('')
-    : clean;
+  const full =
+    clean.length === 3
+      ? clean
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : clean;
   const num = parseInt(full, 16);
   return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
 }
@@ -52,9 +56,12 @@ export function buildThemeStyle(theme: WorkflowBuilderTheme | undefined): CSSPro
   if (theme.colorPrimary) {
     const rgb = hexToRgb(theme.colorPrimary);
     if (rgb) {
-      style['--deepidv-color-primary-alpha-10'] = `rgba(${String(rgb.r)}, ${String(rgb.g)}, ${String(rgb.b)}, 0.1)`;
-      style['--deepidv-color-primary-alpha-20'] = `rgba(${String(rgb.r)}, ${String(rgb.g)}, ${String(rgb.b)}, 0.2)`;
-      style['--deepidv-color-primary-alpha-40'] = `rgba(${String(rgb.r)}, ${String(rgb.g)}, ${String(rgb.b)}, 0.4)`;
+      style['--deepidv-color-primary-alpha-10'] =
+        `rgba(${String(rgb.r)}, ${String(rgb.g)}, ${String(rgb.b)}, 0.1)`;
+      style['--deepidv-color-primary-alpha-20'] =
+        `rgba(${String(rgb.r)}, ${String(rgb.g)}, ${String(rgb.b)}, 0.2)`;
+      style['--deepidv-color-primary-alpha-40'] =
+        `rgba(${String(rgb.r)}, ${String(rgb.g)}, ${String(rgb.b)}, 0.4)`;
     }
   }
 

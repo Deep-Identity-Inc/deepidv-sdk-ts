@@ -48,11 +48,7 @@ function Page() {
 ```tsx
 const [workflow, setWorkflow] = useState({ name: '', steps: [] });
 
-<WorkflowBuilder
-  value={workflow}
-  onChange={setWorkflow}
-  onSave={(wf) => api.saveWorkflow(wf)}
-/>
+<WorkflowBuilder value={workflow} onChange={setWorkflow} onSave={(wf) => api.saveWorkflow(wf)} />;
 ```
 
 ### Theming
@@ -69,24 +65,24 @@ Override CSS custom properties on the `.deepidv--workflow-builder` root:
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `value` | `WorkflowValue` | — | Controlled workflow state |
-| `defaultValue` | `WorkflowValue` | — | Initial uncontrolled state |
-| `onChange` | `(workflow) => void` | — | Called on every change |
-| `onSave` | `(workflow) => void` | — | Called when save is triggered |
-| `onBack` | `() => void` | — | Back button callback |
-| `steps` | `StepDefinition[]` | Built-in steps | Available steps in palette |
-| `templates` | `WorkflowTemplate[]` | Built-in templates | Available templates |
-| `disabledStepIds` | `string[]` | `[]` | Steps disabled in palette |
-| `disabled` | `boolean` | `false` | Disable all interactions |
-| `showPalette` | `boolean` | `true` | Show left step palette |
-| `showSettings` | `boolean` | `true` | Show right settings panel |
-| `showHeader` | `boolean` | `true` | Show built-in header |
-| `height` | `string` | `'100%'` | Container height |
-| `labels` | `WorkflowBuilderLabels` | `{}` | i18n label overrides |
-| `renderCustomProperty` | `(property, group, step, onChange) => ReactNode` | — | Custom property renderer |
-| `renderToolbar` | `({ workflow, setWorkflow, onSave }) => ReactNode` | — | Custom toolbar renderer |
+| Prop                   | Type                                               | Default            | Description                   |
+| ---------------------- | -------------------------------------------------- | ------------------ | ----------------------------- |
+| `value`                | `WorkflowValue`                                    | —                  | Controlled workflow state     |
+| `defaultValue`         | `WorkflowValue`                                    | —                  | Initial uncontrolled state    |
+| `onChange`             | `(workflow) => void`                               | —                  | Called on every change        |
+| `onSave`               | `(workflow) => void`                               | —                  | Called when save is triggered |
+| `onBack`               | `() => void`                                       | —                  | Back button callback          |
+| `steps`                | `StepDefinition[]`                                 | Built-in steps     | Available steps in palette    |
+| `templates`            | `WorkflowTemplate[]`                               | Built-in templates | Available templates           |
+| `disabledStepIds`      | `string[]`                                         | `[]`               | Steps disabled in palette     |
+| `disabled`             | `boolean`                                          | `false`            | Disable all interactions      |
+| `showPalette`          | `boolean`                                          | `true`             | Show left step palette        |
+| `showSettings`         | `boolean`                                          | `true`             | Show right settings panel     |
+| `showHeader`           | `boolean`                                          | `true`             | Show built-in header          |
+| `height`               | `string`                                           | `'100%'`           | Container height              |
+| `labels`               | `WorkflowBuilderLabels`                            | `{}`               | i18n label overrides          |
+| `renderCustomProperty` | `(property, group, step, onChange) => ReactNode`   | —                  | Custom property renderer      |
+| `renderToolbar`        | `({ workflow, setWorkflow, onSave }) => ReactNode` | —                  | Custom toolbar renderer       |
 
 ## Exports
 

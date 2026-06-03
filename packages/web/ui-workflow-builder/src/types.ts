@@ -26,7 +26,16 @@ export interface StepPropertyRequirement {
 export interface StepProperty {
   id: string;
   label: string;
-  type: 'boolean' | 'slider' | 'range' | 'select' | 'text' | 'text-list' | 'doc-upload' | 'hidden' | 'form-fields';
+  type:
+    | 'boolean'
+    | 'slider'
+    | 'range'
+    | 'select'
+    | 'text'
+    | 'text-list'
+    | 'doc-upload'
+    | 'hidden'
+    | 'form-fields';
   value: unknown;
   sublabel?: string;
   requirement?: string | StepPropertyRequirement;

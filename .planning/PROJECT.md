@@ -109,7 +109,7 @@ Shipped v1.0 with 6,730 LOC TypeScript across 2 packages. 185 tests passing. Rea
 | noExternal core into server bundle                                    | `@deepidv/core` inlined into `@deepidv/server` — consumers install one package, no workspace:\* resolution needed at runtime                                                     | Validated Phase 7 |
 | Changesets over semantic-release                                      | Explicit version control — developer decides patch/minor/major, not commit message parsing                                                                                       | Validated Phase 7 |
 | msw over nock/fetch-mock                                              | Handler-based HTTP interception compatible with native fetch; isomorphic for future `@deepidv/web`                                                                               | Validated Phase 7 |
-| `@deepidv/ui-*` under `packages/web/` with own CSS                    | React-only peer, `deepidv--` prefixed classes, CSS custom properties for theming. No MUI/emotion/Jotai — fully self-contained components that work in any React host              | Active            |
+| `@deepidv/ui-*` under `packages/web/` with own CSS                    | React-only peer, `deepidv--` prefixed classes, CSS custom properties for theming. No MUI/emotion/Jotai — fully self-contained components that work in any React host             | Active            |
 | Amplify Face Liveness CSS model (`./styles.css` export)               | Consumer imports component + stylesheet separately. Prefixed classes prevent collision with Tailwind, Chakra, vanilla CSS                                                        | Active            |
 
 ## Evolution
