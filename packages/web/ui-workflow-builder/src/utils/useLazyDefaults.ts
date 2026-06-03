@@ -18,7 +18,7 @@ export function useLazyDefaults(
   templatesProp: WorkflowTemplate[] | undefined,
 ): Defaults {
   const needsDefaults = !stepsProp || !templatesProp;
-  const [defaults, setDefaults] = useState<Defaults>(EMPTY);
+  const [defaults, setDefaults] = useState(EMPTY);
 
   useEffect(() => {
     if (!needsDefaults) return;
