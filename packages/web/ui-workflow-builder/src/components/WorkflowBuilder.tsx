@@ -6,8 +6,9 @@ import type {
   WorkflowStep,
   WorkflowValue,
 } from '../types.js';
-import { DEFAULT_STEPS, DEFAULT_TEMPLATES, COUPLED_STEPS } from '../data/constants.js';
+import { COUPLED_STEPS } from '../data/constants.js';
 import { getStepGradient, getKeysToRemove, buildWorkflowFromTemplate } from '../utils/helpers.js';
+import { useLazyDefaults } from '../utils/useLazyDefaults.js';
 import { buildThemeStyle } from '../utils/theme.js';
 import { StepPalette } from './StepPalette.js';
 import { StepSettingsPanel } from './StepSettingsPanel.js';
@@ -97,13 +98,17 @@ export function WorkflowBuilder({
   children,
 }: WorkflowBuilderProps): React.ReactElement {
   const themeStyle = useMemo(() => buildThemeStyle(theme), [theme]);
-  const allSteps = useMemo(() => stepsProp ?? DEFAULT_STEPS, [stepsProp]);
+  const defaults = useLazyDefaults(stepsProp, templatesProp);
+  const allSteps = useMemo(() => stepsProp ?? defaults.steps, [stepsProp, defaults.steps]);
   const hiddenSet = useMemo(() => new Set(hiddenStepIds), [hiddenStepIds]);
   const availableSteps = useMemo(
     () => allSteps.filter((s) => !hiddenSet.has(s.id)),
     [allSteps, hiddenSet],
   );
-  const availableTemplates = useMemo(() => templatesProp ?? DEFAULT_TEMPLATES, [templatesProp]);
+  const availableTemplates = useMemo(
+    () => templatesProp ?? defaults.templates,
+    [templatesProp, defaults.templates],
+  );
 
   const [internalWorkflow, setInternalWorkflow] = useState<WorkflowValue>(
     () => defaultValue ?? value ?? EMPTY_WORKFLOW,

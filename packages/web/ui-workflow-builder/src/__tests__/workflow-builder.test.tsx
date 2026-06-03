@@ -2,12 +2,8 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { WorkflowBuilder } from '../components/WorkflowBuilder.js';
-import {
-  DEFAULT_STEPS,
-  DEFAULT_TEMPLATES,
-  COUPLED_STEPS,
-  STEP_ICON_GRADIENTS,
-} from '../data/constants.js';
+import { COUPLED_STEPS, STEP_ICON_GRADIENTS } from '../data/constants.js';
+import { DEFAULT_STEPS, DEFAULT_TEMPLATES } from '../data/defaults.js';
 import {
   serializeWorkflowForSave,
   buildWorkflowFromTemplate,
@@ -42,7 +38,9 @@ describe('WorkflowBuilder', () => {
 
   it('calls onChange when workflow changes', () => {
     const onChange = vi.fn();
-    render(<WorkflowBuilder onChange={onChange} />);
+    render(
+      <WorkflowBuilder onChange={onChange} steps={DEFAULT_STEPS} templates={DEFAULT_TEMPLATES} />,
+    );
     // The palette cards should be clickable to add steps
     const idVerifyCard = screen.getAllByText('ID Verification')[0];
     fireEvent.click(idVerifyCard);
