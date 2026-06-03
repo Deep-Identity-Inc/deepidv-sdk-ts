@@ -52,9 +52,9 @@ export function buildThemeStyle(theme: WorkflowBuilderTheme | undefined): CSSPro
   if (theme.colorPrimary) {
     const rgb = hexToRgb(theme.colorPrimary);
     if (rgb) {
-      style['--deepidv-color-primary-alpha-10'] = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.1)`;
-      style['--deepidv-color-primary-alpha-20'] = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.2)`;
-      style['--deepidv-color-primary-alpha-40'] = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
+      style['--deepidv-color-primary-alpha-10'] = `rgba(${String(rgb.r)}, ${String(rgb.g)}, ${String(rgb.b)}, 0.1)`;
+      style['--deepidv-color-primary-alpha-20'] = `rgba(${String(rgb.r)}, ${String(rgb.g)}, ${String(rgb.b)}, 0.2)`;
+      style['--deepidv-color-primary-alpha-40'] = `rgba(${String(rgb.r)}, ${String(rgb.g)}, ${String(rgb.b)}, 0.4)`;
     }
   }
 

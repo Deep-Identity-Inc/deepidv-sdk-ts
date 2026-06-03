@@ -25,7 +25,7 @@ export function PropertyRenderer({
     const pool = groupProperties ?? allProperties;
     const reqProp = pool.find((p) => p.id === reqId);
     if (reqProp) {
-      if (typeof property.requirement === 'object' && property.requirement.notEquals !== undefined) {
+      if (typeof property.requirement === 'object') {
         if (reqProp.value === property.requirement.notEquals) return null;
       } else if (!reqProp.value) {
         return null;
@@ -153,7 +153,7 @@ export function PropertyRenderer({
           <label className="deepidv--select-label">{property.label}</label>
           <select
             className="deepidv--select"
-            value={String(property.value ?? '')}
+            value={typeof property.value === 'string' || typeof property.value === 'number' ? String(property.value) : ''}
             onChange={(e) => { onChange(property.id, e.target.value); }}
           >
             {(property.options ?? []).map((opt) => (
@@ -169,7 +169,7 @@ export function PropertyRenderer({
           <label className="deepidv--input-label">{property.label}</label>
           <textarea
             className="deepidv--input"
-            value={String(property.value ?? '')}
+            value={typeof property.value === 'string' ? property.value : ''}
             onChange={(e) => { onChange(property.id, e.target.value); }}
             maxLength={property.maxLength}
             rows={3}
@@ -186,7 +186,7 @@ export function PropertyRenderer({
             <div key={idx} className="deepidv--text-list-item">
               <input
                 className="deepidv--input"
-                value={item.text ?? ''}
+                value={item.text}
                 onChange={(e) => {
                   const newList = [...items];
                   newList[idx] = { ...newList[idx], text: e.target.value };
@@ -223,7 +223,7 @@ export function PropertyRenderer({
             <div key={idx} className="deepidv--text-list-item">
               <input
                 className="deepidv--input"
-                value={item.text ?? ''}
+                value={item.text}
                 placeholder="Document name"
                 onChange={(e) => {
                   const newList = [...docs];

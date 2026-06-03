@@ -70,10 +70,10 @@ interface StepPaletteProps {
 }
 
 export function StepPalette({
-  steps = [],
-  workflowSteps = [],
-  disabledStepIds = [],
-  labels = {},
+  steps,
+  workflowSteps,
+  disabledStepIds,
+  labels,
   hideAdded = true,
   onAddStep,
 }: StepPaletteProps): React.ReactElement {

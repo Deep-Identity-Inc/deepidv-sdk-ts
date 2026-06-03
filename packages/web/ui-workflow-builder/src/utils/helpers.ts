@@ -1,4 +1,4 @@
-import type { StepDefinition, TextListItem, WorkflowStep, WorkflowTemplate, WorkflowValue } from '../types.js';
+import type { StepDefinition, WorkflowStep, WorkflowTemplate, WorkflowValue } from '../types.js';
 import { COUPLED_STEPS, STEP_ICON_GRADIENTS } from '../data/constants.js';
 
 // ----------------------------------------------------------------------
@@ -35,7 +35,8 @@ export function getKeysToRemove(stepKey: string, steps: WorkflowStep[]): Set<str
   worklist.push(seed);
 
   while (worklist.length > 0) {
-    const cur = worklist.pop()!;
+    const cur = worklist.pop();
+    if (!cur) continue;
     const enqueue = (next: WorkflowStep): void => {
       const nextKey = next.instanceId || next.id;
       if (keys.has(nextKey)) return;
@@ -76,20 +77,16 @@ export function serializeWorkflowForSave(steps: WorkflowStep[]): SerializedStep[
     const serialized: SerializedStep = { id: step.id, instanceId: step.instanceId, config: {} };
     if (step.propertyGroups && Array.isArray(step.propertyGroups)) {
       for (const group of step.propertyGroups) {
-        if (group.groupId && group.properties && Array.isArray(group.properties)) {
-          const groupConfig: Record<string, unknown> = {};
-          for (const prop of group.properties) {
-            if (prop.id !== undefined) {
-              let value: unknown = prop.value;
-              if (prop.type === 'range' && Array.isArray(value) && (value as unknown[]).length === 2) {
-                const [lower, upper] = value as [number, number];
-                value = { lower, upper };
-              }
-              groupConfig[prop.id] = value;
-            }
+        const groupConfig: Record<string, unknown> = {};
+        for (const prop of group.properties) {
+          let value: unknown = prop.value;
+          if (prop.type === 'range' && Array.isArray(value) && (value as unknown[]).length === 2) {
+            const [lower, upper] = value as [number, number];
+            value = { lower, upper };
           }
-          serialized.config[group.groupId] = groupConfig;
+          groupConfig[prop.id] = value;
         }
+        serialized.config[group.groupId] = groupConfig;
       }
     }
     return serialized;
@@ -113,7 +110,7 @@ export function buildWorkflowFromTemplate(
     .filter((s): s is StepDefinition => s !== undefined)
     .map((step) => ({
       ...structuredClone(step),
-      instanceId: `${step.id}-${Date.now()}`,
+      instanceId: `${step.id}-${String(Date.now())}`,
     }));
 
   return { name: template.label, steps };

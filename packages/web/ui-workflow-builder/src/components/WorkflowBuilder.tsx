@@ -126,7 +126,7 @@ export function WorkflowBuilder({
       const stepDef = availableSteps.find((s) => s.id === stepId);
       if (!stepDef) return;
 
-      const instanceId = `${stepId}-${Date.now()}`;
+      const instanceId = `${stepId}-${String(Date.now())}`;
       const newStep: WorkflowStep = {
         id: stepDef.id,
         label: stepDef.label,
@@ -148,7 +148,7 @@ export function WorkflowBuilder({
               id: coupledDef.id,
               label: coupledDef.label,
               icon: coupledDef.icon,
-              instanceId: `${coupledId}-${Date.now()}`,
+              instanceId: `${coupledId}-${String(Date.now())}`,
               ...(coupledDef.propertyGroups
                 ? { propertyGroups: structuredClone(coupledDef.propertyGroups) }
                 : {}),

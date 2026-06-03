@@ -27,8 +27,8 @@ export function StepSettingsPanel({
   workflow,
   setWorkflow,
   selectedStepId,
-  availableSteps = [],
-  labels = {},
+  availableSteps,
+  labels,
   renderCustomProperty,
 }: StepSettingsPanelProps): React.ReactElement {
   const selectedStep = useMemo(() => {
@@ -79,7 +79,7 @@ export function StepSettingsPanel({
     }));
   };
 
-  const allProperties = (selectedStep.propertyGroups ?? []).flatMap((g) => g.properties ?? []);
+  const allProperties = (selectedStep.propertyGroups ?? []).flatMap((g) => g.properties);
 
   const isGroupVisible = (group: StepPropertyGroup): boolean => {
     if (!group.parentToggle) return true;
@@ -118,7 +118,7 @@ export function StepSettingsPanel({
 
         {(selectedStep.propertyGroups ?? []).map((group) => {
           if (!isGroupVisible(group)) return null;
-          const visibleProperties = (group.properties ?? []).filter((p) => p.type !== 'hidden');
+          const visibleProperties = group.properties.filter((p) => p.type !== 'hidden');
           if (visibleProperties.length === 0) return null;
 
           return (
