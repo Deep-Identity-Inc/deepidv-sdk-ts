@@ -2,6 +2,11 @@
   "name": "@deepidv/ui-workflow-builder",
   "version": "0.1.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Deep-Identity-Inc/deepidv-sdk-ts.git",
+    "directory": "packages/web/ui-workflow-builder"
+  },
   "files": [
     "dist"
   ],
