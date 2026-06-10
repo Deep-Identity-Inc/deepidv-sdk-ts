@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   AuthenticationError,
   DeepIDVError,
+  InsufficientFundsError,
   NetworkError,
   RateLimitError,
+  ServiceUnavailableError,
   TimeoutError,
   ValidationError,
 } from '../errors.js';
@@ -177,6 +179,38 @@ describe('TimeoutError', () => {
   it('instanceof DeepIDVError returns true', () => {
     const err = new TimeoutError('msg');
     expect(err instanceof TimeoutError).toBe(true);
+    expect(err instanceof DeepIDVError).toBe(true);
+  });
+});
+
+// ── TimeoutError ─────────────────────────────────────────────────────────────
+
+describe('InsufficientFundsError', () => {
+  it('has code insufficient_funds_error and status 402', () => {
+    const err = new InsufficientFundsError('Insufficient funds');
+    expect(err.code).toBe('insufficient_funds_error');
+    expect(err.status).toBe(402);
+  });
+
+  it('instanceof DeepIDVError returns true', () => {
+    const err = new InsufficientFundsError('msg');
+    expect(err instanceof InsufficientFundsError).toBe(true);
+    expect(err instanceof DeepIDVError).toBe(true);
+  });
+});
+
+// ── TimeoutError ─────────────────────────────────────────────────────────────
+
+describe('ServiceUnavailableError', () => {
+  it('has code service_unavailable_error and status 503', () => {
+    const err = new ServiceUnavailableError('Service unavailable');
+    expect(err.code).toBe('service_unavailable_error');
+    expect(err.status).toBe(503);
+  });
+
+  it('instanceof DeepIDVError returns true', () => {
+    const err = new ServiceUnavailableError('msg');
+    expect(err instanceof ServiceUnavailableError).toBe(true);
     expect(err instanceof DeepIDVError).toBe(true);
   });
 });

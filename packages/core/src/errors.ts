@@ -215,6 +215,38 @@ export class TimeoutError extends DeepIDVError {
 }
 
 /**
+ * Thrown when the API responds with HTTP 402 (Payment Required).
+ *
+ * Indicates the pre-flight funds/subscription gate failed — the organization
+ * has insufficient token balance or no active subscription to cover the
+ * requested operation. The server returns a plain-text body, surfaced as the
+ * error `message`.
+ */
+export class InsufficientFundsError extends DeepIDVError {
+  constructor(message: string, options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'>) {
+    super(message, { status: 402, code: 'insufficient_funds_error', ...options });
+    this.name = 'InsufficientFundsError';
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/**
+ * Thrown when the API responds with HTTP 503 (Service Unavailable).
+ *
+ * A synchronous screening endpoint's upstream (e.g. the sanctions or title
+ * vendor) exceeded the server's deadline. This is transient and no session is
+ * billed, but an immediate retry usually hits the same slow path — screening
+ * calls are made non-retryable so callers fail fast.
+ */
+export class ServiceUnavailableError extends DeepIDVError {
+  constructor(message: string, options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'>) {
+    super(message, { status: 503, code: 'service_unavailable_error', ...options });
+    this.name = 'ServiceUnavailableError';
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/**
  * Thrown when an adverse-media async job reaches the terminal `failed` state.
  *
  * The `message` is the underlying `error` string from the job snapshot.

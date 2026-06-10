@@ -29,6 +29,8 @@ export {
   RateLimitError,
   TimeoutError,
   ValidationError,
+  InsufficientFundsError,
+  ServiceUnavailableError,
 } from './errors.js';
 
 export type { SDKEventMap } from './events.js';
