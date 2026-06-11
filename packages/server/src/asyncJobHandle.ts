@@ -59,7 +59,9 @@ export interface AdverseMediaHandle {
    * elapses. Returns the typed `AdverseMediaResult` on success.
    *
    * @throws {AdverseMediaFailedError} If the job terminates in `failed`.
-   * @throws {PollTimeoutError} If `timeoutMs` elapses before completion.
+   * @throws {PollTimeoutError} If `timeoutMs` elapses before completion. This
+   *   does **not** mean the job died — it may still complete server-side.
+   *   Resume by polling `client.asyncJobs.get(jobId)`.
    * @throws Other request errors (auth/network/5xx) propagated from the polling GET.
    */
   wait(options?: AdverseMediaWaitOptions): Promise<AdverseMediaResult>;
@@ -80,9 +82,8 @@ export interface AdverseMediaHandle {
 export function createAdverseMediaHandle(jobId: string, asyncJobs: AsyncJobs): AdverseMediaHandle {
   const refresh = async (): Promise<AdverseMediaJobSnapshot> => {
     const generic = await asyncJobs.get(jobId);
-    // The generic snapshot already has lowercase statuses (the asyncJobs
-    // transform handles that). Narrow `result` to AdverseMediaResult by
-    // re-parsing through the adverse-media schema on `ready`.
+    // The server emits lowercase statuses directly. Narrow `result` to
+    // AdverseMediaResult by re-parsing through the adverse-media schema on `ready`.
     if (generic.status === 'ready') {
       return AdverseMediaJobSnapshotSchema.parse({
         status: 'ready',

@@ -17,6 +17,8 @@ import {
   DeepIDVError,
   NetworkError,
   TimeoutError,
+  InsufficientFundsError,
+  ServiceUnavailableError,
 } from '../errors.js';
 
 const BASE_URL = 'https://api.deepidv.com';
@@ -211,6 +213,96 @@ describe('HttpClient — error mapping', () => {
       expect(err.response).toBeDefined();
       expect(err.response?.status).toBe(401);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 402 / 503 mapping + plain-text body fallback + per-request no-retry
+// ---------------------------------------------------------------------------
+
+describe('HttpClient — 402 / 503 mapping', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('402 response throws InsufficientFundsError', async () => {
+    server.use(
+      http.post(`${BASE_URL}/v1/screening/pep-sanctions`, () => {
+        return HttpResponse.json({ error: 'Insufficient funds' }, { status: 402 });
+      }),
+    );
+
+    const { client } = createClient();
+    await expect(client.post('/v1/screening/pep-sanctions', {})).rejects.toBeInstanceOf(
+      InsufficientFundsError,
+    );
+  });
+
+  it('402 plain-text body becomes the error message (text() fallback, not "HTTP 402")', async () => {
+    server.use(
+      http.post(`${BASE_URL}/v1/screening/pep-sanctions`, () => {
+        return new HttpResponse('Insufficient funds or subscription.', { status: 402 });
+      }),
+    );
+
+    const { client } = createClient();
+    try {
+      await client.post('/v1/screening/pep-sanctions', {});
+      expect.fail('Should have thrown');
+    } catch (e) {
+      expect(e).toBeInstanceOf(InsufficientFundsError);
+      const err = e as InsufficientFundsError;
+      expect(err.status).toBe(402);
+      expect(err.message).toBe('Insufficient funds or subscription.');
+      expect(err.message).not.toBe('HTTP 402');
+    }
+  });
+
+  it('503 response throws ServiceUnavailableError', async () => {
+    server.use(
+      http.post(`${BASE_URL}/v1/screening/title-check`, () => {
+        return HttpResponse.json({ error: 'Service temporarily unavailable' }, { status: 503 });
+      }),
+    );
+
+    const { client } = createClient();
+    await expect(client.post('/v1/screening/title-check', {})).rejects.toBeInstanceOf(
+      ServiceUnavailableError,
+    );
+  });
+
+  it('per-request maxRetries: 0 prevents 503 from being retried', async () => {
+    let callCount = 0;
+    server.use(
+      http.post(`${BASE_URL}/v1/screening/title-check`, () => {
+        callCount++;
+        return HttpResponse.json({ error: 'unavailable' }, { status: 503 });
+      }),
+    );
+
+    // Client default allows retries, but the per-request override disables them.
+    const { client } = createClient({ maxRetries: 3, initialRetryDelay: 0 });
+    await expect(
+      client.post('/v1/screening/title-check', {}, { maxRetries: 0 }),
+    ).rejects.toBeInstanceOf(ServiceUnavailableError);
+    expect(callCount).toBe(1);
+  });
+
+  it('without the override, a 503 is retried by default (proves the override is what fails fast)', async () => {
+    let callCount = 0;
+    server.use(
+      http.post(`${BASE_URL}/v1/screening/title-check`, () => {
+        callCount++;
+        return HttpResponse.json({ error: 'unavailable' }, { status: 503 });
+      }),
+    );
+
+    const { client } = createClient({ maxRetries: 2, initialRetryDelay: 0 });
+    await expect(client.post('/v1/screening/title-check', {})).rejects.toBeInstanceOf(
+      ServiceUnavailableError,
+    );
+    // 1 initial + 2 retries
+    expect(callCount).toBe(3);
   });
 });
 

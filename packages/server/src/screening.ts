@@ -73,13 +73,20 @@ export class Screening {
   /**
    * Run a PEP & Sanctions screening (synchronous).
    *
-   * Returns local sanctions matches (US/CA), OpenSanctions hits, and
-   * aggregate counts. The server may short-circuit with `data.skip: true`
-   * if the subject can be ruled out early.
+   * Returns PEP, sanctions, and combined (`both`) matches against the
+   * searched sources, plus an aggregate `totalMatches` count. Each match
+   * carries a `confidence` score (0–1) and the `datasets` it was found in.
+   *
+   * This call is **not retried**: the server bounds an un-cancellable
+   * upstream (OpenSanctions fetch) and returns 503 on breach without billing
+   * a session. An immediate retry usually hits the same slow path, so the
+   * SDK fails fast instead of blocking through 5xx backoff.
    *
    * @throws {ValidationError} If input fails schema validation (400).
    * @throws {AuthenticationError} If the API key is invalid (401).
+   * @throws {InsufficientFundsError} If the funds/subscription gate fails (402).
    * @throws {RateLimitError} If the rate limit is exceeded (429).
+   * @throws {ServiceUnavailableError} If the upstream exceeded the server deadline (503, transient).
    * @throws {DeepIDVError} For other API errors.
    */
   async pepSanctions(input: z.input<typeof PepSanctionsInputSchema>): Promise<PepSanctionsResult> {
@@ -90,6 +97,7 @@ export class Screening {
     const raw = await this.client.post<Record<string, unknown>>(
       '/v1/screening/pep-sanctions',
       parsed.data,
+      { maxRetries: 0 },
     );
     return PepSanctionsResultSchema.parse(raw);
   }
@@ -107,8 +115,14 @@ export class Screening {
    * blips, batch restarts) are safe by default. Server-side dedup TTL is
    * 24 hours.
    *
+   * Keeps the default retry policy: an in-flight retry re-sends the same
+   * `Idempotency-Key`, so the server dedups and replays the same job (safe).
+   * Adverse media never emits 503 — its worker timeout surfaces as a
+   * `failed` job through polling instead.
+   *
    * @throws {ValidationError} If input fails schema validation (400).
    * @throws {AuthenticationError} If the API key is invalid (401).
+   * @throws {InsufficientFundsError} If the funds/subscription gate fails (402).
    * @throws {RateLimitError} If the rate limit is exceeded (429).
    * @throws {DeepIDVError} For other API errors.
    */
@@ -141,9 +155,16 @@ export class Screening {
    * server returns HTTP 200 with that status when the address falls
    * outside the supported region (currently US only).
    *
+   * This call is **not retried**: the server bounds an un-cancellable title
+   * vendor and returns 503 on breach without billing a session. An immediate
+   * retry usually hits the same slow path, so the SDK fails fast instead of
+   * blocking through 5xx backoff.
+   *
    * @throws {ValidationError} If input fails schema validation (400).
    * @throws {AuthenticationError} If the API key is invalid (401).
+   * @throws {InsufficientFundsError} If the funds/subscription gate fails (402).
    * @throws {RateLimitError} If the rate limit is exceeded (429).
+   * @throws {ServiceUnavailableError} If the upstream exceeded the server deadline (503, transient).
    * @throws {DeepIDVError} For other API errors.
    */
   async titleCheck(input: z.input<typeof TitleCheckInputSchema>): Promise<TitleCheckResult> {
@@ -151,7 +172,9 @@ export class Screening {
     if (!parsed.success) {
       throw mapZodError(parsed.error);
     }
-    const raw = await this.client.post<unknown>('/v1/screening/title-check', parsed.data);
+    const raw = await this.client.post<unknown>('/v1/screening/title-check', parsed.data, {
+      maxRetries: 0,
+    });
     return TitleCheckResultSchema.parse(raw);
   }
 

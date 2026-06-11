@@ -373,6 +373,20 @@ describe('withRetry', () => {
     expect(fn).toHaveBeenCalledTimes(4);
   });
 
+  it('with maxRetries: 0 runs the fn exactly once and rethrows (no-retry path)', async () => {
+    const err = new DeepIDVError('Service unavailable', { status: 503 });
+    const fn = vi.fn().mockRejectedValue(err);
+    const retryEvents: SDKEventMap['retry'][] = [];
+    emitter.on('retry', (evt) => retryEvents.push(evt));
+
+    await expect(withRetry(fn, { maxRetries: 0, initialDelayMs: 10 }, emitter)).rejects.toThrow(
+      err,
+    );
+    // Retryable status (503) but no retries allowed — single attempt, no retry event.
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(retryEvents).toHaveLength(0);
+  });
+
   it('fires retry event before sleeping with correct attempt number and delay', async () => {
     const retryEvents: SDKEventMap['retry'][] = [];
     emitter.on('retry', (evt) => retryEvents.push(evt));

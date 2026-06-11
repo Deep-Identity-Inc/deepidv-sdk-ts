@@ -51,23 +51,27 @@ function createHandle(jobId: string = JOB_ID) {
 // Mock data
 // ---------------------------------------------------------------------------
 
-type RawJobStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+type JobStatus = 'pending' | 'processing' | 'ready' | 'failed';
 
-interface RawJobOverrides {
-  status?: RawJobStatus;
+interface JobOverrides {
+  status?: JobStatus;
   result?: unknown;
   error?: string | null;
 }
 
-/** Builds a raw `GET /v1/async-jobs/{jobId}` response (server uppercase shape). */
-function rawJob(over: RawJobOverrides = {}) {
+/**
+ * Builds a `GET /v1/async-jobs/{jobId}` response in the public wire shape:
+ * lowercase status, numeric `createdAt` (epoch seconds), ISO `updatedAt`, no
+ * `type` field. The `result`/`error` keys are stripped by the snapshot schema
+ * on non-terminal statuses, so passing them as defaults is harmless.
+ */
+function rawJob(over: JobOverrides = {}) {
   return {
     jobId: JOB_ID,
-    type: 'adverse-media',
-    status: 'PENDING' as RawJobStatus,
+    status: 'pending' as JobStatus,
     result: null as unknown,
     error: null as string | null,
-    createdAt: '2026-05-28T12:00:00Z',
+    createdAt: 1_716_897_600,
     updatedAt: '2026-05-28T12:01:00Z',
     ...over,
   };
@@ -124,13 +128,13 @@ const MOCK_ADVERSE_RESULT = {
 
 describe('AdverseMediaHandle.refresh', () => {
   it('returns a pending snapshot', async () => {
-    server.use(http.get(JOB_URL, () => HttpResponse.json(rawJob({ status: 'PENDING' }))));
+    server.use(http.get(JOB_URL, () => HttpResponse.json(rawJob({ status: 'pending' }))));
     const snap = await createHandle().refresh();
     expect(snap.status).toBe('pending');
   });
 
   it('returns a processing snapshot', async () => {
-    server.use(http.get(JOB_URL, () => HttpResponse.json(rawJob({ status: 'PROCESSING' }))));
+    server.use(http.get(JOB_URL, () => HttpResponse.json(rawJob({ status: 'processing' }))));
     const snap = await createHandle().refresh();
     expect(snap.status).toBe('processing');
   });
@@ -138,7 +142,7 @@ describe('AdverseMediaHandle.refresh', () => {
   it('returns a ready snapshot with the typed result', async () => {
     server.use(
       http.get(JOB_URL, () =>
-        HttpResponse.json(rawJob({ status: 'COMPLETED', result: MOCK_ADVERSE_RESULT })),
+        HttpResponse.json(rawJob({ status: 'ready', result: MOCK_ADVERSE_RESULT })),
       ),
     );
     const snap = await createHandle().refresh();
@@ -152,7 +156,7 @@ describe('AdverseMediaHandle.refresh', () => {
   it('returns a failed snapshot with the error string', async () => {
     server.use(
       http.get(JOB_URL, () =>
-        HttpResponse.json(rawJob({ status: 'FAILED', error: 'source unavailable' })),
+        HttpResponse.json(rawJob({ status: 'failed', error: 'source unavailable' })),
       ),
     );
     const snap = await createHandle().refresh();
@@ -167,7 +171,7 @@ describe('AdverseMediaHandle.refresh', () => {
     server.use(
       http.get(JOB_URL, () => {
         calls++;
-        return HttpResponse.json(rawJob({ status: 'PENDING' }));
+        return HttpResponse.json(rawJob({ status: 'pending' }));
       }),
     );
     await createHandle().refresh();
@@ -187,21 +191,20 @@ describe('AdverseMediaHandle.wait — polling', () => {
     vi.useRealTimers();
   });
 
-  it('polls until COMPLETED and returns the typed result', async () => {
+  it('polls until ready and returns the typed result', async () => {
     let calls = 0;
     server.use(
       http.get(JOB_URL, () => {
         calls++;
-        const status: RawJobStatus =
-          calls === 1 ? 'PENDING' : calls === 2 ? 'PROCESSING' : 'COMPLETED';
+        const status: JobStatus = calls === 1 ? 'pending' : calls === 2 ? 'processing' : 'ready';
         return HttpResponse.json(
-          rawJob({ status, result: status === 'COMPLETED' ? MOCK_ADVERSE_RESULT : null }),
+          rawJob({ status, result: status === 'ready' ? MOCK_ADVERSE_RESULT : null }),
         );
       }),
     );
     const handle = createHandle();
     const p = handle.wait({ pollIntervalMs: 2_000, timeoutMs: 60_000 });
-    // poll #1 @0 (PENDING), poll #2 @2000 (PROCESSING), poll #3 @4000 (COMPLETED)
+    // poll #1 @0 (pending), poll #2 @2000 (processing), poll #3 @4000 (ready)
     await vi.advanceTimersByTimeAsync(4_000);
     const result = await p;
     expect(calls).toBe(3);
@@ -212,7 +215,7 @@ describe('AdverseMediaHandle.wait — polling', () => {
   it('throws AdverseMediaFailedError when the job terminates in failed', async () => {
     server.use(
       http.get(JOB_URL, () =>
-        HttpResponse.json(rawJob({ status: 'FAILED', error: 'source unavailable' })),
+        HttpResponse.json(rawJob({ status: 'failed', error: 'source unavailable' })),
       ),
     );
     let caught: unknown;
@@ -230,7 +233,7 @@ describe('AdverseMediaHandle.wait — polling', () => {
   });
 
   it('throws PollTimeoutError after timeoutMs elapses', async () => {
-    server.use(http.get(JOB_URL, () => HttpResponse.json(rawJob({ status: 'PENDING' }))));
+    server.use(http.get(JOB_URL, () => HttpResponse.json(rawJob({ status: 'pending' }))));
     let caught: unknown;
     const p = createHandle()
       .wait({ pollIntervalMs: 2_000, timeoutMs: 5_000 })
@@ -251,9 +254,9 @@ describe('AdverseMediaHandle.wait — polling', () => {
     server.use(
       http.get(JOB_URL, () => {
         calls++;
-        const status: RawJobStatus = calls >= 3 ? 'COMPLETED' : 'PENDING';
+        const status: JobStatus = calls >= 3 ? 'ready' : 'pending';
         return HttpResponse.json(
-          rawJob({ status, result: status === 'COMPLETED' ? MOCK_ADVERSE_RESULT : null }),
+          rawJob({ status, result: status === 'ready' ? MOCK_ADVERSE_RESULT : null }),
         );
       }),
     );
@@ -274,9 +277,9 @@ describe('AdverseMediaHandle.wait — polling', () => {
     server.use(
       http.get(JOB_URL, () => {
         calls++;
-        const status: RawJobStatus = calls >= 2 ? 'COMPLETED' : 'PENDING';
+        const status: JobStatus = calls >= 2 ? 'ready' : 'pending';
         return HttpResponse.json(
-          rawJob({ status, result: status === 'COMPLETED' ? MOCK_ADVERSE_RESULT : null }),
+          rawJob({ status, result: status === 'ready' ? MOCK_ADVERSE_RESULT : null }),
         );
       }),
     );

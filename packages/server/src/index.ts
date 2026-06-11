@@ -39,6 +39,8 @@ export {
   NotFoundError,
   NetworkError,
   TimeoutError,
+  InsufficientFundsError,
+  ServiceUnavailableError,
   AdverseMediaFailedError,
   PollTimeoutError,
 } from '@deepidv/core';

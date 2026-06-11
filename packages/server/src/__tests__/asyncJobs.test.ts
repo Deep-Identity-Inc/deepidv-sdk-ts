@@ -1,12 +1,14 @@
 /**
  * Tests for the AsyncJobs module.
  *
- * Uses msw + real HttpClient to intercept native fetch calls.
- * Covers `get(jobId)` happy paths, status normalization (server uppercase
- * → public lowercase), and error mapping.
+ * Uses msw + real HttpClient to intercept native fetch calls. The server
+ * already emits the public lowercase shape, so `get()` parses the wire
+ * response directly through `AsyncJobSnapshotSchema` — there is no raw→public
+ * normalization layer to test. Covers direct parse of every status variant
+ * (`createdAt` as a number, no `type` field) and HTTP error mapping.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, expectTypeOf } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from './setup.js';
 import {
@@ -19,6 +21,7 @@ import {
   NotFoundError,
 } from '@deepidv/core';
 import { AsyncJobs } from '../asyncJobs.js';
+import type { AsyncJobSnapshot } from '../asyncJobs.types.js';
 
 const BASE_URL = 'https://api.deepidv.com';
 
@@ -39,14 +42,13 @@ function createAsyncJobs() {
 }
 
 // ---------------------------------------------------------------------------
-// Mock data
+// Mock data — public wire shape (lowercase status, numeric createdAt, no type)
 // ---------------------------------------------------------------------------
 
-const BASE_RAW = {
+const BASE_WIRE = {
   jobId: 'job_abc123',
-  type: 'adverse-media',
-  createdAt: '2026-05-28T12:00:00Z',
-  updatedAt: '2026-05-28T12:01:00Z',
+  createdAt: 1_716_897_600, // epoch seconds (server quirk: number)
+  updatedAt: '2026-05-28T12:01:00Z', // ISO string
 };
 
 // ---------------------------------------------------------------------------
@@ -64,37 +66,38 @@ describe('AsyncJobs.get — input validation', () => {
 });
 
 // ---------------------------------------------------------------------------
-// AsyncJobs.get — status normalization
+// AsyncJobs.get — direct parse of the lowercase wire shape
 // ---------------------------------------------------------------------------
 
-describe('AsyncJobs.get — status normalization', () => {
-  it('normalizes PENDING → pending', async () => {
+describe('AsyncJobs.get — direct parse', () => {
+  it('parses a pending snapshot', async () => {
     server.use(
       http.get(`${BASE_URL}/v1/async-jobs/job_abc123`, () =>
-        HttpResponse.json({ ...BASE_RAW, status: 'PENDING', result: null, error: null }),
+        HttpResponse.json({ ...BASE_WIRE, status: 'pending' }),
       ),
     );
     const snap = await createAsyncJobs().get('job_abc123');
     expect(snap.status).toBe('pending');
     expect(snap.jobId).toBe('job_abc123');
-    expect(snap.type).toBe('adverse-media');
+    // No `type` field on the public snapshot anymore.
+    expect(snap).not.toHaveProperty('type');
   });
 
-  it('normalizes PROCESSING → processing', async () => {
+  it('parses a processing snapshot', async () => {
     server.use(
       http.get(`${BASE_URL}/v1/async-jobs/job_abc123`, () =>
-        HttpResponse.json({ ...BASE_RAW, status: 'PROCESSING', result: null, error: null }),
+        HttpResponse.json({ ...BASE_WIRE, status: 'processing' }),
       ),
     );
     const snap = await createAsyncJobs().get('job_abc123');
     expect(snap.status).toBe('processing');
   });
 
-  it('normalizes COMPLETED → ready and surfaces the result', async () => {
+  it('parses a ready snapshot and surfaces the result', async () => {
     const result = { totalHits: 5, summary: 'some-data' };
     server.use(
       http.get(`${BASE_URL}/v1/async-jobs/job_abc123`, () =>
-        HttpResponse.json({ ...BASE_RAW, status: 'COMPLETED', result, error: null }),
+        HttpResponse.json({ ...BASE_WIRE, status: 'ready', result }),
       ),
     );
     const snap = await createAsyncJobs().get('job_abc123');
@@ -104,15 +107,10 @@ describe('AsyncJobs.get — status normalization', () => {
     }
   });
 
-  it('normalizes FAILED → failed and surfaces the error string', async () => {
+  it('parses a failed snapshot and surfaces the error string', async () => {
     server.use(
       http.get(`${BASE_URL}/v1/async-jobs/job_abc123`, () =>
-        HttpResponse.json({
-          ...BASE_RAW,
-          status: 'FAILED',
-          result: null,
-          error: 'upstream timeout',
-        }),
+        HttpResponse.json({ ...BASE_WIRE, status: 'failed', error: 'upstream timeout' }),
       ),
     );
     const snap = await createAsyncJobs().get('job_abc123');
@@ -122,28 +120,25 @@ describe('AsyncJobs.get — status normalization', () => {
     }
   });
 
-  it('synthesizes a fallback message when FAILED has null error', async () => {
+  it('reflects createdAt as a number and updatedAt as a string', async () => {
     server.use(
       http.get(`${BASE_URL}/v1/async-jobs/job_abc123`, () =>
-        HttpResponse.json({ ...BASE_RAW, status: 'FAILED', result: null, error: null }),
+        HttpResponse.json({ ...BASE_WIRE, status: 'pending' }),
       ),
     );
     const snap = await createAsyncJobs().get('job_abc123');
-    expect(snap.status).toBe('failed');
-    if (snap.status === 'failed') {
-      expect(snap.error).toMatch(/failed without error message/i);
-    }
+    expect(snap.createdAt).toBe(1_716_897_600);
+    expect(typeof snap.createdAt).toBe('number');
+    expect(snap.updatedAt).toBe('2026-05-28T12:01:00Z');
   });
 
-  it('passes through createdAt and updatedAt on every variant', async () => {
+  it('rejects a failed snapshot whose error is null (server always sends a string)', async () => {
     server.use(
       http.get(`${BASE_URL}/v1/async-jobs/job_abc123`, () =>
-        HttpResponse.json({ ...BASE_RAW, status: 'PENDING', result: null, error: null }),
+        HttpResponse.json({ ...BASE_WIRE, status: 'failed', error: null }),
       ),
     );
-    const snap = await createAsyncJobs().get('job_abc123');
-    expect(snap.createdAt).toBe('2026-05-28T12:00:00Z');
-    expect(snap.updatedAt).toBe('2026-05-28T12:01:00Z');
+    await expect(createAsyncJobs().get('job_abc123')).rejects.toThrow();
   });
 });
 
@@ -191,15 +186,34 @@ describe('AsyncJobs.get — URL handling', () => {
       http.get(`${BASE_URL}/v1/async-jobs/:id`, ({ request }) => {
         capturedUrl = request.url;
         return HttpResponse.json({
-          ...BASE_RAW,
+          ...BASE_WIRE,
           jobId: 'job/with-slash',
-          status: 'PENDING',
-          result: null,
-          error: null,
+          status: 'pending',
         });
       }),
     );
     await createAsyncJobs().get('job/with-slash');
     expect(capturedUrl).toContain('job%2Fwith-slash');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Type-level contract — no `type`, createdAt is number
+// ---------------------------------------------------------------------------
+
+describe('AsyncJobSnapshot — type-level contract', () => {
+  it('has no `type`, a numeric createdAt and a string updatedAt', () => {
+    expectTypeOf<AsyncJobSnapshot['status']>().toEqualTypeOf<
+      'pending' | 'processing' | 'ready' | 'failed'
+    >();
+    expectTypeOf<AsyncJobSnapshot['createdAt']>().toEqualTypeOf<number>();
+    expectTypeOf<AsyncJobSnapshot['updatedAt']>().toEqualTypeOf<string>();
+    expectTypeOf<AsyncJobSnapshot>().not.toHaveProperty('type');
+
+    type Ready = Extract<AsyncJobSnapshot, { status: 'ready' }>;
+    expectTypeOf<Ready>().toHaveProperty('result');
+
+    type Failed = Extract<AsyncJobSnapshot, { status: 'failed' }>;
+    expectTypeOf<Failed['error']>().toEqualTypeOf<string>();
   });
 });

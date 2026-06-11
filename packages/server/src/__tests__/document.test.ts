@@ -17,6 +17,7 @@ import {
   ValidationError,
   AuthenticationError,
   DeepIDVError,
+  InsufficientFundsError,
 } from '@deepidv/core';
 import { Document } from '../document.js';
 
@@ -189,5 +190,30 @@ describe('Document.scan', () => {
     );
     const doc = createDocument();
     await expect(doc.scan({ image: JPEG_BYTES })).rejects.toThrow(DeepIDVError);
+  });
+
+  // cross-cutting: the inline-billed action routes share screening's
+  // plain-text 402 funds-gate surface. The core fix (InsufficientFundsError +
+  // text() fallback) flows here through the shared HttpClient with no
+  // namespace-specific code.
+  it('surfaces InsufficientFundsError on a plain-text 402 from scan endpoint', async () => {
+    server.use(
+      mockPresign(),
+      mockS3Put(),
+      http.post(
+        `${BASE_URL}/v1/document/scan`,
+        () => new HttpResponse('Insufficient funds or subscription.', { status: 402 }),
+      ),
+    );
+    const doc = createDocument();
+    try {
+      await doc.scan({ image: JPEG_BYTES });
+      expect.fail('Should have thrown');
+    } catch (e) {
+      expect(e).toBeInstanceOf(InsufficientFundsError);
+      const err = e as InsufficientFundsError;
+      expect(err.status).toBe(402);
+      expect(err.message).toBe('Insufficient funds or subscription.');
+    }
   });
 });
