@@ -18,10 +18,14 @@ import { TypedEmitter } from './events.js';
 import {
   DeepIDVError,
   AuthenticationError,
+  AuthorizationError,
+  NotFoundError,
   RateLimitError,
   ValidationError,
   NetworkError,
   TimeoutError,
+  InsufficientFundsError,
+  ServiceUnavailableError,
   type RawResponse,
 } from './errors.js';
 
@@ -36,6 +40,19 @@ export interface RequestOptions {
    * Falls back to `ResolvedConfig.timeout` when not provided.
    */
   timeout?: number;
+  /**
+   *
+   * SDK-managed headers (`x-api-key`, `Accept`, `Content-Type`)
+   * take precedence and cannot be overridden. Use this for headers
+   * like `Idempotency-Key`.
+   */
+  headers?: Record<string, string>;
+  /**
+   *
+   * Maximum number of retry attempts for 429 and 5xx responses.
+   * Falls back to `ResolvedConfig.maxRetries` when not provided.
+   */
+  maxRetries?: number;
 }
 
 /**
@@ -83,8 +100,12 @@ export class HttpClient {
    * @param options - Optional request body and timeout override.
    * @returns Parsed JSON response body typed as `T`.
    * @throws {AuthenticationError} On 401 responses.
+   * @throws {InsufficientFundsError} On 402 responses.
+   * @throws {AuthorizationError} On 403 responses.
+   * @throws {NotFoundError} On 404 responses.
    * @throws {RateLimitError} On 429 responses.
    * @throws {ValidationError} On 400 responses.
+   * @throws {ServiceUnavailableError} On 503 responses.
    * @throws {DeepIDVError} On other 4xx/5xx responses.
    * @throws {TimeoutError} When the per-attempt timeout fires.
    * @throws {NetworkError} On network-level failures.
@@ -96,9 +117,9 @@ export class HttpClient {
     let result: T;
     try {
       result = await withRetry(
-        () => this._attempt<T>(method, url, options?.body, timeoutMs),
+        () => this._attempt<T>(method, url, options?.body, timeoutMs, options?.headers),
         {
-          maxRetries: this.config.maxRetries,
+          maxRetries: options?.maxRetries ?? this.config.maxRetries,
           initialDelayMs: this.config.initialRetryDelay,
         },
         this.emitter,
@@ -124,6 +145,7 @@ export class HttpClient {
     url: string,
     body: unknown,
     timeoutMs: number,
+    customHeaders?: Record<string, string>,
   ): Promise<T> {
     // New AbortController per attempt — never reuse (D-01, HTTP-03)
     const controller = new AbortController();
@@ -140,7 +162,7 @@ export class HttpClient {
       try {
         response = await this.config.fetch(url, {
           method,
-          headers: buildHeaders(this.config.apiKey, body),
+          headers: { ...customHeaders, ...buildHeaders(this.config.apiKey, body) },
           body: body !== undefined ? JSON.stringify(body) : undefined,
           signal: controller.signal,
         });
@@ -162,8 +184,19 @@ export class HttpClient {
         return parsed;
       }
 
-      // Build raw response for error context (D-06)
-      const rawBody: unknown = await response.json().catch(() => null);
+      // Build raw response for error context.
+      // Read the body as text exactly once (a Response body is single-use), then
+      // try to parse it as JSON. This preserves non-JSON error bodies — e.g. the
+      // plain-text 402 funds-gate message — instead of dropping them to null.
+      const rawText = await response.text().catch(() => '');
+      let rawBody: unknown = rawText.length > 0 ? rawText : null;
+      if (rawText.length > 0) {
+        try {
+          rawBody = JSON.parse(rawText);
+        } catch {
+          rawBody = rawText;
+        }
+      }
       const rawResponse: RawResponse = {
         status: response.status,
         headers: Object.fromEntries(response.headers.entries()),
@@ -188,6 +221,18 @@ export class HttpClient {
 
         case 400:
           throw new ValidationError(errorMessage, { response: rawResponse });
+
+        case 402:
+          throw new InsufficientFundsError(errorMessage, { response: rawResponse });
+
+        case 403:
+          throw new AuthorizationError(errorMessage, { response: rawResponse });
+
+        case 404:
+          throw new NotFoundError(errorMessage, { response: rawResponse });
+
+        case 503:
+          throw new ServiceUnavailableError(errorMessage, { response: rawResponse });
 
         default:
           throw new DeepIDVError(errorMessage, {
@@ -262,14 +307,18 @@ export class HttpClient {
 /**
  * Extracts a human-readable error message from an API error response body.
  *
- * Supports `{ message: "..." }`, `{ error: "..." }`, or falls back to
- * `"HTTP {status}"`.
+ * Supports a plain-text body (returned trimmed), `{ message: "..." }`,
+ * `{ error: "..." }`, or falls back to `"HTTP {status}"`.
  *
- * @param body - Parsed response body (may be null).
+ * @param body - Parsed response body: a string (non-JSON body), object, or null.
  * @param status - HTTP status code.
  * @returns Error message string.
  */
 function extractErrorMessage(body: unknown, status: number): string {
+  if (typeof body === 'string') {
+    const trimmed = body.trim();
+    if (trimmed.length > 0) return trimmed;
+  }
   if (body !== null && typeof body === 'object') {
     const b = body as Record<string, unknown>;
     if (typeof b['message'] === 'string') return b['message'];

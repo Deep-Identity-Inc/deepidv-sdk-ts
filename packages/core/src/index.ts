@@ -19,12 +19,18 @@ export {
 
 export type { RawResponse } from './errors.js';
 export {
+  AdverseMediaFailedError,
   AuthenticationError,
+  AuthorizationError,
   DeepIDVError,
   NetworkError,
+  NotFoundError,
+  PollTimeoutError,
   RateLimitError,
   TimeoutError,
   ValidationError,
+  InsufficientFundsError,
+  ServiceUnavailableError,
 } from './errors.js';
 
 export type { SDKEventMap } from './events.js';
