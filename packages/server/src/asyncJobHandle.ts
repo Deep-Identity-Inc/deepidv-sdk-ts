@@ -58,6 +58,8 @@ export interface AdverseMediaHandle {
    * Auto-polls until the job reaches `ready` or `failed`, or `timeoutMs`
    * elapses. Returns the typed `AdverseMediaResult` on success.
    *
+   * Reccommended wait time is typically 30-60 seconds, but may take up to 3 minutes for large results.
+   *
    * @throws {AdverseMediaFailedError} If the job terminates in `failed`.
    * @throws {PollTimeoutError} If `timeoutMs` elapses before completion. This
    *   does **not** mean the job died — it may still complete server-side.
