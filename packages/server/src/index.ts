@@ -155,11 +155,7 @@ export type { AdverseMediaHandle, AdverseMediaWaitOptions } from './asyncJobHand
 // 10. Async-jobs types and schemas
 // ---------------------------------------------------------------------------
 export type { AsyncJobStatus, AsyncJobSnapshot } from './asyncJobs.types.js';
-export {
-  AsyncJobStatusSchema,
-  AsyncJobSnapshotSchema,
-  AsyncJobResponseSchema,
-} from './asyncJobs.types.js';
+export { AsyncJobStatusSchema, AsyncJobSnapshotSchema } from './asyncJobs.types.js';
 
 // NOTE: Sessions, Document, Face, Identity, Screening, AsyncJobs classes are
 // NOT exported. Consumers access them exclusively through client.sessions,

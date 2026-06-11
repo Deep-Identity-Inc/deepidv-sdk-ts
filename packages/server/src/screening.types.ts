@@ -34,6 +34,8 @@ export const ScreeningServiceSchema = z.enum(['PEP_SANCTIONS', 'ADVERSE_MEDIA', 
  * not accept it today. It will be added when the server schema bumps.
  */
 export const PepSanctionsInputSchema = z.object({
+  /** Email address (required, must be valid email format). */
+  email: z.email(),
   /** First name (required, 1–255 chars). */
   firstName: z.string().min(1).max(255),
   /** Last name (required, 1–255 chars). */
@@ -53,6 +55,8 @@ export const PepSanctionsInputSchema = z.object({
  * TTL is 24 hours.
  */
 export const AdverseMediaInputSchema = z.object({
+  /** Email address (required, must be valid email format). */
+  email: z.email(),
   /** First name (required, 1–255 chars). */
   firstName: z.string().min(1).max(255),
   /** Last name (required, 1–255 chars). */
@@ -82,6 +86,12 @@ export const AdverseMediaInputSchema = z.object({
  * raw address string through unchanged.
  */
 export const TitleCheckInputSchema = z.object({
+  /** Email address (required, must be valid email format). */
+  email: z.email(),
+  /** First name (required, 1–255 chars). */
+  firstName: z.string().min(1).max(255),
+  /** Last name (required, 1–255 chars). */
+  lastName: z.string().min(1).max(255),
   /** Free-text postal address (required, 1–500 chars). */
   address: z.string().min(1).max(500),
 });
@@ -106,45 +116,20 @@ export const ScreeningListInputSchema = z.object({
 // Sub-schemas for PEP/S response
 // ---------------------------------------------------------------------------
 
-const LocalSanctionsMatchSchema = z.object({
-  score: z.number(),
-  matchType: z.enum([
-    'fullMatchWithYear',
-    'partialYearMatch',
-    'firstName+lastNameOnly',
-    'yearMismatch',
-  ]),
-  data: z.object({
-    name: z.string(),
-    country: z.string(),
-    dateOfBirth: z.string().optional(),
-    searchBirthDate: z.string(),
-    source: z.enum(['Canadian Sanctions List', 'US Sanctions List']),
-  }),
-});
-
-const OpenSanctionsMatchItemSchema = z.object({
-  id: z.string(),
+/**
+ * A single PEP or sanctions match returned by `screening.pepSanctions()`.
+ *
+ * `confidence` is normalized to the 0–1 range. `datasets` lists the source
+ * datasets (e.g. OpenSanctions collections) that produced the match.
+ * `country` and `dateOfBirth` are nullable — the underlying records do not
+ * always carry them.
+ */
+const PepSanctionsMatchSchema = z.object({
   name: z.string(),
-  birthDate: z.string().nullable(),
-  score: z.number(),
   country: z.string().nullable(),
+  dateOfBirth: z.string().nullable(),
+  confidence: z.number().min(0).max(1),
   datasets: z.array(z.string()),
-});
-
-const OpenSanctionsResultSchema = z.object({
-  sanctions: z.array(OpenSanctionsMatchItemSchema).nullable(),
-  peps: z.array(OpenSanctionsMatchItemSchema).nullable(),
-  both: z.array(OpenSanctionsMatchItemSchema).nullable(),
-});
-
-const SanctionsCheckStatsSchema = z.object({
-  canadaMatches: z.number().int(),
-  usMatches: z.number().int(),
-  totalMatches: z.number().int(),
-  sanctionsMatches: z.number().int(),
-  pepMatches: z.number().int(),
-  bothMatches: z.number().int(),
 });
 
 // ---------------------------------------------------------------------------
@@ -290,36 +275,39 @@ const TitleCheckNotFoundSchema = z.object({
 /**
  * Response schema for `screening.pepSanctions()` — sync.
  *
- * Wraps a `message` envelope around the screening data. `data.skip` may be
- * true when the screening was short-circuited; `data.matches` holds local
- * sanctions matches; `data.openSanctions` holds OpenSanctions results;
- * `data.stats` holds aggregate counts.
+ * Normalized public contract: `peps`, `sanctions`, and `both` each hold the
+ * matches in their respective category (`both` = matched as PEP *and*
+ * sanctioned). `totalMatches` is the aggregate count and `searchedSources`
+ * lists the datasets/sources that were queried.
  */
 export const PepSanctionsResultSchema = z
   .object({
-    message: z.string(),
-    data: z.object({
-      skip: z.boolean().optional(),
-      matches: z.array(LocalSanctionsMatchSchema).optional(),
-      openSanctions: OpenSanctionsResultSchema.optional(),
-      stats: SanctionsCheckStatsSchema,
-    }),
+    totalMatches: z.number().int(),
+    peps: z.array(PepSanctionsMatchSchema),
+    sanctions: z.array(PepSanctionsMatchSchema),
+    both: z.array(PepSanctionsMatchSchema),
+    searchedSources: z.array(z.string()),
   })
   .strip();
 
 /**
  * Response schema for the queued `screening.adverseMedia()` POST.
  *
- * The server returns this synchronously (HTTP 201) along with the `jobId`
- * the SDK will poll. The actual result is delivered when the async job
- * completes — parse it with `AdverseMediaResultSchema`.
+ * The server returns this synchronously (HTTP 202 for a new job, HTTP 200 for
+ * an idempotent replay) along with the `jobId` the SDK will poll. The actual
+ * result is delivered when the async job completes — parse it with
+ * `AdverseMediaResultSchema`.
+ *
+ * `status` is the lowercase job status. It is usually `'pending'` for a fresh
+ * enqueue, but a replayed (idempotent) job may already be further along, so the
+ * full lowercase enum is accepted. Only `jobId` is consumed downstream.
  */
 export const AdverseMediaQueuedResponseSchema = z
   .object({
     /** Server-side job ID. Log/store for later polling. */
     jobId: z.string(),
-    /** Initial status — always `PENDING` at queue time. */
-    status: z.literal('PENDING'),
+    /** Current job status — may be past `pending` on an idempotent replay. */
+    status: z.enum(['pending', 'processing', 'ready', 'failed']),
     /** Human-readable queue confirmation message. */
     message: z.string(),
   })

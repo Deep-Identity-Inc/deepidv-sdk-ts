@@ -2,9 +2,9 @@
  * Async-jobs service module.
  *
  * Wraps `GET /v1/async-jobs/{jobId}` so callers can poll long-running
- * server-side operations. The response is normalized via
- * `AsyncJobResponseSchema` so consumers never see the raw uppercase
- * server enum.
+ * server-side operations. The wire response is parsed directly through
+ * `AsyncJobSnapshotSchema` — the server already emits the public lowercase
+ * shape, so no normalization layer is needed.
  *
  * Most callers should use the typed handle returned by the originating
  * method (e.g. `screening.adverseMedia(...)`). Direct access via
@@ -16,7 +16,7 @@
 
 import type { HttpClient } from '@deepidv/core';
 import { ValidationError } from '@deepidv/core';
-import { AsyncJobResponseSchema, type AsyncJobSnapshot } from './asyncJobs.types.js';
+import { AsyncJobSnapshotSchema, type AsyncJobSnapshot } from './asyncJobs.types.js';
 
 /**
  * Provides access to async-job state for long-running server-side operations.
@@ -58,6 +58,6 @@ export class AsyncJobs {
       throw new ValidationError("expected non-empty string at 'jobId'");
     }
     const raw = await this.client.get<unknown>(`/v1/async-jobs/${encodeURIComponent(jobId)}`);
-    return AsyncJobResponseSchema.parse(raw);
+    return AsyncJobSnapshotSchema.parse(raw);
   }
 }
