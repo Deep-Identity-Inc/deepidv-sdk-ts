@@ -437,9 +437,33 @@ export const DEFAULT_STEPS: StepDefinition[] = [
   {
     id: 'consent',
     label: 'Consent',
-    description: 'Capture applicant consent before verification',
-    icon: 'solar:check-circle-bold-duotone',
+    description: 'Collect applicant consent before specific verification steps',
+    icon: 'solar:document-add-bold-duotone',
     category: 'Verify',
+    propertyGroups: [
+      {
+        groupId: 'consent-steps',
+        groupName: 'Step Consent',
+        groupTooltip: 'Choose which steps require consent before proceeding.',
+        properties: [
+          {
+            id: 'face-liveness',
+            label: 'Face Liveness',
+            sublabel: 'Prompt the applicant for consent before performing face liveness.',
+            type: 'boolean',
+            value: false,
+          },
+          {
+            id: 'face-liveness-require-signature',
+            label: 'Require Signature',
+            sublabel: 'Require the applicant to provide a signature along with consent.',
+            type: 'boolean',
+            value: false,
+            requirement: 'face-liveness',
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'kyb',
