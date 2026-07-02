@@ -26,6 +26,7 @@ export {
 // Types
 export type {
   StepDefinition,
+  StepPricing,
   StepProperty,
   StepPropertyGroup,
   StepPropertyOption,
