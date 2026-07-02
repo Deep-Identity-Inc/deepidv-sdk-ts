@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Icon } from '@iconify/react';
-import type { StepDefinition, WorkflowStep, WorkflowBuilderLabels } from '../types.js';
+import type { StepDefinition, StepPricing, WorkflowStep, WorkflowBuilderLabels } from '../types.js';
 import { getStepGradient } from '../utils/helpers.js';
 
 // ----------------------------------------------------------------------
@@ -17,10 +17,11 @@ const CATEGORY_TABS = [
 interface PaletteCardProps {
   step: StepDefinition;
   disabled: boolean;
+  pricing?: StepPricing;
   onAdd: (stepId: string) => void;
 }
 
-function PaletteCard({ step, disabled, onAdd }: PaletteCardProps): React.ReactElement {
+function PaletteCard({ step, disabled, pricing, onAdd }: PaletteCardProps): React.ReactElement {
   const handleDragStart = (e: React.DragEvent): void => {
     if (disabled) {
       e.preventDefault();
@@ -49,6 +50,11 @@ function PaletteCard({ step, disabled, onAdd }: PaletteCardProps): React.ReactEl
         <div className="deepidv--step-label">{step.label}</div>
         {step.description && <div className="deepidv--step-description">{step.description}</div>}
       </div>
+      {pricing && (
+        <span className="deepidv--step-pricing deepidv--step-pricing--sm" title={pricing.tooltip}>
+          {pricing.label}
+        </span>
+      )}
     </div>
   );
 }
@@ -59,6 +65,7 @@ interface StepPaletteProps {
   steps: StepDefinition[];
   workflowSteps: WorkflowStep[];
   disabledStepIds: string[];
+  stepPricing?: Record<string, StepPricing>;
   labels: WorkflowBuilderLabels;
   hideAdded?: boolean;
   onAddStep: (stepId: string) => void;
@@ -68,6 +75,7 @@ export function StepPalette({
   steps,
   workflowSteps,
   disabledStepIds,
+  stepPricing,
   labels,
   hideAdded = true,
   onAddStep,
@@ -133,6 +141,7 @@ export function StepPalette({
             key={step.id}
             step={step}
             disabled={disabledStepIds.includes(step.id)}
+            pricing={stepPricing?.[step.id]}
             onAdd={onAddStep}
           />
         ))}

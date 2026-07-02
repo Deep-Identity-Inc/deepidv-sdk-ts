@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import type {
   StepDefinition,
+  StepPricing,
   WorkflowBuilderProps,
   WorkflowStep,
   WorkflowValue,
@@ -23,6 +24,7 @@ interface StepCardProps {
   onDelete: () => void;
   availableSteps: StepDefinition[];
   disabled: boolean;
+  pricing?: StepPricing;
 }
 
 function StepCard({
@@ -33,6 +35,7 @@ function StepCard({
   onDelete,
   availableSteps,
   disabled,
+  pricing,
 }: StepCardProps): React.ReactElement {
   const stepDef = availableSteps.find((s) => s.id === step.id);
   const stepIcon = step.icon ?? stepDef?.icon ?? 'solar:widget-bold-duotone';
@@ -57,6 +60,11 @@ function StepCard({
           <div className="deepidv--step-card-label">{step.label}</div>
           <div className="deepidv--step-card-description">{stepDescription}</div>
         </div>
+        {pricing && (
+          <span className="deepidv--step-pricing" title={pricing.tooltip}>
+            {pricing.label}
+          </span>
+        )}
         <button
           type="button"
           className="deepidv--step-delete"
@@ -86,6 +94,7 @@ export function WorkflowBuilder({
   templates: templatesProp,
   disabledStepIds = [],
   hiddenStepIds = [],
+  stepPricing,
   disabled = false,
   showPalette = true,
   showSettings = true,
@@ -327,6 +336,7 @@ export function WorkflowBuilder({
             steps={availableSteps}
             workflowSteps={workflow.steps}
             disabledStepIds={disabledStepIds}
+            stepPricing={stepPricing}
             labels={labels}
             onAddStep={addStep}
           />
@@ -387,6 +397,7 @@ export function WorkflowBuilder({
                         }}
                         availableSteps={availableSteps}
                         disabled={disabled}
+                        pricing={stepPricing?.[step.id]}
                       />
                     </div>
                     {index < workflow.steps.length - 1 && (

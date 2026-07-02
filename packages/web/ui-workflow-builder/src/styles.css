@@ -415,6 +415,24 @@
   white-space: nowrap;
 }
 
+/* ------ Step pricing badge ------ */
+
+.deepidv--step-pricing {
+  flex-shrink: 0;
+  font-size: var(--deepidv-font-size-base);
+  font-weight: 600;
+  color: var(--deepidv-color-text-secondary);
+  background-color: var(--deepidv-color-bg-subtle);
+  padding: var(--deepidv-space-1) var(--deepidv-space-3);
+  border-radius: var(--deepidv-radius-sm);
+  white-space: nowrap;
+}
+
+.deepidv--step-pricing--sm {
+  font-size: var(--deepidv-font-size-sm);
+  padding: 2px var(--deepidv-space-2);
+}
+
 .deepidv--step-number {
   position: absolute;
   left: -10px;

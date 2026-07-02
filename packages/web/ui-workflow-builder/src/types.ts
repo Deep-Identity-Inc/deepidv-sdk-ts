@@ -68,6 +68,17 @@ export interface StepPropertyGroup {
 }
 
 // ----------------------------------------------------------------------
+// Step pricing (injected per step)
+// ----------------------------------------------------------------------
+
+export interface StepPricing {
+  /** Display label, e.g. "$0.50" or "Free" */
+  label: string;
+  /** Optional tooltip shown on hover */
+  tooltip?: string;
+}
+
+// ----------------------------------------------------------------------
 // Step definition (available steps palette)
 // ----------------------------------------------------------------------
 
@@ -203,6 +214,8 @@ export interface WorkflowBuilderProps {
   disabledStepIds?: string[];
   /** Step IDs to completely hide from the palette — the end user never sees them. */
   hiddenStepIds?: string[];
+  /** Per-step pricing labels, keyed by step ID. Shown on palette cards and canvas step cards. */
+  stepPricing?: Record<string, StepPricing>;
 
   disabled?: boolean;
   showPalette?: boolean;
