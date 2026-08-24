@@ -34,8 +34,12 @@ export const ScreeningServiceSchema = z.enum(['PEP_SANCTIONS', 'ADVERSE_MEDIA', 
  * not accept it today. It will be added when the server schema bumps.
  */
 export const PepSanctionsInputSchema = z.object({
-  /** Email address (required, must be valid email format). */
-  email: z.email(),
+  /**
+   * Email address (optional, must be valid email format when provided).
+   * When omitted, screening runs on name + date of birth alone and the
+   * server synthesizes a placeholder identity email.
+   */
+  email: z.email().optional(),
   /** First name (required, 1–255 chars). */
   firstName: z.string().min(1).max(255),
   /** Last name (required, 1–255 chars). */
@@ -55,8 +59,12 @@ export const PepSanctionsInputSchema = z.object({
  * TTL is 24 hours.
  */
 export const AdverseMediaInputSchema = z.object({
-  /** Email address (required, must be valid email format). */
-  email: z.email(),
+  /**
+   * Email address (optional, must be valid email format when provided).
+   * When omitted, screening runs on name + date of birth alone and the
+   * server synthesizes a placeholder identity email.
+   */
+  email: z.email().optional(),
   /** First name (required, 1–255 chars). */
   firstName: z.string().min(1).max(255),
   /** Last name (required, 1–255 chars). */
