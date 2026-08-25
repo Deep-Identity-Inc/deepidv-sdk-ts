@@ -157,14 +157,22 @@ describe('Screening.pepSanctions', () => {
     });
   });
 
-  it('throws ValidationError on missing email', async () => {
-    await expect(
-      createScreening().pepSanctions({
-        firstName: 'Jane',
-        lastName: 'Doe',
-        dateOfBirth: '1980-05-12',
-      } as never),
-    ).rejects.toThrow(ValidationError);
+  it('succeeds without email, screening on name + DOB alone', async () => {
+    let capturedBody: Record<string, unknown> | null = null;
+    server.use(
+      http.post(`${BASE_URL}/v1/screening/pep-sanctions`, async ({ request }) => {
+        capturedBody = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json(MOCK_PEP_SANCTIONS_CLEAN);
+      }),
+    );
+    const result = await createScreening().pepSanctions({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      dateOfBirth: '1980-05-12',
+    });
+    expect(result.totalMatches).toBe(0);
+    expect(capturedBody).not.toHaveProperty('email');
+    expect(capturedBody).toMatchObject({ firstName: 'Jane', lastName: 'Doe' });
   });
 
   it('throws ValidationError on malformed email', async () => {
@@ -337,6 +345,24 @@ describe('Screening.adverseMedia', () => {
     );
     await createScreening().adverseMedia({ ...SAMPLE_INPUT, country: 'ca' });
     expect(capturedBody?.['country']).toBe('CA');
+  });
+
+  it('succeeds without email, screening on name + DOB alone', async () => {
+    let capturedBody: Record<string, unknown> | null = null;
+    server.use(
+      http.post(`${BASE_URL}/v1/screening/adverse-media`, async ({ request }) => {
+        capturedBody = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json(ADVERSE_MEDIA_QUEUED('job_no_email'), { status: 202 });
+      }),
+    );
+    const handle = await createScreening().adverseMedia({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      dateOfBirth: '1980-05-12',
+    });
+    expect(handle.jobId).toBe('job_no_email');
+    expect(capturedBody).not.toHaveProperty('email');
+    expect(capturedBody).toMatchObject({ firstName: 'Jane', lastName: 'Doe' });
   });
 
   it('throws ValidationError on missing firstName', async () => {
