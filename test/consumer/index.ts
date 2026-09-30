@@ -80,6 +80,25 @@ import {
   DeepfakeAnalyzeResultSchema,
   AuthOrganizationSchema,
   AuthVerifyResultSchema,
+  WORKFLOW_STEP_IDS,
+  WorkflowStepIdSchema,
+  WorkflowStepConfigSchema,
+  WorkflowCreateStepSchema,
+  WorkflowCreateInputSchema,
+  WorkflowStepSchema,
+  WorkflowSchema,
+  WorkflowSummarySchema,
+  WorkflowListResultSchema,
+  WorkflowResultSchema,
+  WorkflowExecutionStepStatusSchema,
+  WorkflowStepRequirementsSchema,
+  WorkflowSessionCreateInputSchema,
+  WorkflowSessionCreateStepSchema,
+  WorkflowSessionCreateResultSchema,
+  WorkflowExecutionStepSchema,
+  WorkflowSessionStateSchema,
+  WorkflowStepSubmissionSchemas,
+  WorkflowStepSubmitResultSchema,
 } from '@deepidv/server';
 import type {
   DeepIDVOptions,
@@ -151,6 +170,24 @@ import type {
   DeepfakeAnalyzeResult,
   AuthOrganization,
   AuthVerifyResult,
+  WorkflowStepId,
+  WorkflowStepConfig,
+  WorkflowCreateStep,
+  WorkflowCreateInput,
+  WorkflowStep,
+  Workflow,
+  WorkflowSummary,
+  WorkflowListResult,
+  WorkflowResult,
+  WorkflowExecutionStepStatus,
+  WorkflowStepRequirements,
+  WorkflowSessionCreateInput,
+  WorkflowSessionCreateStep,
+  WorkflowSessionCreateResult,
+  WorkflowExecutionStep,
+  WorkflowSessionState,
+  WorkflowStepSubmissionInput,
+  WorkflowStepSubmitResult,
 } from '@deepidv/server';
 
 const client = new DeepIDV({ apiKey: 'test' });
@@ -163,6 +200,8 @@ const namespaces = [
   client.asyncJobs,
   client.deepfake,
   client.auth,
+  client.workflows,
+  client.workflowSessions,
 ];
 
 const values = [
@@ -244,6 +283,25 @@ const values = [
   DeepfakeAnalyzeResultSchema,
   AuthOrganizationSchema,
   AuthVerifyResultSchema,
+  WORKFLOW_STEP_IDS,
+  WorkflowStepIdSchema,
+  WorkflowStepConfigSchema,
+  WorkflowCreateStepSchema,
+  WorkflowCreateInputSchema,
+  WorkflowStepSchema,
+  WorkflowSchema,
+  WorkflowSummarySchema,
+  WorkflowListResultSchema,
+  WorkflowResultSchema,
+  WorkflowExecutionStepStatusSchema,
+  WorkflowStepRequirementsSchema,
+  WorkflowSessionCreateInputSchema,
+  WorkflowSessionCreateStepSchema,
+  WorkflowSessionCreateResultSchema,
+  WorkflowExecutionStepSchema,
+  WorkflowSessionStateSchema,
+  WorkflowStepSubmissionSchemas,
+  WorkflowStepSubmitResultSchema,
 ];
 
 type PublicTypes =
@@ -315,7 +373,25 @@ type PublicTypes =
   | DeepfakeAnalyzeDetails
   | DeepfakeAnalyzeResult
   | AuthOrganization
-  | AuthVerifyResult;
+  | AuthVerifyResult
+  | WorkflowStepId
+  | WorkflowStepConfig
+  | WorkflowCreateStep
+  | WorkflowCreateInput
+  | WorkflowStep
+  | Workflow
+  | WorkflowSummary
+  | WorkflowListResult
+  | WorkflowResult
+  | WorkflowExecutionStepStatus
+  | WorkflowStepRequirements
+  | WorkflowSessionCreateInput
+  | WorkflowSessionCreateStep
+  | WorkflowSessionCreateResult
+  | WorkflowExecutionStep
+  | WorkflowSessionState
+  | WorkflowStepSubmissionInput<'FACE_LIVENESS'>
+  | WorkflowStepSubmitResult;
 
 declare const publicType: PublicTypes;
 void namespaces;

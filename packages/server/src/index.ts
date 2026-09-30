@@ -228,7 +228,57 @@ export {
 export type { AuthOrganization, AuthVerifyResult } from './auth.types.js';
 export { AuthOrganizationSchema, AuthVerifyResultSchema } from './auth.types.js';
 
+// ---------------------------------------------------------------------------
+// 13. Workflow definition and execution types and schemas
+// ---------------------------------------------------------------------------
+export type {
+  WorkflowStepId,
+  WorkflowStepConfig,
+  WorkflowCreateStep,
+  WorkflowCreateInput,
+  WorkflowStep,
+  Workflow,
+  WorkflowSummary,
+  WorkflowListResult,
+  WorkflowResult,
+} from './workflows.types.js';
+export {
+  WORKFLOW_STEP_IDS,
+  WorkflowStepIdSchema,
+  WorkflowStepConfigSchema,
+  WorkflowCreateStepSchema,
+  WorkflowCreateInputSchema,
+  WorkflowStepSchema,
+  WorkflowSchema,
+  WorkflowSummarySchema,
+  WorkflowListResultSchema,
+  WorkflowResultSchema,
+} from './workflows.types.js';
+export type {
+  WorkflowExecutionStepStatus,
+  WorkflowStepRequirements,
+  WorkflowSessionCreateInput,
+  WorkflowSessionCreateStep,
+  WorkflowSessionCreateResult,
+  WorkflowExecutionStep,
+  WorkflowSessionState,
+  WorkflowStepSubmissionInput,
+  WorkflowStepSubmitResult,
+} from './workflowSessions.types.js';
+export {
+  WorkflowExecutionStepStatusSchema,
+  WorkflowStepRequirementsSchema,
+  WorkflowSessionCreateInputSchema,
+  WorkflowSessionCreateStepSchema,
+  WorkflowSessionCreateResultSchema,
+  WorkflowExecutionStepSchema,
+  WorkflowSessionStateSchema,
+  WorkflowStepSubmissionSchemas,
+  WorkflowStepSubmitResultSchema,
+} from './workflowSessions.types.js';
+
 // NOTE: Namespace classes are
 // NOT exported. Consumers access them exclusively through client.sessions,
 // client.document, client.face, client.identity, client.screening, and
-// client.asyncJobs, client.deepfake, and client.auth (per D-01, API-05).
+// client.asyncJobs, client.deepfake, client.auth, client.workflows, and
+// client.workflowSessions (per D-01, API-05).

@@ -11,6 +11,8 @@ classDiagram
         +asyncJobs: AsyncJobs
         +deepfake: Deepfake
         +auth: Auth
+        +workflows: Workflows
+        +workflowSessions: WorkflowSessions
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -59,6 +61,20 @@ classDiagram
         +verify() AuthVerifyResult
     }
 
+    class Workflows {
+        +list() WorkflowListResult
+        +create(input) WorkflowResult
+        +retrieve(workflowId) WorkflowResult
+        +updateStepConfig(workflowId, stepId, config) WorkflowResult
+        +createSession(workflowId, input) WorkflowSessionCreateResult
+    }
+
+    class WorkflowSessions {
+        +retrieve(sessionId) WorkflowSessionState
+        +start(sessionId) WorkflowSessionState
+        +submitStep(sessionId, stepId, input) WorkflowStepSubmitResult
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
@@ -67,3 +83,5 @@ classDiagram
     DeepIDV *-- AsyncJobs : asyncJobs
     DeepIDV *-- Deepfake : deepfake
     DeepIDV *-- Auth : auth
+    DeepIDV *-- Workflows : workflows
+    DeepIDV *-- WorkflowSessions : workflowSessions
