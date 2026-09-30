@@ -13,6 +13,9 @@ classDiagram
         +auth: Auth
         +workflows: Workflows
         +workflowSessions: WorkflowSessions
+        +financial: Financial
+        +creditTerms: CreditTerms
+        +creditChecks: CreditChecks
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -45,6 +48,9 @@ classDiagram
         +pepSanctions(input) PepSanctionsResult
         +adverseMedia(input) AdverseMediaHandle
         +titleCheck(input) TitleCheckResult
+        +carrierAgeGate(input) CarrierAgeGateResult
+        +phoneOwnership(input) PhoneOwnershipResult
+        +phoneTrust(input) PhoneTrustResult
     }
 
     class AsyncJobs {
@@ -75,6 +81,25 @@ classDiagram
         +submitStep(sessionId, stepId, input) WorkflowStepSubmitResult
     }
 
+    class Financial {
+        +create(input) FinancialCreateResult
+        +list(params?) FinancialListResult
+        +retrieve(id) FinancialRecord
+        +listByExternalId(externalId, params?) FinancialListResult
+    }
+
+    class CreditTerms {
+        +create(input) CreditTermsCreateResult
+        +list(params?) CreditTermsListResult
+        +retrieve(id) CreditTermsRecord
+        +listByExternalId(externalId, params?) CreditTermsListResult
+    }
+
+    class CreditChecks {
+        +createHard(input) CreditCheckCreateResult
+        +createSoft(input) CreditCheckCreateResult
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
@@ -85,3 +110,6 @@ classDiagram
     DeepIDV *-- Auth : auth
     DeepIDV *-- Workflows : workflows
     DeepIDV *-- WorkflowSessions : workflowSessions
+    DeepIDV *-- Financial : financial
+    DeepIDV *-- CreditTerms : creditTerms
+    DeepIDV *-- CreditChecks : creditChecks

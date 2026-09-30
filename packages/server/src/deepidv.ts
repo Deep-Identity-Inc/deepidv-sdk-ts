@@ -28,6 +28,9 @@ import { Deepfake } from './deepfake.js';
 import { Auth } from './auth.js';
 import { Workflows } from './workflows.js';
 import { WorkflowSessions } from './workflowSessions.js';
+import { Financial } from './financial.js';
+import { CreditTerms } from './creditTerms.js';
+import { CreditChecks } from './creditChecks.js';
 
 // ---------------------------------------------------------------------------
 // Config schema (exported for consumers per D-02)
@@ -166,6 +169,15 @@ export class DeepIDV {
   /** Resumable, session-ID based workflow execution. */
   readonly workflowSessions: WorkflowSessions;
 
+  /** Bank-statement request creation and retrieval. */
+  readonly financial: Financial;
+
+  /** Credit-terms application request creation and retrieval. */
+  readonly creditTerms: CreditTerms;
+
+  /** Hard and soft credit-check session creation. */
+  readonly creditChecks: CreditChecks;
+
   /** Internal emitter — not exposed directly to consumers. */
   private readonly emitter: TypedEmitter;
 
@@ -207,6 +219,9 @@ export class DeepIDV {
     this.auth = new Auth(httpClient);
     this.workflows = new Workflows(httpClient);
     this.workflowSessions = new WorkflowSessions(httpClient);
+    this.financial = new Financial(httpClient);
+    this.creditTerms = new CreditTerms(httpClient);
+    this.creditChecks = new CreditChecks(httpClient);
   }
 
   /**

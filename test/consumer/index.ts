@@ -65,6 +65,13 @@ import {
   AdverseMediaJobSnapshotSchema,
   TitleCheckInputSchema,
   TitleCheckResultSchema,
+  CarrierAgeGateInputSchema,
+  CarrierAgeGateResultSchema,
+  PhoneOwnershipInputSchema,
+  PhoneOwnershipResultSchema,
+  PhoneTrustInputSchema,
+  PhoneTrustTripReasonSchema,
+  PhoneTrustResultSchema,
   AsyncJobStatusSchema,
   AsyncJobSnapshotSchema,
   DeepfakeChallengeResultSchema,
@@ -99,6 +106,20 @@ import {
   WorkflowSessionStateSchema,
   WorkflowStepSubmissionSchemas,
   WorkflowStepSubmitResultSchema,
+  FinancialCreateInputSchema,
+  FinancialCreateResultSchema,
+  FinancialRecordSchema,
+  FinancialListParamsSchema,
+  FinancialListResultSchema,
+  CreditTermsCreateInputSchema,
+  CreditTermsCreateResultSchema,
+  CreditTermsRecordSchema,
+  CreditTermsListParamsSchema,
+  CreditTermsListResultSchema,
+  CreditCheckCreateInputSchema,
+  CreditCheckTypeSchema,
+  CreditCheckLinkSchema,
+  CreditCheckCreateResultSchema,
 } from '@deepidv/server';
 import type {
   DeepIDVOptions,
@@ -155,6 +176,13 @@ import type {
   AdverseMediaWaitOptions,
   TitleCheckInput,
   TitleCheckResult,
+  CarrierAgeGateInput,
+  CarrierAgeGateResult,
+  PhoneOwnershipInput,
+  PhoneOwnershipResult,
+  PhoneTrustInput,
+  PhoneTrustTripReason,
+  PhoneTrustResult,
   AsyncJobStatus,
   AsyncJobSnapshot,
   DeepfakeChallengeResult,
@@ -188,6 +216,20 @@ import type {
   WorkflowSessionState,
   WorkflowStepSubmissionInput,
   WorkflowStepSubmitResult,
+  FinancialCreateInput,
+  FinancialCreateResult,
+  FinancialRecord,
+  FinancialListParams,
+  FinancialListResult,
+  CreditTermsCreateInput,
+  CreditTermsCreateResult,
+  CreditTermsRecord,
+  CreditTermsListParams,
+  CreditTermsListResult,
+  CreditCheckCreateInput,
+  CreditCheckType,
+  CreditCheckLink,
+  CreditCheckCreateResult,
 } from '@deepidv/server';
 
 const client = new DeepIDV({ apiKey: 'test' });
@@ -202,6 +244,9 @@ const namespaces = [
   client.auth,
   client.workflows,
   client.workflowSessions,
+  client.financial,
+  client.creditTerms,
+  client.creditChecks,
 ];
 
 const values = [
@@ -302,6 +347,27 @@ const values = [
   WorkflowSessionStateSchema,
   WorkflowStepSubmissionSchemas,
   WorkflowStepSubmitResultSchema,
+  CarrierAgeGateInputSchema,
+  CarrierAgeGateResultSchema,
+  PhoneOwnershipInputSchema,
+  PhoneOwnershipResultSchema,
+  PhoneTrustInputSchema,
+  PhoneTrustTripReasonSchema,
+  PhoneTrustResultSchema,
+  FinancialCreateInputSchema,
+  FinancialCreateResultSchema,
+  FinancialRecordSchema,
+  FinancialListParamsSchema,
+  FinancialListResultSchema,
+  CreditTermsCreateInputSchema,
+  CreditTermsCreateResultSchema,
+  CreditTermsRecordSchema,
+  CreditTermsListParamsSchema,
+  CreditTermsListResultSchema,
+  CreditCheckCreateInputSchema,
+  CreditCheckTypeSchema,
+  CreditCheckLinkSchema,
+  CreditCheckCreateResultSchema,
 ];
 
 type PublicTypes =
@@ -391,7 +457,28 @@ type PublicTypes =
   | WorkflowExecutionStep
   | WorkflowSessionState
   | WorkflowStepSubmissionInput<'FACE_LIVENESS'>
-  | WorkflowStepSubmitResult;
+  | WorkflowStepSubmitResult
+  | CarrierAgeGateInput
+  | CarrierAgeGateResult
+  | PhoneOwnershipInput
+  | PhoneOwnershipResult
+  | PhoneTrustInput
+  | PhoneTrustTripReason
+  | PhoneTrustResult
+  | FinancialCreateInput
+  | FinancialCreateResult
+  | FinancialRecord
+  | FinancialListParams
+  | FinancialListResult
+  | CreditTermsCreateInput
+  | CreditTermsCreateResult
+  | CreditTermsRecord
+  | CreditTermsListParams
+  | CreditTermsListResult
+  | CreditCheckCreateInput
+  | CreditCheckType
+  | CreditCheckLink
+  | CreditCheckCreateResult;
 
 declare const publicType: PublicTypes;
 void namespaces;
