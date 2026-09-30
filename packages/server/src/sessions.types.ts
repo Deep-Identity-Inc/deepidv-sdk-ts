@@ -105,6 +105,55 @@ export const SessionStatusUpdateResultSchema = z.object({
   sessionRecord: SessionSchema,
 });
 
+export const SessionUploadTypeSchema = z.enum([
+  'id_front',
+  'id_back',
+  'secondary_id_front',
+  'secondary_id_back',
+  'tertiary_id_front',
+  'tertiary_id_back',
+  'selfie_front',
+]);
+
+const SessionUploadFileBaseSchema = z.object({
+  fileName: z.string().min(1),
+  contentType: z.string().min(1),
+});
+
+export const LegacySessionUploadFileSchema = SessionUploadFileBaseSchema.extend({
+  uploadType: SessionUploadTypeSchema,
+}).strict();
+
+export const DynamicSessionUploadFileSchema = SessionUploadFileBaseSchema.extend({
+  slot: z.string().trim().min(1).max(255),
+}).strict();
+
+export const SessionUploadFileSchema = z.union([
+  LegacySessionUploadFileSchema,
+  DynamicSessionUploadFileSchema,
+]);
+
+export const SessionUploadUrlsInputSchema = z
+  .object({ files: z.array(SessionUploadFileSchema).min(1) })
+  .refine(
+    ({ files }) => {
+      const slots = files.map((file) => ('slot' in file ? file.slot : file.uploadType));
+      return slots.length === new Set(slots).size;
+    },
+    { message: 'Duplicate upload slots are not allowed', path: ['files'] },
+  );
+
+export const SessionSignedUrlSchema = z.object({
+  fileKey: z.string(),
+  slot: z.string(),
+  uploadType: SessionUploadTypeSchema.optional(),
+  uploadUrl: z.string(),
+});
+
+export const SessionUploadUrlsResultSchema = z.object({
+  signedUrls: z.array(SessionSignedUrlSchema),
+});
+
 const RawSessionRecordSchema = z.object({
   id: z.string(),
   organization_id: z.string(),
@@ -212,6 +261,28 @@ export const SessionStatusUpdateWireResultSchema = z
     SessionStatusUpdateResultSchema.parse({ sessionRecord: normalizeSession(raw.session_record) }),
   );
 
+export const SessionUploadUrlsWireResultSchema = z
+  .object({
+    signed_urls: z.array(
+      z.object({
+        file_key: z.string(),
+        slot: z.string(),
+        upload_type: SessionUploadTypeSchema.optional(),
+        upload_url: z.string(),
+      }),
+    ),
+  })
+  .transform((raw) =>
+    SessionUploadUrlsResultSchema.parse({
+      signedUrls: raw.signed_urls.map((entry) => ({
+        fileKey: entry.file_key,
+        slot: entry.slot,
+        uploadType: entry.upload_type,
+        uploadUrl: entry.upload_url,
+      })),
+    }),
+  );
+
 export type SessionCreateInput = z.infer<typeof SessionCreateInputSchema>;
 export type SessionCreateResult = z.infer<typeof SessionCreateResultSchema>;
 export type SessionLocation = z.infer<typeof SessionLocationSchema>;
@@ -224,3 +295,10 @@ export type SessionListParams = z.infer<typeof SessionListParamsSchema>;
 export type SessionListResult = z.infer<typeof SessionListResultSchema>;
 export type SessionStatusUpdate = z.infer<typeof SessionStatusUpdateSchema>;
 export type SessionStatusUpdateResult = z.infer<typeof SessionStatusUpdateResultSchema>;
+export type SessionUploadType = z.infer<typeof SessionUploadTypeSchema>;
+export type LegacySessionUploadFile = z.infer<typeof LegacySessionUploadFileSchema>;
+export type DynamicSessionUploadFile = z.infer<typeof DynamicSessionUploadFileSchema>;
+export type SessionUploadFile = z.infer<typeof SessionUploadFileSchema>;
+export type SessionUploadUrlsInput = z.infer<typeof SessionUploadUrlsInputSchema>;
+export type SessionSignedUrl = z.infer<typeof SessionSignedUrlSchema>;
+export type SessionUploadUrlsResult = z.infer<typeof SessionUploadUrlsResultSchema>;

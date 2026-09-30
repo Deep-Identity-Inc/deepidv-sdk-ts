@@ -9,6 +9,8 @@ classDiagram
         +identity: Identity
         +screening: Screening
         +asyncJobs: AsyncJobs
+        +deepfake: Deepfake
+        +auth: Auth
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -18,6 +20,7 @@ classDiagram
         +retrieve(sessionId) SessionRetrieveResult
         +list(params?) SessionListResult
         +updateStatus(sessionId, status) SessionStatusUpdateResult
+        +createUploadUrls(sessionId, input) SessionUploadUrlsResult
     }
 
     class Document {
@@ -28,6 +31,8 @@ classDiagram
         +detect(input) FaceDetectResult
         +compare(input) FaceCompareResult
         +estimateAge(input) FaceEstimateAgeResult
+        +createLivenessSession(input?) FaceLivenessSessionResult
+        +getLivenessResult(id, params?) FaceLivenessResult
     }
 
     class Identity {
@@ -44,9 +49,21 @@ classDiagram
         +get(jobId) AsyncJobSnapshot
     }
 
+    class Deepfake {
+        +getChallenge(sessionId) DeepfakeChallengeResult
+        +createUploadUrls(input) DeepfakeUploadUrlsResult
+        +analyze(input) DeepfakeAnalyzeResult
+    }
+
+    class Auth {
+        +verify() AuthVerifyResult
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
     DeepIDV *-- Identity : identity
     DeepIDV *-- Screening : screening
     DeepIDV *-- AsyncJobs : asyncJobs
+    DeepIDV *-- Deepfake : deepfake
+    DeepIDV *-- Auth : auth

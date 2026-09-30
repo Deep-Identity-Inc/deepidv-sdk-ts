@@ -28,12 +28,13 @@ const BASE_URL = 'https://api.deepidv.com';
  * Creates a fresh Face instance backed by a real HttpClient and real FileUploader.
  * Retries disabled so tests are fast and deterministic.
  */
-function createFace() {
+function createFace(maxRetries = 0) {
   const config = resolveConfig({
     apiKey: 'sk_test_key_1234',
     baseUrl: BASE_URL,
     timeout: 5_000,
-    maxRetries: 0,
+    maxRetries,
+    initialRetryDelay: 1,
   });
   const emitter = new TypedEmitter();
   const client = new HttpClient(config, emitter);
@@ -169,6 +170,73 @@ describe('face response schemas', () => {
     expect(
       FaceEstimateAgeResultSchema.safeParse({ faceDetected: true, genderConfidence: 1.01 }).success,
     ).toBe(false);
+  });
+});
+
+describe('Face liveness', () => {
+  it('creates a session with snake_case wire input and normalizes credentials', async () => {
+    let body: unknown;
+    server.use(
+      http.post(`${BASE_URL}/v1/face/liveness/sessions`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({
+          liveness_session_id: 'live-1',
+          region: 'us-east-1',
+          credentials: {
+            access_key_id: 'access',
+            secret_access_key: 'secret',
+            session_token: 'token',
+            expiration: '2026-09-30T00:15:00.000Z',
+          },
+          expires_at: '2026-09-30T00:15:00.000Z',
+        });
+      }),
+    );
+
+    const result = await createFace().createLivenessSession({
+      sessionId: 'sess-1',
+      challengeType: 'FaceMovementAndLightChallenge',
+    });
+    expect(body).toEqual({
+      session_id: 'sess-1',
+      challenge_type: 'FaceMovementAndLightChallenge',
+    });
+    expect(result.livenessSessionId).toBe('live-1');
+    expect(result.credentials.accessKeyId).toBe('access');
+  });
+
+  it('does not retry billable standalone session creation', async () => {
+    let attempts = 0;
+    server.use(
+      http.post(`${BASE_URL}/v1/face/liveness/sessions`, () => {
+        attempts += 1;
+        return HttpResponse.json({ error: 'failed' }, { status: 500 });
+      }),
+    );
+    await expect(createFace(2).createLivenessSession()).rejects.toThrow(DeepIDVError);
+    expect(attempts).toBe(1);
+  });
+
+  it('serializes result query parameters and validates the threshold', async () => {
+    let query: URLSearchParams | undefined;
+    server.use(
+      http.get(`${BASE_URL}/v1/face/liveness/sessions/live-1/result`, ({ request }) => {
+        query = new URL(request.url).searchParams;
+        return HttpResponse.json({ status: 'SUCCEEDED', confidence: 93, passed: true });
+      }),
+    );
+    const result = await createFace().getLivenessResult('live-1', {
+      sessionId: 'sess-1',
+      confidenceThreshold: 85,
+    });
+    expect(Object.fromEntries(query ?? [])).toEqual({
+      session_id: 'sess-1',
+      confidence_threshold: '85',
+    });
+    expect(result).toEqual({ status: 'SUCCEEDED', confidence: 93, passed: true });
+    await expect(
+      createFace().getLivenessResult('live-1', { confidenceThreshold: 0 }),
+    ).rejects.toThrow(ValidationError);
   });
 });
 

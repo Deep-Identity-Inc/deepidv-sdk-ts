@@ -22,6 +22,7 @@ export {
   AdverseMediaFailedError,
   AuthenticationError,
   AuthorizationError,
+  ConflictError,
   DeepIDVError,
   NetworkError,
   NotFoundError,

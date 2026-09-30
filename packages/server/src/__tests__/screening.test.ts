@@ -2,7 +2,7 @@
  * Tests for the Screening module.
  *
  * Uses msw + real HttpClient to intercept native fetch calls.
- * Covers all four methods: pepSanctions, adverseMedia, titleCheck, list.
+ * Covers pepSanctions, adverseMedia, and titleCheck.
  */
 
 import { describe, it, expect, expectTypeOf } from 'vitest';

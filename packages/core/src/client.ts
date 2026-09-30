@@ -19,6 +19,7 @@ import {
   DeepIDVError,
   AuthenticationError,
   AuthorizationError,
+  ConflictError,
   NotFoundError,
   RateLimitError,
   ValidationError,
@@ -230,6 +231,9 @@ export class HttpClient {
 
         case 404:
           throw new NotFoundError(errorMessage, { response: rawResponse });
+
+        case 409:
+          throw new ConflictError(errorMessage, { response: rawResponse });
 
         case 503:
           throw new ServiceUnavailableError(errorMessage, { response: rawResponse });

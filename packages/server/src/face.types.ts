@@ -140,6 +140,71 @@ export const FaceEstimateAgeResultSchema = z
   .strip();
 
 // ---------------------------------------------------------------------------
+// Face liveness schemas
+// ---------------------------------------------------------------------------
+
+export const FaceLivenessChallengeTypeSchema = z.enum([
+  'FaceMovementChallenge',
+  'FaceMovementAndLightChallenge',
+]);
+
+export const FaceLivenessSessionInputSchema = z.object({
+  sessionId: z.string().min(1).optional(),
+  challengeType: FaceLivenessChallengeTypeSchema.optional(),
+});
+
+export const FaceLivenessCredentialsSchema = z.object({
+  accessKeyId: z.string(),
+  secretAccessKey: z.string(),
+  sessionToken: z.string(),
+  expiration: z.iso.datetime(),
+});
+
+export const FaceLivenessSessionResultSchema = z.object({
+  livenessSessionId: z.string(),
+  region: z.string(),
+  credentials: FaceLivenessCredentialsSchema,
+  expiresAt: z.iso.datetime(),
+});
+
+export const FaceLivenessResultParamsSchema = z.object({
+  sessionId: z.string().min(1).optional(),
+  confidenceThreshold: z.number().int().min(1).max(100).optional(),
+});
+
+export const FaceLivenessResultSchema = z.object({
+  status: z.enum(['SUCCEEDED', 'IN_PROGRESS', 'FAILED']),
+  confidence: z.number().min(0).max(100).optional(),
+  passed: z.boolean(),
+});
+
+export const FaceLivenessSessionWireResultSchema = z
+  .object({
+    liveness_session_id: z.string(),
+    region: z.string(),
+    credentials: z.object({
+      access_key_id: z.string(),
+      secret_access_key: z.string(),
+      session_token: z.string(),
+      expiration: z.iso.datetime(),
+    }),
+    expires_at: z.iso.datetime(),
+  })
+  .transform((raw) =>
+    FaceLivenessSessionResultSchema.parse({
+      livenessSessionId: raw.liveness_session_id,
+      region: raw.region,
+      credentials: {
+        accessKeyId: raw.credentials.access_key_id,
+        secretAccessKey: raw.credentials.secret_access_key,
+        sessionToken: raw.credentials.session_token,
+        expiration: raw.credentials.expiration,
+      },
+      expiresAt: raw.expires_at,
+    }),
+  );
+
+// ---------------------------------------------------------------------------
 // Exported inferred types (z.infer only — no separate interface declarations)
 // ---------------------------------------------------------------------------
 
@@ -163,3 +228,10 @@ export type FaceEstimateAgeResult = z.infer<typeof FaceEstimateAgeResultSchema>;
 
 /** Predicted gender value. */
 export type Gender = z.infer<typeof GenderSchema>;
+
+export type FaceLivenessChallengeType = z.infer<typeof FaceLivenessChallengeTypeSchema>;
+export type FaceLivenessSessionInput = z.infer<typeof FaceLivenessSessionInputSchema>;
+export type FaceLivenessCredentials = z.infer<typeof FaceLivenessCredentialsSchema>;
+export type FaceLivenessSessionResult = z.infer<typeof FaceLivenessSessionResultSchema>;
+export type FaceLivenessResultParams = z.infer<typeof FaceLivenessResultParamsSchema>;
+export type FaceLivenessResult = z.infer<typeof FaceLivenessResultSchema>;

@@ -24,6 +24,8 @@ import { Face } from './face.js';
 import { Identity } from './identity.js';
 import { Screening } from './screening.js';
 import { AsyncJobs } from './asyncJobs.js';
+import { Deepfake } from './deepfake.js';
+import { Auth } from './auth.js';
 
 // ---------------------------------------------------------------------------
 // Config schema (exported for consumers per D-02)
@@ -67,7 +69,7 @@ export type DeepIDVOptions = z.input<typeof DeepIDVConfigSchema>;
  * The main client for the deepidv identity verification SDK.
  *
  * Instantiate once per process (or once per request in serverless environments).
- * All four module namespaces are eagerly initialized on construction and share
+ * All module namespaces are eagerly initialized on construction and share
  * a single HTTP client and event emitter instance.
  *
  * Config validation occurs synchronously in the constructor. An invalid config
@@ -103,8 +105,8 @@ export type DeepIDVOptions = z.input<typeof DeepIDVConfigSchema>;
  */
 export class DeepIDV {
   /**
-   * Session management namespace. Provides CRUD operations for hosted
-   * verification sessions (`create`, `retrieve`, `list`, `updateStatus`).
+   * Session management namespace. Provides CRUD operations and session-scoped
+   * upload targets for hosted verification sessions.
    *
    * @remarks Access via `client.sessions.create(...)`, `client.sessions.retrieve(...)`, etc.
    */
@@ -118,9 +120,10 @@ export class DeepIDV {
   readonly document: Document;
 
   /**
-   * Face analysis namespace. Provides face detection, comparison, and age estimation.
+   * Face analysis namespace. Provides face detection, comparison, age estimation,
+   * and face-liveness session operations.
    *
-   * @remarks Access via `client.face.detect(...)`, `client.face.compare(...)`, `client.face.estimateAge(...)`.
+   * @remarks Access via `client.face.detect(...)`, `client.face.compare(...)`, `client.face.estimateAge(...)`, and the liveness methods.
    */
   readonly face: Face;
 
@@ -148,6 +151,12 @@ export class DeepIDV {
    * @remarks Access via `client.asyncJobs.get(jobId)`.
    */
   readonly asyncJobs: AsyncJobs;
+
+  /** Deepfake challenge, upload-target, and analysis operations. */
+  readonly deepfake: Deepfake;
+
+  /** API-key verification and organization connection checks. */
+  readonly auth: Auth;
 
   /** Internal emitter — not exposed directly to consumers. */
   private readonly emitter: TypedEmitter;
@@ -186,6 +195,8 @@ export class DeepIDV {
     this.identity = new Identity(httpClient, uploader);
     this.asyncJobs = asyncJobs;
     this.screening = new Screening(httpClient, asyncJobs);
+    this.deepfake = new Deepfake(httpClient);
+    this.auth = new Auth(httpClient);
   }
 
   /**

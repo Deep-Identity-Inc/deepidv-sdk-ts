@@ -19,6 +19,7 @@ import {
   TimeoutError,
   InsufficientFundsError,
   ServiceUnavailableError,
+  ConflictError,
 } from '../errors.js';
 
 const BASE_URL = 'https://api.deepidv.com';
@@ -174,6 +175,19 @@ describe('HttpClient — error mapping', () => {
 
     const { client } = createClient();
     await expect(client.post('/v1/sessions', {})).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it('409 response throws ConflictError', async () => {
+    server.use(
+      http.post(`${BASE_URL}/v1/sessions/sess_abc/uploads`, () =>
+        HttpResponse.json({ error: 'Session is terminal' }, { status: 409 }),
+      ),
+    );
+
+    const { client } = createClient();
+    await expect(client.post('/v1/sessions/sess_abc/uploads', {})).rejects.toBeInstanceOf(
+      ConflictError,
+    );
   });
 
   it('500 response throws DeepIDVError with status 500', async () => {

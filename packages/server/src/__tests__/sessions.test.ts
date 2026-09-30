@@ -6,6 +6,7 @@ import {
   TypedEmitter,
   ValidationError,
   resolveConfig,
+  ConflictError,
 } from '@deepidv/core';
 import { Sessions } from '../sessions.js';
 import { server } from './setup.js';
@@ -285,5 +286,71 @@ describe('Sessions.updateStatus', () => {
     await expect(createSessions().updateStatus('sess_abc123', 'VOIDED' as never)).rejects.toThrow(
       ValidationError,
     );
+  });
+});
+
+describe('Sessions.createUploadUrls', () => {
+  it('serializes legacy and dynamic slots and normalizes signed URLs', async () => {
+    let body: unknown;
+    server.use(
+      http.post(`${BASE_URL}/v1/sessions/sess_abc123/uploads`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({
+          signed_urls: [
+            {
+              file_key: 'org/sess/id-front.jpg',
+              slot: 'id_front',
+              upload_type: 'id_front',
+              upload_url: 'https://s3.example/id-front',
+            },
+            {
+              file_key: 'org/sess/employment.pdf',
+              slot: 'employment_letter',
+              upload_url: 'https://s3.example/employment',
+            },
+          ],
+        });
+      }),
+    );
+
+    const result = await createSessions().createUploadUrls('sess_abc123', {
+      files: [
+        { fileName: 'front.jpg', contentType: 'image/jpeg', uploadType: 'id_front' },
+        { fileName: 'letter.pdf', contentType: 'application/pdf', slot: 'employment_letter' },
+      ],
+    });
+
+    expect(body).toEqual({
+      files: [
+        { file_name: 'front.jpg', content_type: 'image/jpeg', upload_type: 'id_front' },
+        { file_name: 'letter.pdf', content_type: 'application/pdf', slot: 'employment_letter' },
+      ],
+    });
+    expect(result.signedUrls[0]?.fileKey).toBe('org/sess/id-front.jpg');
+    expect(result.signedUrls[1]?.uploadType).toBeUndefined();
+  });
+
+  it('rejects duplicate slots before making a request', async () => {
+    await expect(
+      createSessions().createUploadUrls('sess_abc123', {
+        files: [
+          { fileName: 'one.jpg', contentType: 'image/jpeg', uploadType: 'id_front' },
+          { fileName: 'two.jpg', contentType: 'image/jpeg', uploadType: 'id_front' },
+        ],
+      }),
+    ).rejects.toThrow(ValidationError);
+  });
+
+  it('maps terminal-session conflicts to ConflictError', async () => {
+    server.use(
+      http.post(`${BASE_URL}/v1/sessions/sess_abc123/uploads`, () =>
+        HttpResponse.json({ error: 'Session is terminal' }, { status: 409 }),
+      ),
+    );
+    await expect(
+      createSessions().createUploadUrls('sess_abc123', {
+        files: [{ fileName: 'front.jpg', contentType: 'image/jpeg', uploadType: 'id_front' }],
+      }),
+    ).rejects.toThrow(ConflictError);
   });
 });

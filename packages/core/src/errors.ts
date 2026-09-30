@@ -192,6 +192,18 @@ export class NotFoundError extends DeepIDVError {
 }
 
 /**
+ * Thrown when the API responds with HTTP 409 (Conflict).
+ * The requested mutation conflicts with the current resource state.
+ */
+export class ConflictError extends DeepIDVError {
+  constructor(message: string, options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'>) {
+    super(message, { status: 409, code: 'conflict_error', ...options });
+    this.name = 'ConflictError';
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/**
  * Thrown when a network-level failure occurs (e.g., DNS resolution failure,
  * connection refused, socket hang-up).
  */
