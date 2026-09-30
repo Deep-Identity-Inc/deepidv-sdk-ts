@@ -28,6 +28,7 @@ export {
   PollTimeoutError,
   RateLimitError,
   TimeoutError,
+  TitleCheckFailedError,
   ValidationError,
   InsufficientFundsError,
   ServiceUnavailableError,

@@ -15,13 +15,13 @@ Extend `@deepidv/server` so SDK consumers can call:
 ```ts
 client.screening.pepSanctions(input);
 client.screening.adverseMedia(input); // returns AdverseMediaHandle
-client.screening.titleCheck(input);
-client.screening.list({ limit, offset, service });
+client.screening.titleCheck(input); // returns TitleCheckHandle
+// No screening history method is exposed until the API defines one.
 
 client.asyncJobs.get(jobId); // also exposed top-level
 ```
 
-No new package. The four-method screening surface and the async-jobs surface both attach to the existing `DeepIDV` client class, alongside `document` / `face` / `identity` / `sessions`.
+No new package. The three-method screening surface and the async-jobs surface both attach to the existing `DeepIDV` client class, alongside `document` / `face` / `identity` / `sessions`.
 
 The Jira ticket title (`@deepidv/sanctions`) is misleading — confirmed 2026-05-28 the work lands in `@deepidv/server`.
 
@@ -32,10 +32,10 @@ The Jira ticket title (`@deepidv/sanctions`) is misleading — confirmed 2026-05
 - Split `firstName` / `lastName` — not a single `name` field.
 - `dateOfBirth` required for `pepSanctions` and `adverseMedia`.
 - `country` is ISO 3166-1 alpha-2, optional.
-- Adverse media is **async-from-day-one** (locked 2026-05-26). The SDK returns an `AdverseMediaHandle` with `.wait({ pollIntervalMs?, timeoutMs? })` and `.refresh()`. Defaults: poll 2s, timeout 180s. Overrideable per-call.
+- Adverse media and title check are async operations. The SDK returns typed handles with `.wait({ pollIntervalMs?, timeoutMs? })` and `.refresh()`. Defaults: poll 2s, timeout 180s. Overrideable per-call.
 - `Idempotency-Key` header: SDK auto-generates UUID v4 if caller omits `idempotencyKey`. Server-side TTL: 24h.
-- `titleCheck({ address })` — server geocodes via Google Places. SDK does not.
-- Error mapping: `400 → ValidationError`, `401 → AuthenticationError`, `403 → AuthorizationError`, `404 → NotFoundError`, terminal job `failed → AdverseMediaFailedError`, wait timeout → `PollTimeoutError`.
+- `titleCheck({ email, firstName, lastName, address })` — server geocodes via Google Places. SDK does not.
+- Error mapping: `400 → ValidationError`, `401 → AuthenticationError`, `403 → AuthorizationError`, `404 → NotFoundError`, terminal job `failed → AdverseMediaFailedError | TitleCheckFailedError`, wait timeout → `PollTimeoutError`.
 - Confidence semantics inherit the DIDV-201 unified scale.
 
 ---
@@ -75,7 +75,7 @@ Branch `DIDV-504` — head commit just landed the async-jobs + screening foundat
 | `POST /v1/screening/adverse-media` | Implemented        | Returns **201** `{ jobId, status: "PENDING", message }`. Spawns background job. No Zod schema for the 201 response. |
 | `POST /v1/screening/title-check`   | Implemented        | Returns 200 with discriminated union on `status`                                                                    |
 | `GET /v1/async-jobs/{jobId}`       | Implemented        | Cross-org isolation via composite key (404 on mismatch)                                                             |
-| `GET /v1/screening/sessions`       | **Does not exist** | Blocker for `screening.list()`                                                                                      |
+| `GET /v1/screening/sessions`       | **Does not exist** | Screening history is intentionally absent from the public SDK                                                       |
 
 ### Server contract vs. ticket — mismatches
 
@@ -86,7 +86,7 @@ Branch `DIDV-504` — head commit just landed the async-jobs + screening foundat
 | 3   | Job status `pending/processing/ready/failed` (lowercase) | `PENDING/PROCESSING/COMPLETED/FAILED` (uppercase, `COMPLETED` not `ready`) | SDK normalizes at parse boundary so public type matches the ticket                                               |
 | 4   | 422 unsupported region → discriminated union             | Returns 200 with `status: "unsupported_region"` member                     | Better — SDK just parses it; no special error mapping                                                            |
 | 5   | 403 cross-org on async-jobs                              | Returns 404 (key lookup miss)                                              | SDK maps 404 → `NotFoundError`. `AuthorizationError` stays in the catalog but won't fire today                   |
-| 6   | `GET /v1/screening/sessions` exists                      | Not implemented                                                            | **Blocker** for `screening.list()`                                                                               |
+| 6   | `GET /v1/screening/sessions` exists                      | Not implemented                                                            | Screening history remains out of scope until the contract exists                                                 |
 | 7   | `Idempotency-Key` honored, 24h dedup                     | No dedup logic                                                             | SDK sends the header anyway; server ignores gracefully. "Same key → same jobId" integration test cannot pass yet |
 | 8   | Sandbox bypass for instant adverse-media                 | `sandboxMiddleware` doesn't intercept screening/async-jobs routes          | Adverse-media smoke test takes real wall-clock time                                                              |
 
@@ -96,7 +96,7 @@ Branch `DIDV-504` — head commit just landed the async-jobs + screening foundat
 
 - **PEP/S `country`** → drop from SDK v1. Add later when server schema bumps.
 - **Async-job status normalization** → map server enums to the lowercase ticket shape at the Zod parse boundary. Public type matches the documented contract.
-- **`screening.list()`** → scaffold method + Zod schemas now; method body throws `Error("Not yet implemented — pending GET /v1/screening/sessions on the server")`. Cleaner than carving it out and re-adding later.
+- **Screening history** → not exposed by the SDK until `GET /v1/screening/sessions` exists in OpenAPI. This avoids publishing a method that can only throw.
 - **`Idempotency-Key`** → SDK auto-generates + sends header today. Once server-side dedup lands the behavior just starts working — no SDK code change.
 - **Open question 1** (re-export from `@deepidv/server`) → moot; we're landing directly in `@deepidv/server`.
 - **Open question 2** (`client.asyncJobs.get(jobId)` on the client) → **resolved yes**, per user direction 2026-05-28.
@@ -114,10 +114,10 @@ Branch `DIDV-504` — head commit just landed the async-jobs + screening foundat
 2. **`screening.types.ts`** — Zod schemas for `pepSanctions` request/response, `adverseMedia` request + 201 queued response, `titleCheck` request + discriminated-union response (including `unsupported_region`), plus `AdverseMediaResult` derived from the COMPLETED job payload.
 3. **`asyncJobs.types.ts`** — Zod for the GET response; normalization transform so the public `AdverseMediaJobSnapshot` is `pending | processing | ready | failed` discriminated union.
 4. **`asyncJobs.ts`** — `AsyncJobs` class with `get(jobId)` method.
-5. **`screening.ts`** — `Screening` class with four methods.
-   - `pepSanctions`, `titleCheck` — straight sync.
-   - `adverseMedia` returns `AdverseMediaHandle { jobId, wait, refresh }`. Internally uses the `AsyncJobs` instance.
-   - `list` — scaffolded, throws `NotImplementedError` until server lands.
+5. **`screening.ts`** — `Screening` class with three methods.
+   - `pepSanctions` is synchronous.
+   - `adverseMedia` and `titleCheck` return typed handles `{ jobId, wait, refresh }`. Internally they use the `AsyncJobs` instance.
+   - Screening history is omitted until the server contract defines it.
    - UUID v4 fallback via `globalThis.crypto.randomUUID()` (available in all target runtimes per project constraints).
 6. **Wire into `DeepIDV`** — instantiate `Screening` + `AsyncJobs` in the constructor; assign to `this.screening` / `this.asyncJobs`. Export types/schemas/errors from `index.ts`.
 7. **Tests** (`__tests__/screening.test.ts`, `__tests__/asyncJobs.test.ts`, `__tests__/adverseMediaHandle.test.ts`) — msw v2 mirroring `document.test.ts`. Cover:
@@ -129,7 +129,7 @@ Branch `DIDV-504` — head commit just landed the async-jobs + screening foundat
 
 ### Phase B — Blocked on server work
 
-- **`screening.list()`** real implementation — needs `GET /v1/screening/sessions`.
+- **Screening history** — add only after `GET /v1/screening/sessions` is defined.
 - **Live-dev integration smoke** — needs `sandboxMiddleware` to intercept adverse-media routes (or accept ~3min wall-clock time per smoke run).
 - **`Idempotency-Key` round-trip test** — needs server-side dedup.
 - **Mintlify `docs/sdk/screening.mdx`** — can be drafted in parallel during Phase A and finalized when `list()` lands.
@@ -190,7 +190,7 @@ When adding error classes in `@deepidv/core/errors.ts`, **don't reference a name
 
 ### Phase B — Still blocked on server
 
-- `screening.list()` real implementation — blocked on `GET /v1/screening/sessions`.
+- Screening history remains blocked on `GET /v1/screening/sessions` and is not part of the public SDK surface.
 - Live-dev adverse-media smoke — blocked on `sandboxMiddleware` extension to intercept screening/async-jobs routes (otherwise the smoke run takes real wall-clock time ≥ 3 min).
 - `Idempotency-Key` round-trip test — blocked on server-side dedup.
 - Mintlify `docs/sdk/screening.mdx` — can be drafted in parallel; final pass when `list()` lands.

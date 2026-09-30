@@ -1,330 +1,203 @@
-/**
- * Zod schemas and inferred TypeScript types for the sessions module.
- *
- * All TypeScript types are derived exclusively from Zod schemas via
- * `z.infer<typeof Schema>` (D-04). No separate `interface` declarations.
- *
- * @module sessions.types
- */
+/** OpenAPI-aligned schemas and public types for the sessions namespace. */
 
 import { z } from 'zod';
 
-// ---------------------------------------------------------------------------
-// Enum schemas
-// ---------------------------------------------------------------------------
+export const SessionStatusSchema = z.string().min(1);
+export const SessionTypeSchema = z.string().min(1);
+export const SessionProgressSchema = z.string().min(1);
+export const SessionStatusUpdateSchema = z.enum(['VERIFIED', 'REJECTED']);
 
-/**
- * All valid session status values returned by the API.
- */
-export const SessionStatusSchema = z.enum([
-  'PENDING',
-  'SUBMITTED',
-  'VERIFIED',
-  'REJECTED',
-  'VOIDED',
-]);
+const HttpsUrlSchema = z.url().refine((value) => new URL(value).protocol === 'https:', {
+  message: 'redirectUrl must use HTTPS',
+});
 
-/**
- * All valid session type values returned by the API.
- */
-export const SessionTypeSchema = z.enum([
-  'session',
-  'verification',
-  'credit-application',
-  'silent-screening',
-  'deep-doc',
-]);
-
-/**
- * Session progress values indicating applicant progress through the session.
- */
-export const SessionProgressSchema = z.enum(['PENDING', 'STARTED', 'COMPLETED']);
-
-/**
- * Valid status targets for `updateStatus()`. Only VERIFIED, REJECTED, and
- * VOIDED are accepted — PENDING and SUBMITTED cannot be set manually (SESS-04).
- */
-export const SessionStatusUpdateSchema = z.enum(['VERIFIED', 'REJECTED', 'VOIDED']);
-
-// ---------------------------------------------------------------------------
-// Input schemas
-// ---------------------------------------------------------------------------
-
-/**
- * Input schema for `sessions.create()`. All required fields must be
- * non-empty strings. Optional invite flags default to true on the API.
- */
 export const SessionCreateInputSchema = z.object({
-  /** Applicant first name (required). */
-  firstName: z.string().min(1),
-  /** Applicant last name (required). */
-  lastName: z.string().min(1),
-  /** Applicant email address (required, must be valid email format). */
   email: z.email(),
-  /** Applicant phone number in E.164 format, e.g. "+15192223333" (required). */
-  phone: z.string().min(1),
-  /** Your internal reference ID echoed back in responses. */
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  phone: z.string().regex(/^\+[1-9]\d{9,14}$/u, 'phone must be a valid E.164 number'),
   externalId: z.string().optional(),
-  /** Workflow to use for this session (omit for standalone session). */
-  workflowId: z.string().optional(),
-  /** HTTPS URL to redirect the applicant after completing the session. */
-  redirectUrl: z.url().optional(),
-  /** Send email invitation to applicant. Defaults to true on the API. */
   sendEmailInvite: z.boolean().optional(),
-  /** Send SMS invitation to applicant. Defaults to true on the API. */
   sendPhoneInvite: z.boolean().optional(),
+  workflowId: z.string().optional(),
+  redirectUrl: HttpsUrlSchema.optional(),
+  expiresInHours: z.number().int().min(1).max(8760).optional(),
 });
 
-/**
- * Query parameters for `sessions.list()`.
- */
 export const SessionListParamsSchema = z.object({
-  /** Maximum number of sessions to return. */
-  limit: z.number().int().positive().optional(),
-  /** Number of sessions to skip for pagination. */
-  offset: z.number().int().nonnegative().optional(),
-  /** Filter sessions by status. */
-  status: SessionStatusSchema.optional(),
-});
-
-// ---------------------------------------------------------------------------
-// Output schemas — for type inference only (NOT used for runtime response
-// parsing per RESEARCH.md Pitfall 1: parsing breaks on new API fields)
-// ---------------------------------------------------------------------------
-
-/**
- * Response schema for `sessions.create()`.
- */
-export const SessionCreateResultSchema = z.object({
-  /** Unique session identifier. */
-  id: z.string(),
-  /** URL where the applicant completes verification. */
-  sessionUrl: z.string(),
-  /** Echoed back if provided in the create input. */
+  limit: z.number().int().min(1).max(500).optional(),
+  nextToken: z.string().optional(),
+  startDate: z.string().min(1).optional(),
+  endDate: z.string().min(1).optional(),
+  byOrganization: z.boolean().nullable().optional(),
   externalId: z.string().optional(),
-  /** Associated verification links. */
-  links: z.array(
-    z.object({
-      url: z.string(),
-      type: z.string(),
-    }),
-  ),
+  workflowId: z.string().optional(),
 });
 
-// ---------------------------------------------------------------------------
-// Nested sub-schemas for retrieve() result
-// ---------------------------------------------------------------------------
-
-/** Face detection result from ID document analysis. Uses passthrough() for undocumented fields. */
-const FaceDetectionSchema = z.looseObject({
-  /** Detection confidence score (0-1). */
-  confidence: z.number().optional(),
-  /** Bounding box of detected face. */
-  boundingBox: z
-    .object({
-      top: z.number(),
-      left: z.number(),
-      width: z.number(),
-      height: z.number(),
-    })
-    .optional(),
+export const SessionLinkSchema = z.object({
+  rel: z.string(),
+  href: z.string(),
+  description: z.string().optional(),
 });
 
-/** Single extracted text item from an ID document. */
-const ExtractedTextItemSchema = z.object({
-  type: z.string(),
-  value: z.string(),
-  confidence: z.number(),
+export const SessionCreateResultSchema = z.object({
+  id: z.string(),
+  sessionUrl: z.string(),
+  externalId: z.string().optional(),
+  expiresAt: z.string().optional(),
+  links: z.array(SessionLinkSchema),
 });
 
-/** ID document analysis data including face detection and extracted text fields. */
-const IdAnalysisDataSchema = z
-  .object({
-    detectFaceData: z.array(FaceDetectionSchema),
-    idExtractedText: z.array(ExtractedTextItemSchema),
-    expiryDatePass: z.boolean(),
-    validStatePass: z.boolean(),
-    ageRestrictionPass: z.boolean(),
-  })
-  .optional();
-
-/** Face comparison analysis data. */
-const CompareFacesDataSchema = z
-  .object({
-    faceMatchConfidence: z.number(),
-    faceMatchResult: z.record(z.string(), z.unknown()),
-  })
-  .optional();
-
-/** PEP and sanctions screening data. Individual match shapes use passthrough(). */
-const PepSanctionsDataSchema = z
-  .object({
-    peps: z.array(z.looseObject({})).nullable(),
-    sanctions: z.array(z.looseObject({})).nullable(),
-    both: z.array(z.looseObject({})).nullable(),
-  })
-  .optional();
-
-/** Adverse media screening data. */
-const AdverseMediaDataSchema = z
-  .object({
-    totalHits: z.number(),
-    newsExposures: z.record(z.string(), z.unknown()),
-    timestamp: z.string(),
-  })
-  .optional();
-
-/** Document risk analysis data. Individual document analysis shape uses passthrough(). */
-const DocumentRiskDataSchema = z
-  .object({
-    overallRiskScore: z.number(),
-    documentsAnalyzed: z.number(),
-    documentsWithSignals: z.number(),
-    documentAnalysis: z.array(z.looseObject({})),
-  })
-  .optional();
-
-/**
- * Full analysis data subtree from `retrieve()`. All sub-objects are optional
- * because not all workflow steps produce all analysis types.
- */
-const AnalysisDataSchema = z
-  .object({
-    createdAt: z.string(),
-    idMatchesSelfie: z.boolean().optional(),
-    facelivenessScore: z.number().optional(),
-    idAnalysisData: IdAnalysisDataSchema,
-    secondaryIdAnalysisData: z.unknown().optional(),
-    tertiaryIdAnalysisData: z.unknown().optional(),
-    compareFacesData: CompareFacesDataSchema,
-    pepSanctionsData: PepSanctionsDataSchema,
-    adverseMediaData: AdverseMediaDataSchema,
-    documentRiskData: DocumentRiskDataSchema,
-    titleSearchData: z.unknown().optional(),
-    customFormData: z
-      .array(
-        z.object({
-          question: z.string(),
-          answer: z.string(),
-          type: z.string(),
-        }),
-      )
-      .optional(),
-  })
-  .optional();
-
-/** Session metadata about the applicant's submission environment. */
-const MetaDataSchema = z.object({
-  applicantSubmissionIp: z.string().optional(),
-  applicantSubmissionDevice: z.string().optional(),
-  applicantViewTime: z.string().optional(),
-  applicantSubmissionBrowser: z.string().optional(),
-});
-
-/** User record (applicant or sender). Optional because not all retrieve responses include it. */
-const UserSchema = z
-  .object({
-    id: z.string(),
-    email: z.string(),
-    firstName: z.string(),
-    lastName: z.string(),
-    phone: z.string(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-  })
-  .optional();
-
-// ---------------------------------------------------------------------------
-// Composite schemas
-// ---------------------------------------------------------------------------
-
-/**
- * Full session record as returned by the API. Used as the element type for
- * `list()` results and nested inside `retrieve()` results.
- */
 export const SessionSchema = z.object({
   id: z.string(),
   organizationId: z.string(),
   userId: z.string(),
   senderUserId: z.string(),
-  externalId: z.string().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
   status: SessionStatusSchema,
   type: SessionTypeSchema,
   sessionProgress: SessionProgressSchema,
-  location: z.object({ country: z.string() }).optional(),
-  workflowId: z.string().optional(),
-  workflowSteps: z.array(z.string()).optional(),
-  bankStatementRequestId: z.string().optional(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  externalId: z.string().optional(),
+  permalinkId: z.string().optional(),
+  location: z.string().nullable().optional(),
   submittedAt: z.string().optional(),
-  metaData: MetaDataSchema.optional(),
+  deepSignId: z.string().optional(),
+  faceLivenessSessionId: z.string().optional(),
+  workflowId: z.string().optional(),
+  bankStatementRequestId: z.string().optional(),
+  redirectUrl: z.string().optional(),
+  expiresAt: z.string().optional(),
+  workflowSteps: z.array(z.string()).optional(),
+  metaData: z.record(z.string(), z.unknown()).optional(),
   uploads: z.record(z.string(), z.boolean()).optional(),
-  analysisData: AnalysisDataSchema,
+  analysisData: z.record(z.string(), z.unknown()).optional(),
 });
 
-/**
- * Full response from `sessions.retrieve()`. Wraps the session record with
- * user details and presigned resource URLs.
- */
+export const SessionListResultSchema = z.object({
+  sessions: z.array(SessionSchema),
+  nextToken: z.string().nullable(),
+});
+
 export const SessionRetrieveResultSchema = z.object({
   sessionRecord: SessionSchema,
-  user: UserSchema,
-  senderUser: UserSchema,
-  /** Presigned S3 URLs for uploaded documents, keyed by document type. */
-  resourceLinks: z.record(z.string(), z.string()).optional(),
+  resourceLinks: z.record(z.string(), z.string()),
+  user: z.record(z.string(), z.unknown()).optional(),
+  senderUser: z.record(z.string(), z.unknown()).optional(),
 });
 
-// ---------------------------------------------------------------------------
-// Pagination wrapper (D-05, D-06 — reusable generic across all list methods)
-// ---------------------------------------------------------------------------
+export const SessionStatusUpdateResultSchema = z.object({
+  sessionRecord: SessionSchema,
+});
 
-/**
- * Factory for a paginated response schema. Wraps an array of `itemSchema`
- * with pagination metadata.
- *
- * @param itemSchema - The Zod schema for individual list items.
- * @returns A Zod object schema representing a paginated response.
- */
-export const PaginatedResponseSchema = <T extends z.ZodType>(itemSchema: T) =>
-  z.object({
-    data: z.array(itemSchema),
-    total: z.number().optional(),
-    hasMore: z.boolean().optional(),
-    limit: z.number(),
-    offset: z.number(),
-  });
+const RawSessionRecordSchema = z.object({
+  id: z.string(),
+  organization_id: z.string(),
+  user_id: z.string(),
+  sender_user_id: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  status: z.string(),
+  type: z.string(),
+  session_progress: z.string(),
+  external_id: z.string().optional(),
+  permalink_id: z.string().optional(),
+  location: z.string().nullable().optional(),
+  submitted_at: z.string().optional(),
+  deep_sign_id: z.string().optional(),
+  face_liveness_session_id: z.string().optional(),
+  workflow_id: z.string().optional(),
+  bank_statement_request_id: z.string().optional(),
+  redirect_url: z.string().optional(),
+  expires_at: z.string().optional(),
+  workflow_steps: z.array(z.string()).optional(),
+  meta_data: z.record(z.string(), z.unknown()).optional(),
+  uploads: z.record(z.string(), z.boolean()).optional(),
+  analysis_data: z.record(z.string(), z.unknown()).optional(),
+});
 
-/**
- * Paginated response wrapper returned by all list methods.
- * If the API returns a raw array, the SDK normalizes it to this shape (D-05).
- */
-export type PaginatedResponse<T> = {
-  data: T[];
-  total?: number;
-  hasMore?: boolean;
-  limit: number;
-  offset: number;
-};
+function normalizeSession(raw: z.infer<typeof RawSessionRecordSchema>): Session {
+  return {
+    id: raw.id,
+    organizationId: raw.organization_id,
+    userId: raw.user_id,
+    senderUserId: raw.sender_user_id,
+    createdAt: raw.created_at,
+    updatedAt: raw.updated_at,
+    status: raw.status,
+    type: raw.type,
+    sessionProgress: raw.session_progress,
+    externalId: raw.external_id,
+    permalinkId: raw.permalink_id,
+    location: raw.location,
+    submittedAt: raw.submitted_at,
+    deepSignId: raw.deep_sign_id,
+    faceLivenessSessionId: raw.face_liveness_session_id,
+    workflowId: raw.workflow_id,
+    bankStatementRequestId: raw.bank_statement_request_id,
+    redirectUrl: raw.redirect_url,
+    expiresAt: raw.expires_at,
+    workflowSteps: raw.workflow_steps,
+    metaData: raw.meta_data,
+    uploads: raw.uploads,
+    analysisData: raw.analysis_data,
+  };
+}
 
-// ---------------------------------------------------------------------------
-// Exported inferred types (z.infer only — no separate interface declarations)
-// ---------------------------------------------------------------------------
+export const SessionCreateWireResultSchema = z
+  .object({
+    id: z.string(),
+    session_url: z.string(),
+    externalId: z.string().optional(),
+    expires_at: z.string().optional(),
+    links: z.array(SessionLinkSchema),
+  })
+  .transform((raw) =>
+    SessionCreateResultSchema.parse({
+      id: raw.id,
+      sessionUrl: raw.session_url,
+      externalId: raw.externalId,
+      expiresAt: raw.expires_at,
+      links: raw.links,
+    }),
+  );
 
-/** Input for `sessions.create()`. */
+export const SessionListWireResultSchema = z
+  .object({ sessions: z.array(RawSessionRecordSchema), next_token: z.string().nullable() })
+  .transform((raw) =>
+    SessionListResultSchema.parse({
+      sessions: raw.sessions.map(normalizeSession),
+      nextToken: raw.next_token,
+    }),
+  );
+
+export const SessionRetrieveWireResultSchema = z
+  .object({
+    session_record: RawSessionRecordSchema,
+    resource_links: z.record(z.string(), z.string()),
+    user: z.record(z.string(), z.unknown()).optional(),
+    sender_user: z.record(z.string(), z.unknown()).optional(),
+  })
+  .transform((raw) =>
+    SessionRetrieveResultSchema.parse({
+      sessionRecord: normalizeSession(raw.session_record),
+      resourceLinks: raw.resource_links,
+      user: raw.user,
+      senderUser: raw.sender_user,
+    }),
+  );
+
+export const SessionStatusUpdateWireResultSchema = z
+  .object({ session_record: RawSessionRecordSchema })
+  .transform((raw) =>
+    SessionStatusUpdateResultSchema.parse({ sessionRecord: normalizeSession(raw.session_record) }),
+  );
+
 export type SessionCreateInput = z.infer<typeof SessionCreateInputSchema>;
-
-/** Response from `sessions.create()`. */
 export type SessionCreateResult = z.infer<typeof SessionCreateResultSchema>;
-
-/** Full session record (list item or nested in retrieve result). */
 export type Session = z.infer<typeof SessionSchema>;
-
-/** Response from `sessions.retrieve()`. */
 export type SessionRetrieveResult = z.infer<typeof SessionRetrieveResultSchema>;
-
-/** Query parameters for `sessions.list()`. */
 export type SessionListParams = z.infer<typeof SessionListParamsSchema>;
-
-/** Valid status values for `sessions.updateStatus()`. */
+export type SessionListResult = z.infer<typeof SessionListResultSchema>;
 export type SessionStatusUpdate = z.infer<typeof SessionStatusUpdateSchema>;
+export type SessionStatusUpdateResult = z.infer<typeof SessionStatusUpdateResultSchema>;

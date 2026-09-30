@@ -14,8 +14,9 @@
  * @module asyncJobs
  */
 
+import { z } from 'zod';
 import type { HttpClient } from '@deepidv/core';
-import { ValidationError } from '@deepidv/core';
+import { mapZodError } from '@deepidv/core';
 import { AsyncJobSnapshotSchema, type AsyncJobSnapshot } from './asyncJobs.types.js';
 
 /**
@@ -54,10 +55,9 @@ export class AsyncJobs {
    * @throws {DeepIDVError} For other API errors.
    */
   async get(jobId: string): Promise<AsyncJobSnapshot> {
-    if (typeof jobId !== 'string' || jobId.trim() === '') {
-      throw new ValidationError("expected non-empty string at 'jobId'");
-    }
-    const raw = await this.client.get<unknown>(`/v1/async-jobs/${encodeURIComponent(jobId)}`);
+    const parsed = z.uuid().safeParse(jobId);
+    if (!parsed.success) throw mapZodError(parsed.error);
+    const raw = await this.client.get<unknown>(`/v1/async-jobs/${encodeURIComponent(parsed.data)}`);
     return AsyncJobSnapshotSchema.parse(raw);
   }
 }

@@ -20,6 +20,7 @@ import {
   InsufficientFundsError,
 } from '@deepidv/core';
 import { Document } from '../document.js';
+import { DocumentScanResultSchema } from '../document.types.js';
 
 const BASE_URL = 'https://api.deepidv.com';
 
@@ -215,5 +216,13 @@ describe('Document.scan', () => {
       expect(err.status).toBe(402);
       expect(err.message).toBe('Insufficient funds or subscription.');
     }
+  });
+});
+
+describe('DocumentScanResultSchema', () => {
+  it('enforces the documented 0-1 confidence range', () => {
+    expect(
+      DocumentScanResultSchema.safeParse({ ...MOCK_SCAN_RESULT, confidence: 1.01 }).success,
+    ).toBe(false);
   });
 });

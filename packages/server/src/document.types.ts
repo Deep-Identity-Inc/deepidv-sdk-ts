@@ -85,12 +85,10 @@ export const DocumentScanResultSchema = z
     address: z.string().optional(),
     /** Raw MRZ string extracted from the document, if present. */
     mrzData: z.string().optional(),
-    /** Base64-encoded face image extracted from the document, if present. */
-    faceImage: z.string().optional(),
     /** All extracted key-value pairs from the document (raw OCR output). */
     rawFields: z.record(z.string(), z.string()),
     /** Overall OCR confidence score (0–1). */
-    confidence: z.number(),
+    confidence: z.number().min(0).max(1),
   })
   .strip();
 

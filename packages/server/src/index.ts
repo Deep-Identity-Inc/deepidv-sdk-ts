@@ -42,6 +42,7 @@ export {
   InsufficientFundsError,
   ServiceUnavailableError,
   AdverseMediaFailedError,
+  TitleCheckFailedError,
   PollTimeoutError,
 } from '@deepidv/core';
 export type { RawResponse } from '@deepidv/core';
@@ -60,13 +61,18 @@ export type {
   Session,
   SessionRetrieveResult,
   SessionListParams,
+  SessionListResult,
   SessionStatusUpdate,
-  PaginatedResponse,
+  SessionStatusUpdateResult,
 } from './sessions.types.js';
 export {
   SessionCreateInputSchema,
+  SessionCreateResultSchema,
   SessionListParamsSchema,
+  SessionListResultSchema,
+  SessionRetrieveResultSchema,
   SessionStatusUpdateSchema,
+  SessionStatusUpdateResultSchema,
   SessionStatusSchema,
 } from './sessions.types.js';
 
@@ -124,7 +130,6 @@ export {
 // 9. Screening types and schemas
 // ---------------------------------------------------------------------------
 export type {
-  ScreeningService,
   PepSanctionsInput,
   PepSanctionsResult,
   AdverseMediaInput,
@@ -132,13 +137,11 @@ export type {
   AdverseMediaResult,
   AdverseMediaJobSnapshot,
   TitleCheckInput,
+  TitleCheckQueuedResponse,
   TitleCheckResult,
-  ScreeningListInput,
-  ScreeningSession,
-  ScreeningListResult,
+  TitleCheckJobSnapshot,
 } from './screening.types.js';
 export {
-  ScreeningServiceSchema,
   PepSanctionsInputSchema,
   PepSanctionsResultSchema,
   AdverseMediaInputSchema,
@@ -146,12 +149,16 @@ export {
   AdverseMediaResultSchema,
   AdverseMediaJobSnapshotSchema,
   TitleCheckInputSchema,
+  TitleCheckQueuedResponseSchema,
   TitleCheckResultSchema,
-  ScreeningListInputSchema,
-  ScreeningSessionSchema,
-  ScreeningListResultSchema,
+  TitleCheckJobSnapshotSchema,
 } from './screening.types.js';
-export type { AdverseMediaHandle, AdverseMediaWaitOptions } from './asyncJobHandle.js';
+export type {
+  AdverseMediaHandle,
+  AdverseMediaWaitOptions,
+  TitleCheckHandle,
+  TitleCheckWaitOptions,
+} from './asyncJobHandle.js';
 
 // ---------------------------------------------------------------------------
 // 10. Async-jobs types and schemas

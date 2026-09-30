@@ -27,7 +27,7 @@ import { createAdverseMediaHandle } from '../asyncJobHandle.js';
 import type { AdverseMediaJobSnapshot, AdverseMediaResult } from '../screening.types.js';
 
 const BASE_URL = 'https://api.deepidv.com';
-const JOB_ID = 'job_am_1';
+const JOB_ID = '550e8400-e29b-41d4-a716-446655440001';
 const JOB_URL = `${BASE_URL}/v1/async-jobs/${JOB_ID}`;
 
 /**

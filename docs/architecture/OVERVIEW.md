@@ -1,6 +1,6 @@
 # Architecture Overview
 
-The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [deepidv](https://api.deepidv.com) identity verification API. It runs on Node.js 18+, Deno, Bun, and Cloudflare Workers.
+The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [deepidv](https://api.deepidv.com) identity verification API. It runs on Node.js 20+, Deno, Bun, and Cloudflare Workers.
 
 ## Design Principles
 
@@ -8,7 +8,7 @@ The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [
 
 **Web-standards-first.** The SDK uses only native web APIs (`fetch`, `AbortController`, `ReadableStream`, `Uint8Array`, `crypto.subtle`). No Node-specific imports in the core package. This is what enables universal runtime support.
 
-**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
+**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, and `client.asyncJobs` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
 
 **Single dependency.** The only production dependency is [zod](https://zod.dev) for runtime input validation. Zod schemas are the single source of truth for both TypeScript types and runtime checks.
 
@@ -19,6 +19,7 @@ The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [
 | **Synchronous**   | One call, one result. Image in, structured data out.    | `document.scan()`, `face.detect()`, `face.compare()`, `face.estimateAge()` |
 | **Orchestrated**  | One call, multiple operations coordinated server-side.  | `identity.verify()` (document scan + face detect + face compare)           |
 | **Session-based** | Create session, user completes steps, retrieve results. | `sessions.create()`, `sessions.retrieve()`                                 |
+| **Async job**     | Queue work and poll a typed handle for its result.      | `screening.adverseMedia()`, `screening.titleCheck()`                       |
 
 ## Public API Surface
 
@@ -32,6 +33,8 @@ classDiagram
         +document: Document
         +face: Face
         +identity: Identity
+        +screening: Screening
+        +asyncJobs: AsyncJobs
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -39,8 +42,8 @@ classDiagram
     class Sessions {
         +create(input) SessionCreateResult
         +retrieve(sessionId) SessionRetrieveResult
-        +list(params?) PaginatedResponse~Session~
-        +updateStatus(sessionId, status) SessionRetrieveResult
+        +list(params?) SessionListResult
+        +updateStatus(sessionId, status) SessionStatusUpdateResult
     }
 
     class Document {
@@ -57,10 +60,22 @@ classDiagram
         +verify(input) IdentityVerificationResult
     }
 
+    class Screening {
+        +pepSanctions(input) PepSanctionsResult
+        +adverseMedia(input) AdverseMediaHandle
+        +titleCheck(input) TitleCheckHandle
+    }
+
+    class AsyncJobs {
+        +get(jobId) AsyncJobSnapshot
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
     DeepIDV *-- Identity : identity
+    DeepIDV *-- Screening : screening
+    DeepIDV *-- AsyncJobs : asyncJobs
 ```
 
 The `DeepIDV` class is the only public entry point. The module classes (`Sessions`, `Document`, `Face`, `Identity`) are **not exported** — consumers access them exclusively through the client instance.
@@ -170,16 +185,16 @@ This means:
 
 ## What the SDK Does NOT Do
 
-| Excluded            | Reason                                                                           |
-| ------------------- | -------------------------------------------------------------------------------- |
-| AWS SDK dependency  | All S3 interaction uses presigned URLs via native `fetch`                        |
-| UI components       | This is a server SDK. See `@deepidv/web` (future)                                |
-| Image processing    | No resizing, conversion, or format detection beyond magic-byte MIME sniffing     |
-| Logging to stdout   | Uses a typed event emitter — the consumer decides what to log                    |
-| Polling or webhooks | v1 services are synchronous; session-based polling is deferred                   |
-| Error swallowing    | Always throws typed errors; never returns `null` for failure                     |
-| Retry on 4xx        | 4xx errors are caller bugs, not transient failures. Only 429 and 5xx are retried |
-| Mutable singletons  | Each `new DeepIDV()` is independent; constructor is cheap                        |
+| Excluded           | Reason                                                                               |
+| ------------------ | ------------------------------------------------------------------------------------ |
+| AWS SDK dependency | All S3 interaction uses presigned URLs via native `fetch`                            |
+| UI components      | This is a server SDK. See `@deepidv/web` (future)                                    |
+| Image processing   | No resizing, conversion, or format detection beyond magic-byte MIME sniffing         |
+| Logging to stdout  | Uses a typed event emitter — the consumer decides what to log                        |
+| Webhook delivery   | Async operations expose explicit polling handles; webhook delivery remains app-owned |
+| Error swallowing   | Always throws typed errors; never returns `null` for failure                         |
+| Retry on 4xx       | 4xx errors are caller bugs, not transient failures. Only 429 and 5xx are retried     |
+| Mutable singletons | Each `new DeepIDV()` is independent; constructor is cheap                            |
 
 ## Dependency Injection
 
@@ -190,6 +205,6 @@ The `DeepIDV` constructor wires all dependencies eagerly:
 3. Creates a `TypedEmitter` instance
 4. Creates an `HttpClient` with the resolved config and emitter
 5. Creates a `FileUploader` with the config, HTTP client, and emitter
-6. Instantiates `Sessions(httpClient)`, `Document(httpClient, uploader)`, `Face(httpClient, uploader)`, `Identity(httpClient, uploader)`
+6. Instantiates the sessions, document, face, identity, screening, and async-jobs namespaces
 
 No lazy loading, no service locator, no global state.

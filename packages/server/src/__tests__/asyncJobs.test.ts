@@ -24,6 +24,7 @@ import { AsyncJobs } from '../asyncJobs.js';
 import type { AsyncJobSnapshot } from '../asyncJobs.types.js';
 
 const BASE_URL = 'https://api.deepidv.com';
+const JOB_ID = '550e8400-e29b-41d4-a716-446655440000';
 
 /**
  * Builds a fresh AsyncJobs instance backed by a real HttpClient.
@@ -46,7 +47,7 @@ function createAsyncJobs() {
 // ---------------------------------------------------------------------------
 
 const BASE_WIRE = {
-  jobId: 'job_abc123',
+  jobId: JOB_ID,
   createdAt: 1_716_897_600, // epoch seconds (server quirk: number)
   updatedAt: '2026-05-28T12:01:00Z', // ISO string
 };
@@ -72,35 +73,35 @@ describe('AsyncJobs.get — input validation', () => {
 describe('AsyncJobs.get — direct parse', () => {
   it('parses a pending snapshot', async () => {
     server.use(
-      http.get(`${BASE_URL}/v1/async-jobs/job_abc123`, () =>
+      http.get(`${BASE_URL}/v1/async-jobs/${JOB_ID}`, () =>
         HttpResponse.json({ ...BASE_WIRE, status: 'pending' }),
       ),
     );
-    const snap = await createAsyncJobs().get('job_abc123');
+    const snap = await createAsyncJobs().get(JOB_ID);
     expect(snap.status).toBe('pending');
-    expect(snap.jobId).toBe('job_abc123');
+    expect(snap.jobId).toBe(JOB_ID);
     // No `type` field on the public snapshot anymore.
     expect(snap).not.toHaveProperty('type');
   });
 
   it('parses a processing snapshot', async () => {
     server.use(
-      http.get(`${BASE_URL}/v1/async-jobs/job_abc123`, () =>
+      http.get(`${BASE_URL}/v1/async-jobs/${JOB_ID}`, () =>
         HttpResponse.json({ ...BASE_WIRE, status: 'processing' }),
       ),
     );
-    const snap = await createAsyncJobs().get('job_abc123');
+    const snap = await createAsyncJobs().get(JOB_ID);
     expect(snap.status).toBe('processing');
   });
 
   it('parses a ready snapshot and surfaces the result', async () => {
     const result = { totalHits: 5, summary: 'some-data' };
     server.use(
-      http.get(`${BASE_URL}/v1/async-jobs/job_abc123`, () =>
+      http.get(`${BASE_URL}/v1/async-jobs/${JOB_ID}`, () =>
         HttpResponse.json({ ...BASE_WIRE, status: 'ready', result }),
       ),
     );
-    const snap = await createAsyncJobs().get('job_abc123');
+    const snap = await createAsyncJobs().get(JOB_ID);
     expect(snap.status).toBe('ready');
     if (snap.status === 'ready') {
       expect(snap.result).toEqual(result);
@@ -109,11 +110,11 @@ describe('AsyncJobs.get — direct parse', () => {
 
   it('parses a failed snapshot and surfaces the error string', async () => {
     server.use(
-      http.get(`${BASE_URL}/v1/async-jobs/job_abc123`, () =>
+      http.get(`${BASE_URL}/v1/async-jobs/${JOB_ID}`, () =>
         HttpResponse.json({ ...BASE_WIRE, status: 'failed', error: 'upstream timeout' }),
       ),
     );
-    const snap = await createAsyncJobs().get('job_abc123');
+    const snap = await createAsyncJobs().get(JOB_ID);
     expect(snap.status).toBe('failed');
     if (snap.status === 'failed') {
       expect(snap.error).toBe('upstream timeout');
@@ -122,11 +123,11 @@ describe('AsyncJobs.get — direct parse', () => {
 
   it('reflects createdAt as a number and updatedAt as a string', async () => {
     server.use(
-      http.get(`${BASE_URL}/v1/async-jobs/job_abc123`, () =>
+      http.get(`${BASE_URL}/v1/async-jobs/${JOB_ID}`, () =>
         HttpResponse.json({ ...BASE_WIRE, status: 'pending' }),
       ),
     );
-    const snap = await createAsyncJobs().get('job_abc123');
+    const snap = await createAsyncJobs().get(JOB_ID);
     expect(snap.createdAt).toBe(1_716_897_600);
     expect(typeof snap.createdAt).toBe('number');
     expect(snap.updatedAt).toBe('2026-05-28T12:01:00Z');
@@ -134,11 +135,11 @@ describe('AsyncJobs.get — direct parse', () => {
 
   it('rejects a failed snapshot whose error is null (server always sends a string)', async () => {
     server.use(
-      http.get(`${BASE_URL}/v1/async-jobs/job_abc123`, () =>
+      http.get(`${BASE_URL}/v1/async-jobs/${JOB_ID}`, () =>
         HttpResponse.json({ ...BASE_WIRE, status: 'failed', error: null }),
       ),
     );
-    await expect(createAsyncJobs().get('job_abc123')).rejects.toThrow();
+    await expect(createAsyncJobs().get(JOB_ID)).rejects.toThrow();
   });
 });
 
@@ -153,7 +154,7 @@ describe('AsyncJobs.get — error mapping', () => {
         HttpResponse.json({ error: 'Not Found' }, { status: 404 }),
       ),
     );
-    await expect(createAsyncJobs().get('job_missing')).rejects.toThrow(NotFoundError);
+    await expect(createAsyncJobs().get(JOB_ID)).rejects.toThrow(NotFoundError);
   });
 
   it('maps 403 → AuthorizationError (cross-org access)', async () => {
@@ -162,7 +163,7 @@ describe('AsyncJobs.get — error mapping', () => {
         HttpResponse.json({ error: 'Forbidden' }, { status: 403 }),
       ),
     );
-    await expect(createAsyncJobs().get('job_other_org')).rejects.toThrow(AuthorizationError);
+    await expect(createAsyncJobs().get(JOB_ID)).rejects.toThrow(AuthorizationError);
   });
 
   it('maps 401 → AuthenticationError', async () => {
@@ -171,7 +172,7 @@ describe('AsyncJobs.get — error mapping', () => {
         HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
       ),
     );
-    await expect(createAsyncJobs().get('job_x')).rejects.toThrow(AuthenticationError);
+    await expect(createAsyncJobs().get(JOB_ID)).rejects.toThrow(AuthenticationError);
   });
 });
 
@@ -179,21 +180,9 @@ describe('AsyncJobs.get — error mapping', () => {
 // AsyncJobs.get — URL handling
 // ---------------------------------------------------------------------------
 
-describe('AsyncJobs.get — URL handling', () => {
-  it('URL-encodes the jobId in the request path', async () => {
-    let capturedUrl: string | null = null;
-    server.use(
-      http.get(`${BASE_URL}/v1/async-jobs/:id`, ({ request }) => {
-        capturedUrl = request.url;
-        return HttpResponse.json({
-          ...BASE_WIRE,
-          jobId: 'job/with-slash',
-          status: 'pending',
-        });
-      }),
-    );
-    await createAsyncJobs().get('job/with-slash');
-    expect(capturedUrl).toContain('job%2Fwith-slash');
+describe('AsyncJobs.get — UUID contract', () => {
+  it('rejects a non-UUID job id before making a request', async () => {
+    await expect(createAsyncJobs().get('job/with-slash')).rejects.toThrow(ValidationError);
   });
 });
 

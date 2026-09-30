@@ -10,16 +10,6 @@
 import { z } from 'zod';
 
 // ---------------------------------------------------------------------------
-// Enum schemas
-// ---------------------------------------------------------------------------
-
-/**
- * Supported screening services. Used as the `service` filter on
- * `screening.list()` and as the `type` field on screening session records.
- */
-export const ScreeningServiceSchema = z.enum(['PEP_SANCTIONS', 'ADVERSE_MEDIA', 'TITLE_CHECK']);
-
-// ---------------------------------------------------------------------------
 // Input schemas
 // ---------------------------------------------------------------------------
 
@@ -39,7 +29,7 @@ export const PepSanctionsInputSchema = z.object({
    * When omitted, screening runs on name + date of birth alone and the
    * server synthesizes a placeholder identity email.
    */
-  email: z.email().optional(),
+  email: z.string().optional(),
   /** First name (required, 1–255 chars). */
   firstName: z.string().min(1).max(255),
   /** Last name (required, 1–255 chars). */
@@ -64,7 +54,7 @@ export const AdverseMediaInputSchema = z.object({
    * When omitted, screening runs on name + date of birth alone and the
    * server synthesizes a placeholder identity email.
    */
-  email: z.email().optional(),
+  email: z.string().optional(),
   /** First name (required, 1–255 chars). */
   firstName: z.string().min(1).max(255),
   /** Last name (required, 1–255 chars). */
@@ -84,7 +74,7 @@ export const AdverseMediaInputSchema = z.object({
    * Optional stable idempotency key. Sent as the `Idempotency-Key` header.
    * Omit to let the SDK generate a UUID v4 per call.
    */
-  idempotencyKey: z.string().min(1).max(255).optional(),
+  idempotencyKey: z.string().optional(),
 });
 
 /**
@@ -95,29 +85,15 @@ export const AdverseMediaInputSchema = z.object({
  */
 export const TitleCheckInputSchema = z.object({
   /** Email address (required, must be valid email format). */
-  email: z.email(),
+  email: z.string(),
   /** First name (required, 1–255 chars). */
   firstName: z.string().min(1).max(255),
   /** Last name (required, 1–255 chars). */
   lastName: z.string().min(1).max(255),
   /** Free-text postal address (required, 1–500 chars). */
   address: z.string().min(1).max(500),
-});
-
-/**
- * Query parameters for `screening.list()`.
- *
- * The endpoint backing this method (`GET /v1/screening/sessions`) is not
- * yet implemented on the server. The schema is provided so the public
- * type surface is stable; the method itself throws until the endpoint lands.
- */
-export const ScreeningListInputSchema = z.object({
-  /** Maximum number of records to return. */
-  limit: z.number().int().positive().optional(),
-  /** Number of records to skip for pagination. */
-  offset: z.number().int().nonnegative().optional(),
-  /** Filter by screening service. */
-  service: ScreeningServiceSchema.optional(),
+  /** Optional stable key sent as the `Idempotency-Key` header. */
+  idempotencyKey: z.string().optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -321,6 +297,9 @@ export const AdverseMediaQueuedResponseSchema = z
   })
   .strip();
 
+/** Response from the queued `screening.titleCheck()` POST. */
+export const TitleCheckQueuedResponseSchema = AdverseMediaQueuedResponseSchema;
+
 /**
  * Eventual result of an adverse-media job (the `result` payload delivered
  * when the job reaches the `ready` terminal state).
@@ -337,7 +316,7 @@ export const AdverseMediaResultSchema = z
   .strip();
 
 /**
- * Response schema for `screening.titleCheck()` — sync.
+ * Eventual result schema for a queued `screening.titleCheck()` job.
  *
  * Discriminated union on `status`:
  * - `'found'` — full property record
@@ -370,39 +349,17 @@ export const AdverseMediaJobSnapshotSchema = z.discriminatedUnion('status', [
   z.object({ status: z.literal('failed'), error: z.string() }),
 ]);
 
-/**
- * Screening session record returned by `screening.list()`.
- *
- * Speculative shape — the backing endpoint (`GET /v1/screening/sessions`)
- * is not yet implemented. The schema will be tightened when the server lands.
- */
-export const ScreeningSessionSchema = z
-  .object({
-    id: z.string(),
-    service: ScreeningServiceSchema,
-    status: z.string(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-  })
-  .strip();
-
-/**
- * Paginated response wrapper for `screening.list()`.
- */
-export const ScreeningListResultSchema = z.object({
-  data: z.array(ScreeningSessionSchema),
-  total: z.number().optional(),
-  hasMore: z.boolean().optional(),
-  limit: z.number(),
-  offset: z.number(),
-});
+/** Title-check-specific narrowing of the generic async-job snapshot. */
+export const TitleCheckJobSnapshotSchema = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('pending') }),
+  z.object({ status: z.literal('processing') }),
+  z.object({ status: z.literal('ready'), result: TitleCheckResultSchema }),
+  z.object({ status: z.literal('failed'), error: z.string() }),
+]);
 
 // ---------------------------------------------------------------------------
 // Exported inferred types (z.infer only — no separate interface declarations)
 // ---------------------------------------------------------------------------
-
-/** Valid screening service identifiers. */
-export type ScreeningService = z.infer<typeof ScreeningServiceSchema>;
 
 /** Input for `screening.pepSanctions()`. */
 export type PepSanctionsInput = z.infer<typeof PepSanctionsInputSchema>;
@@ -416,6 +373,9 @@ export type AdverseMediaInput = z.infer<typeof AdverseMediaInputSchema>;
 /** Initial queued response from POST `/v1/screening/adverse-media`. */
 export type AdverseMediaQueuedResponse = z.infer<typeof AdverseMediaQueuedResponseSchema>;
 
+/** Initial queued response from POST `/v1/screening/title-check`. */
+export type TitleCheckQueuedResponse = z.infer<typeof TitleCheckQueuedResponseSchema>;
+
 /** Eventual result of a completed adverse-media job. */
 export type AdverseMediaResult = z.infer<typeof AdverseMediaResultSchema>;
 
@@ -428,11 +388,5 @@ export type TitleCheckInput = z.infer<typeof TitleCheckInputSchema>;
 /** Response from `screening.titleCheck()` — discriminated on `status`. */
 export type TitleCheckResult = z.infer<typeof TitleCheckResultSchema>;
 
-/** Query parameters for `screening.list()`. */
-export type ScreeningListInput = z.infer<typeof ScreeningListInputSchema>;
-
-/** Single record in the `screening.list()` paginated response. */
-export type ScreeningSession = z.infer<typeof ScreeningSessionSchema>;
-
-/** Response from `screening.list()`. */
-export type ScreeningListResult = z.infer<typeof ScreeningListResultSchema>;
+/** Narrowed snapshot returned by `TitleCheckHandle.refresh()`. */
+export type TitleCheckJobSnapshot = z.infer<typeof TitleCheckJobSnapshotSchema>;

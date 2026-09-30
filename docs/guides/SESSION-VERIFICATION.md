@@ -150,12 +150,9 @@ await client.sessions.updateStatus(session.id, 'VERIFIED');
 
 // Or reject it
 await client.sessions.updateStatus(session.id, 'REJECTED');
-
-// Or void it (e.g., duplicate submission)
-await client.sessions.updateStatus(session.id, 'VOIDED');
 ```
 
-Valid status updates: `VERIFIED`, `REJECTED`, `VOIDED`.
+Valid status updates: `VERIFIED` and `REJECTED`.
 
 You cannot set `PENDING` or `SUBMITTED` — those are managed by the API based on user activity.
 
@@ -164,16 +161,15 @@ You cannot set `PENDING` or `SUBMITTED` — those are managed by the API based o
 ```typescript
 // List all sessions
 const page = await client.sessions.list();
-console.log(`Found ${page.data.length} sessions`);
+console.log(`Found ${page.sessions.length} sessions`);
 
-// Filter by status
-const verified = await client.sessions.list({
-  status: 'VERIFIED',
+// Filter by workflow
+const workflowSessions = await client.sessions.list({
+  workflowId: 'workflow-123',
   limit: 10,
-  offset: 0,
 });
 
-for (const session of verified.data) {
+for (const session of workflowSessions.sessions) {
   console.log(`${session.id}: ${session.status} (${session.createdAt})`);
 }
 ```
@@ -181,30 +177,26 @@ for (const session of verified.data) {
 ### Pagination
 
 ```typescript
-let offset = 0;
+let nextToken: string | undefined;
 const limit = 25;
 
-while (true) {
-  const page = await client.sessions.list({ limit, offset });
+do {
+  const page = await client.sessions.list({ limit, nextToken });
 
-  for (const session of page.data) {
+  for (const session of page.sessions) {
     processSession(session);
   }
 
-  if (!page.hasMore || page.data.length < limit) break;
-  offset += limit;
-}
+  nextToken = page.nextToken ?? undefined;
+} while (nextToken);
 ```
 
-### PaginatedResponse Fields
+### SessionListResult Fields
 
-| Field     | Type        | Description                       |
-| --------- | ----------- | --------------------------------- |
-| `data`    | `Session[]` | Array of session records          |
-| `total`   | `number?`   | Total number of matching sessions |
-| `hasMore` | `boolean?`  | Whether more pages exist          |
-| `limit`   | `number`    | Page size used                    |
-| `offset`  | `number`    | Starting offset                   |
+| Field       | Type             | Description                  |
+| ----------- | ---------------- | ---------------------------- |
+| `sessions`  | `Session[]`      | Sessions in the current page |
+| `nextToken` | `string \| null` | Cursor for the next page     |
 
 ## Session Statuses
 
@@ -214,4 +206,3 @@ while (true) {
 | `SUBMITTED` | User completed the verification flow | API                      |
 | `VERIFIED`  | Approved by your team                | You (via `updateStatus`) |
 | `REJECTED`  | Rejected by your team                | You (via `updateStatus`) |
-| `VOIDED`    | Cancelled / invalidated              | You (via `updateStatus`) |

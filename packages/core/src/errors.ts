@@ -280,8 +280,35 @@ export class AdverseMediaFailedError extends DeepIDVError {
   }
 }
 
+/** Thrown when a title-check async job reaches the terminal `failed` state. */
+export class TitleCheckFailedError extends DeepIDVError {
+  readonly jobId: string | undefined;
+
+  constructor(
+    message: string,
+    options?: Pick<DeepIDVErrorOptions, 'response' | 'cause'> & { jobId?: string },
+  ) {
+    super(message, {
+      code: 'title_check_failed',
+      response: options?.response,
+      cause: options?.cause,
+    });
+    this.name = 'TitleCheckFailedError';
+    this.jobId = options?.jobId;
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+
+  override toJSON(): Record<string, unknown> {
+    return {
+      ...super.toJSON(),
+      type: 'TitleCheckFailedError',
+      jobId: this.jobId,
+    };
+  }
+}
+
 /**
- * Thrown when `AdverseMediaHandle.wait()` exceeds its `timeoutMs` budget
+ * Thrown when an async-job handle exceeds its `timeoutMs` budget
  * before the async job reaches a terminal state. The job may still complete
  * server-side — callers can poll again with `client.asyncJobs.get(jobId)`.
  */

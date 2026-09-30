@@ -47,6 +47,7 @@ interface SessionCreateInput {
   redirectUrl?: string;
   sendEmailInvite?: boolean;
   sendPhoneInvite?: boolean;
+  expiresInHours?: number; // 1–8760
 }
 ```
 
@@ -61,7 +62,8 @@ interface SessionCreateResult {
   id: string;
   sessionUrl: string;
   externalId?: string;
-  links: Array<{ url: string; type: string }>;
+  expiresAt?: string;
+  links: Array<{ rel: string; href: string; description?: string }>;
 }
 ```
 
@@ -76,52 +78,25 @@ interface Session {
   userId: string;
   senderUserId: string;
   externalId?: string;
-  status: 'PENDING' | 'SUBMITTED' | 'VERIFIED' | 'REJECTED' | 'VOIDED';
-  type: 'session' | 'verification' | 'credit-application' | 'silent-screening' | 'deep-doc';
-  sessionProgress: 'PENDING' | 'STARTED' | 'COMPLETED';
-  location?: { country: string };
+  status: string;
+  type: string;
+  sessionProgress: string;
+  location?: string | null;
   workflowId?: string;
   workflowSteps?: string[];
   bankStatementRequestId?: string;
   createdAt: string;
   updatedAt: string;
   submittedAt?: string;
-  metaData?: {
-    applicantSubmissionIp?: string;
-    applicantSubmissionDevice?: string;
-    applicantViewTime?: string;
-    applicantSubmissionBrowser?: string;
-  };
+  metaData?: Record<string, unknown>;
   uploads?: Record<string, boolean>;
-  analysisData?: {
-    createdAt: string;
-    idMatchesSelfie?: boolean;
-    facelivenessScore?: number;
-    idAnalysisData?: {
-      detectFaceData: Array<{
-        confidence?: number;
-        boundingBox?: { top: number; left: number; width: number; height: number };
-      }>;
-      idExtractedText: Array<{ type: string; value: string; confidence: number }>;
-      expiryDatePass: boolean;
-      validStatePass: boolean;
-      ageRestrictionPass: boolean;
-    };
-    compareFacesData?: {
-      faceMatchConfidence: number;
-      faceMatchResult: Record<string, unknown>;
-    };
-    pepSanctionsData?: { ... };
-    adverseMediaData?: { ... };
-    documentRiskData?: { ... };
-    customFormData?: Array<{ question: string; answer: string; type: string }>;
-  };
+  analysisData?: Record<string, unknown>;
 }
 ```
 
 ### `SessionRetrieveResult`
 
-Result from `client.sessions.retrieve()` and `client.sessions.updateStatus()`.
+Result from `client.sessions.retrieve()`.
 
 ```typescript
 interface SessionRetrieveResult {
@@ -138,7 +113,7 @@ interface SessionRetrieveResult {
   senderUser?: {
     /* same shape as user */
   };
-  resourceLinks?: Record<string, string>;
+  resourceLinks: Record<string, string>;
 }
 ```
 
@@ -148,9 +123,13 @@ Input for `client.sessions.list()`.
 
 ```typescript
 interface SessionListParams {
-  limit?: number;
-  offset?: number;
-  status?: 'PENDING' | 'SUBMITTED' | 'VERIFIED' | 'REJECTED' | 'VOIDED';
+  limit?: number; // 1–500
+  nextToken?: string;
+  startDate?: string;
+  endDate?: string;
+  byOrganization?: boolean | null;
+  externalId?: string;
+  workflowId?: string;
 }
 ```
 
@@ -161,7 +140,7 @@ interface SessionListParams {
 Valid values for `client.sessions.updateStatus()`.
 
 ```typescript
-type SessionStatusUpdate = 'VERIFIED' | 'REJECTED' | 'VOIDED';
+type SessionStatusUpdate = 'VERIFIED' | 'REJECTED';
 ```
 
 **Zod schema:** `SessionStatusUpdateSchema`
@@ -379,6 +358,22 @@ interface IdentityFaceMatchResult {
 
 **Zod schema:** `IdentityFaceMatchResultSchema`
 
+## Screening and Async-Job Types
+
+`PepSanctionsInput` and `PepSanctionsResult` describe the synchronous PEP and sanctions operation. `AdverseMediaInput` and `TitleCheckInput` accept an optional `idempotencyKey`, which is sent as the `Idempotency-Key` header rather than in the request body.
+
+`AdverseMediaHandle` and `TitleCheckHandle` expose:
+
+```typescript
+interface AsyncResultHandle<TResult, TSnapshot> {
+  readonly jobId: string;
+  refresh(): Promise<TSnapshot>;
+  wait(options?: { pollIntervalMs?: number; timeoutMs?: number }): Promise<TResult>;
+}
+```
+
+`AsyncJobSnapshot` is a discriminated union with `pending`, `processing`, `ready`, and `failed` statuses. Ready snapshots contain `result`; failed snapshots contain `error`.
+
 ## Common Types
 
 ### `FileInput`
@@ -393,17 +388,14 @@ type FileInput = Uint8Array | ReadableStream<Uint8Array> | string;
 - `ReadableStream<Uint8Array>` — streaming input (materialized before upload)
 - `string` — data URL, base64, or file path
 
-### `PaginatedResponse<T>`
+### `SessionListResult`
 
-Generic paginated response wrapper.
+Cursor-paginated session response.
 
 ```typescript
-interface PaginatedResponse<T> {
-  data: T[];
-  total?: number;
-  hasMore?: boolean;
-  limit: number;
-  offset: number;
+interface SessionListResult {
+  sessions: Session[];
+  nextToken: string | null;
 }
 ```
 
