@@ -11,7 +11,7 @@ sequenceDiagram
     Note over SDK: 1. Validate input (Zod)
     Note over SDK: 2. toUint8Array(input)
     Note over SDK: 3. detectContentType(bytes)
-    SDK->>API: POST /v1/uploads/presign<br/>{ contentType: "image/jpeg", count: 1 }
+    SDK->>API: POST /v1/upload/presign<br/>{ files: [{ contentType: "image/jpeg", byteLength }] }
     API-->>SDK: { uploads: [{ uploadUrl, fileKey }] }
     Note over SDK: emit("upload:start")
     SDK->>S3: PUT uploadUrl<br/>Content-Type: image/jpeg<br/>(raw bytes)

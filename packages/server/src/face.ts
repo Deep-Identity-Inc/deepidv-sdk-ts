@@ -99,7 +99,7 @@ export class Face {
    * Compare two face images. Uploads both in parallel and returns match confidence.
    *
    * Source and target images are uploaded simultaneously via a batch presign
-   * request (count: 2) with parallel S3 PUTs (D-02, UPL-04). The caller passes
+   * request with two file entries and parallel S3 PUTs (D-02, UPL-04). The caller passes
    * both images; orchestration is handled transparently.
    *
    * @param input - Comparison parameters with source and target image buffers.

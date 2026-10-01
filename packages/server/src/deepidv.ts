@@ -31,6 +31,7 @@ import { WorkflowSessions } from './workflowSessions.js';
 import { Financial } from './financial.js';
 import { CreditTerms } from './creditTerms.js';
 import { CreditChecks } from './creditChecks.js';
+import { Profiles } from './profiles.js';
 
 // ---------------------------------------------------------------------------
 // Config schema (exported for consumers per D-02)
@@ -178,6 +179,9 @@ export class DeepIDV {
   /** Hard and soft credit-check session creation. */
   readonly creditChecks: CreditChecks;
 
+  /** Organization branding profiles and profile-logo uploads. */
+  readonly profiles: Profiles;
+
   /** Internal emitter — not exposed directly to consumers. */
   private readonly emitter: TypedEmitter;
 
@@ -222,6 +226,7 @@ export class DeepIDV {
     this.financial = new Financial(httpClient);
     this.creditTerms = new CreditTerms(httpClient);
     this.creditChecks = new CreditChecks(httpClient);
+    this.profiles = new Profiles(httpClient, uploader);
   }
 
   /**

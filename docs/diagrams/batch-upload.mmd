@@ -11,7 +11,7 @@ sequenceDiagram
     Note over SDK: 1. Validate both inputs (Zod)
     Note over SDK: 2. toUint8Array(source), toUint8Array(target)
     Note over SDK: 3. detectContentType for each
-    SDK->>API: POST /v1/uploads/presign<br/>{ contentType: "image/jpeg", count: 2 }
+    SDK->>API: POST /v1/upload/presign<br/>{ files: [{ contentType, byteLength }, { contentType, byteLength }] }
     API-->>SDK: { uploads: [<br/>  { uploadUrl: url1, fileKey: key1 },<br/>  { uploadUrl: url2, fileKey: key2 }<br/>] }
     par Parallel S3 PUTs (Promise.all)
         SDK->>S3: PUT url1 (source bytes)

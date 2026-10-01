@@ -16,6 +16,7 @@ classDiagram
         +financial: Financial
         +creditTerms: CreditTerms
         +creditChecks: CreditChecks
+        +profiles: Profiles
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -100,6 +101,14 @@ classDiagram
         +createSoft(input) CreditCheckCreateResult
     }
 
+    class Profiles {
+        +create(input) Profile
+        +list() ProfileListResult
+        +retrieve(profileId) Profile
+        +createLogoUploadUrl(input) ProfileLogoUploadUrlResult
+        +uploadLogo(input) string
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
@@ -113,3 +122,4 @@ classDiagram
     DeepIDV *-- Financial : financial
     DeepIDV *-- CreditTerms : creditTerms
     DeepIDV *-- CreditChecks : creditChecks
+    DeepIDV *-- Profiles : profiles

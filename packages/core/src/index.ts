@@ -49,10 +49,17 @@ export type {
   FileInput,
   SupportedContentType,
   UploadOptions,
+  PresignUrlFile,
+  PresignUrlEntry,
   PresignResponse,
+  PresignTargetResolver,
 } from './uploader.js';
 export {
   FileUploader,
+  PresignUrlFileSchema,
+  PresignUrlRequestSchema,
+  PresignUrlEntrySchema,
+  PresignUrlResponseSchema,
   toUint8Array,
   detectContentType,
   mapZodError,
