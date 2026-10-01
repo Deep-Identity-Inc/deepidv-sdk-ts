@@ -357,9 +357,67 @@ export {
   ProfileListResultSchema,
 } from './profiles.types.js';
 
+// ---------------------------------------------------------------------------
+// 16. iGaming checks and self-exclusion
+// ---------------------------------------------------------------------------
+export type {
+  IGamingCheckVerdict,
+  InjectionSignal,
+  AnalyzeInjectionInput,
+  AnalyzeInjectionResult,
+  AnalyzeIpCheckInput,
+  IpCheckResult,
+  AntiCheatVerdict,
+  AntiCheatAction,
+  AnalyzeAntiCheatInput,
+  AntiCheatResult,
+  SelfExclusionListParams,
+  SelfExclusionIdentityEntry,
+  SelfExclusionFaceEntry,
+  SelfExclusionEntry,
+  SelfExclusionListResult,
+  SelfExclusionIdentityAddInput,
+  SelfExclusionIdentityStatus,
+  SelfExclusionIdentityAddResult,
+  SelfExclusionIdentityRemoveResult,
+  SelfExclusionFaceInput,
+  SelfExclusionFaceResult,
+  SelfExclusionFaceRemoveResult,
+  AntiCheatPurgeResult,
+  SelfExclusionApplicantInput,
+  SelfExclusionApplicantResult,
+} from './igaming.types.js';
+export {
+  IGamingCheckVerdictSchema,
+  InjectionSignalSchema,
+  AnalyzeInjectionInputSchema,
+  AnalyzeInjectionResultSchema,
+  AnalyzeIpCheckInputSchema,
+  IpCheckResultSchema,
+  AntiCheatVerdictSchema,
+  AntiCheatActionSchema,
+  AnalyzeAntiCheatInputSchema,
+  AntiCheatResultSchema,
+  SelfExclusionListParamsSchema,
+  SelfExclusionIdentityEntrySchema,
+  SelfExclusionFaceEntrySchema,
+  SelfExclusionEntrySchema,
+  SelfExclusionListResultSchema,
+  SelfExclusionIdentityAddInputSchema,
+  SelfExclusionIdentityStatusSchema,
+  SelfExclusionIdentityAddResultSchema,
+  SelfExclusionIdentityRemoveResultSchema,
+  SelfExclusionFaceInputSchema,
+  SelfExclusionFaceResultSchema,
+  SelfExclusionFaceRemoveResultSchema,
+  AntiCheatPurgeResultSchema,
+  SelfExclusionApplicantInputSchema,
+  SelfExclusionApplicantResultSchema,
+} from './igaming.types.js';
+
 // NOTE: Namespace classes are
 // NOT exported. Consumers access them exclusively through client.sessions,
 // client.document, client.face, client.identity, client.screening, and
 // client.asyncJobs, client.deepfake, client.auth, client.workflows,
 // client.workflowSessions, client.financial, client.creditTerms, and
-// client.creditChecks, and client.profiles (per D-01, API-05).
+// client.creditChecks, client.profiles, and client.igaming (per D-01, API-05).

@@ -17,6 +17,7 @@ classDiagram
         +creditTerms: CreditTerms
         +creditChecks: CreditChecks
         +profiles: Profiles
+        +igaming: IGaming
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -109,6 +110,24 @@ classDiagram
         +uploadLogo(input) string
     }
 
+    class IGaming {
+        +analyzeInjection(input) AnalyzeInjectionResult
+        +detectVpn(input) IpCheckResult
+        +checkIpJurisdiction(input) IpCheckResult
+        +analyzeAntiCheat(input) AntiCheatResult
+        +purgeAntiCheatEnrollment(sessionId) AntiCheatPurgeResult
+        +selfExclusion: SelfExclusion
+    }
+
+    class SelfExclusion {
+        +list(params?) SelfExclusionListResult
+        +addIdentity(input) SelfExclusionIdentityAddResult
+        +removeIdentity(documentNumber) SelfExclusionIdentityRemoveResult
+        +addFace(input) SelfExclusionFaceResult
+        +removeFace(sessionId) SelfExclusionFaceRemoveResult
+        +addApplicant(input) SelfExclusionApplicantResult
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
@@ -123,3 +142,5 @@ classDiagram
     DeepIDV *-- CreditTerms : creditTerms
     DeepIDV *-- CreditChecks : creditChecks
     DeepIDV *-- Profiles : profiles
+    DeepIDV *-- IGaming : igaming
+    IGaming *-- SelfExclusion : selfExclusion
