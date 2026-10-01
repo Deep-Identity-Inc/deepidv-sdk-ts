@@ -16,6 +16,10 @@ export default tseslint.config(
     },
   },
   {
+    files: ['scripts/**/*.mjs'],
+    extends: [tseslint.configs.disableTypeChecked],
+  },
+  {
     ignores: ['**/dist/**', '**/node_modules/**', '**/*.config.*', 'examples/**', 'test/**'],
   },
 );

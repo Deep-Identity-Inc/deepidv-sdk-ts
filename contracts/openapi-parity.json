@@ -1,0 +1,636 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "repository": "Deep-Identity-Inc/deepidv-open-api",
+    "ref": "origin/dev",
+    "commit": "b12b1352650adc2370472d50efc56ef05758a230",
+    "specPath": "infrastructure/ec2/open-api/openapi.yaml"
+  },
+  "baselineDate": "2026-09-29",
+  "operations": [
+    {
+      "method": "POST",
+      "path": "/v1/document/scan",
+      "status": "supported",
+      "sdkNamespace": "document",
+      "sdkMethod": "scan",
+      "inputSchema": "DocumentScanInputSchema",
+      "resultSchema": "DocumentScanResultSchema",
+      "tests": ["packages/server/src/__tests__/document.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/face/detect",
+      "status": "supported",
+      "sdkNamespace": "face",
+      "sdkMethod": "detect",
+      "inputSchema": "FaceDetectInputSchema",
+      "resultSchema": "FaceDetectResultSchema",
+      "tests": ["packages/server/src/__tests__/face.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/face/compare",
+      "status": "supported",
+      "sdkNamespace": "face",
+      "sdkMethod": "compare",
+      "inputSchema": "FaceCompareInputSchema",
+      "resultSchema": "FaceCompareResultSchema",
+      "tests": ["packages/server/src/__tests__/face.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/face/estimate-age",
+      "status": "supported",
+      "sdkNamespace": "face",
+      "sdkMethod": "estimateAge",
+      "inputSchema": "FaceEstimateAgeInputSchema",
+      "resultSchema": "FaceEstimateAgeResultSchema",
+      "tests": ["packages/server/src/__tests__/face.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/face/liveness/sessions",
+      "status": "implement",
+      "sdkNamespace": "face",
+      "sdkMethod": "createLivenessSession",
+      "workstream": 2
+    },
+    {
+      "method": "GET",
+      "path": "/v1/face/liveness/sessions/{liveness_session_id}/result",
+      "status": "implement",
+      "sdkNamespace": "face",
+      "sdkMethod": "getLivenessResult",
+      "workstream": 2
+    },
+    {
+      "method": "GET",
+      "path": "/v1/deepfake/challenge/{sessionId}",
+      "status": "implement",
+      "sdkNamespace": "deepfake",
+      "sdkMethod": "getChallenge",
+      "workstream": 2
+    },
+    {
+      "method": "POST",
+      "path": "/v1/deepfake/upload-urls",
+      "status": "implement",
+      "sdkNamespace": "deepfake",
+      "sdkMethod": "createUploadUrls",
+      "workstream": 2
+    },
+    {
+      "method": "POST",
+      "path": "/v1/deepfake/analyze",
+      "status": "implement",
+      "sdkNamespace": "deepfake",
+      "sdkMethod": "analyze",
+      "workstream": 2
+    },
+    {
+      "method": "POST",
+      "path": "/v1/identity/verify",
+      "status": "supported",
+      "sdkNamespace": "identity",
+      "sdkMethod": "verify",
+      "inputSchema": "IdentityVerifyInputSchema",
+      "resultSchema": "IdentityVerificationResultSchema",
+      "tests": ["packages/server/src/__tests__/identity.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions",
+      "status": "supported",
+      "sdkNamespace": "sessions",
+      "sdkMethod": "create",
+      "inputSchema": "SessionCreateInputSchema",
+      "resultSchema": "SessionCreateResultSchema",
+      "tests": ["packages/server/src/__tests__/sessions.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions",
+      "status": "supported",
+      "sdkNamespace": "sessions",
+      "sdkMethod": "list",
+      "inputSchema": "SessionListParamsSchema",
+      "tests": ["packages/server/src/__tests__/sessions.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/{id}",
+      "status": "supported",
+      "sdkNamespace": "sessions",
+      "sdkMethod": "retrieve",
+      "resultSchema": "SessionRetrieveResultSchema",
+      "tests": ["packages/server/src/__tests__/sessions.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/sessions/{id}/update-status",
+      "status": "supported",
+      "sdkNamespace": "sessions",
+      "sdkMethod": "updateStatus",
+      "inputSchema": "SessionStatusUpdateSchema",
+      "resultSchema": "SessionRetrieveResultSchema",
+      "tests": ["packages/server/src/__tests__/sessions.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/uploads",
+      "status": "implement",
+      "sdkNamespace": "sessions",
+      "sdkMethod": "createUploadUrls",
+      "workstream": 2
+    },
+    {
+      "method": "POST",
+      "path": "/v1/idv",
+      "status": "deprecated",
+      "reason": "Deprecated session-creation alias. Use client.sessions.create(), which calls POST /v1/sessions.",
+      "owner": "OpenAPI contract"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/workflows",
+      "status": "implement",
+      "sdkNamespace": "workflows",
+      "sdkMethod": "list",
+      "workstream": 3
+    },
+    {
+      "method": "POST",
+      "path": "/v1/workflows",
+      "status": "implement",
+      "sdkNamespace": "workflows",
+      "sdkMethod": "create",
+      "workstream": 3
+    },
+    {
+      "method": "GET",
+      "path": "/v1/workflows/{id}",
+      "status": "implement",
+      "sdkNamespace": "workflows",
+      "sdkMethod": "retrieve",
+      "workstream": 3
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/workflows/{workflow_id}/steps/{step_id}/config",
+      "status": "implement",
+      "sdkNamespace": "workflows",
+      "sdkMethod": "updateStepConfig",
+      "workstream": 3
+    },
+    {
+      "method": "POST",
+      "path": "/v1/workflows/{workflow_id}/sessions",
+      "status": "implement",
+      "sdkNamespace": "workflows",
+      "sdkMethod": "createSession",
+      "workstream": 3
+    },
+    {
+      "method": "GET",
+      "path": "/v1/sessions/{session_id}/workflow",
+      "status": "implement",
+      "sdkNamespace": "workflowSessions",
+      "sdkMethod": "retrieve",
+      "workstream": 3
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/workflow/start",
+      "status": "implement",
+      "sdkNamespace": "workflowSessions",
+      "sdkMethod": "start",
+      "workstream": 3
+    },
+    {
+      "method": "POST",
+      "path": "/v1/sessions/{session_id}/steps/{step_id}",
+      "status": "implement",
+      "sdkNamespace": "workflowSessions",
+      "sdkMethod": "submitStep",
+      "workstream": 3
+    },
+    {
+      "method": "POST",
+      "path": "/v1/financial",
+      "status": "implement",
+      "sdkNamespace": "financial",
+      "sdkMethod": "create",
+      "workstream": 4
+    },
+    {
+      "method": "GET",
+      "path": "/v1/financial",
+      "status": "implement",
+      "sdkNamespace": "financial",
+      "sdkMethod": "list",
+      "workstream": 4
+    },
+    {
+      "method": "GET",
+      "path": "/v1/financial/{id}",
+      "status": "implement",
+      "sdkNamespace": "financial",
+      "sdkMethod": "retrieve",
+      "workstream": 4
+    },
+    {
+      "method": "GET",
+      "path": "/v1/financial/externalId/{externalId}",
+      "status": "implement",
+      "sdkNamespace": "financial",
+      "sdkMethod": "listByExternalId",
+      "workstream": 4
+    },
+    {
+      "method": "POST",
+      "path": "/v1/credit-terms",
+      "status": "implement",
+      "sdkNamespace": "creditTerms",
+      "sdkMethod": "create",
+      "workstream": 4
+    },
+    {
+      "method": "GET",
+      "path": "/v1/credit-terms",
+      "status": "implement",
+      "sdkNamespace": "creditTerms",
+      "sdkMethod": "list",
+      "workstream": 4
+    },
+    {
+      "method": "GET",
+      "path": "/v1/credit-terms/{id}",
+      "status": "implement",
+      "sdkNamespace": "creditTerms",
+      "sdkMethod": "retrieve",
+      "workstream": 4
+    },
+    {
+      "method": "GET",
+      "path": "/v1/credit-terms/externalId/{externalId}",
+      "status": "implement",
+      "sdkNamespace": "creditTerms",
+      "sdkMethod": "listByExternalId",
+      "workstream": 4
+    },
+    {
+      "method": "POST",
+      "path": "/v1/credit-check/hard",
+      "status": "implement",
+      "sdkNamespace": "creditChecks",
+      "sdkMethod": "createHard",
+      "workstream": 4
+    },
+    {
+      "method": "POST",
+      "path": "/v1/credit-check/soft",
+      "status": "implement",
+      "sdkNamespace": "creditChecks",
+      "sdkMethod": "createSoft",
+      "workstream": 4
+    },
+    {
+      "method": "GET",
+      "path": "/v1/credit-checks",
+      "status": "implement",
+      "sdkNamespace": "creditChecks",
+      "sdkMethod": "list",
+      "workstream": 4
+    },
+    {
+      "method": "GET",
+      "path": "/v1/credit-checks/{id}",
+      "status": "implement",
+      "sdkNamespace": "creditChecks",
+      "sdkMethod": "retrieve",
+      "workstream": 4
+    },
+    {
+      "method": "GET",
+      "path": "/v1/auth/verify",
+      "status": "implement",
+      "sdkNamespace": "auth",
+      "sdkMethod": "verify",
+      "workstream": 2
+    },
+    {
+      "method": "GET",
+      "path": "/v1/oauth-clients",
+      "status": "excluded-oauth",
+      "reason": "OAuth client management remains owned by the MCP server and is intentionally excluded from @deepidv/server.",
+      "owner": "MCP server"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/oauth-clients",
+      "status": "excluded-oauth",
+      "reason": "OAuth client management remains owned by the MCP server and is intentionally excluded from @deepidv/server.",
+      "owner": "MCP server"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/oauth-clients/{clientId}/rotate-secret",
+      "status": "excluded-oauth",
+      "reason": "OAuth client management remains owned by the MCP server and is intentionally excluded from @deepidv/server.",
+      "owner": "MCP server"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/oauth-clients/{clientId}/revoke",
+      "status": "excluded-oauth",
+      "reason": "OAuth client management remains owned by the MCP server and is intentionally excluded from @deepidv/server.",
+      "owner": "MCP server"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/screening/pep-sanctions",
+      "status": "supported",
+      "sdkNamespace": "screening",
+      "sdkMethod": "pepSanctions",
+      "inputSchema": "PepSanctionsInputSchema",
+      "resultSchema": "PepSanctionsResultSchema",
+      "tests": ["packages/server/src/__tests__/screening.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/screening/carrier-age-gate",
+      "status": "implement",
+      "sdkNamespace": "screening",
+      "sdkMethod": "carrierAgeGate",
+      "workstream": 4
+    },
+    {
+      "method": "POST",
+      "path": "/v1/screening/phone-ownership",
+      "status": "implement",
+      "sdkNamespace": "screening",
+      "sdkMethod": "phoneOwnership",
+      "workstream": 4
+    },
+    {
+      "method": "POST",
+      "path": "/v1/screening/phone-trust",
+      "status": "implement",
+      "sdkNamespace": "screening",
+      "sdkMethod": "phoneTrust",
+      "workstream": 4
+    },
+    {
+      "method": "POST",
+      "path": "/v1/screening/adverse-media",
+      "status": "supported",
+      "sdkNamespace": "screening",
+      "sdkMethod": "adverseMedia",
+      "inputSchema": "AdverseMediaInputSchema",
+      "resultSchema": "AdverseMediaQueuedResponseSchema",
+      "tests": ["packages/server/src/__tests__/screening.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/screening/title-check",
+      "status": "supported",
+      "sdkNamespace": "screening",
+      "sdkMethod": "titleCheck",
+      "inputSchema": "TitleCheckInputSchema",
+      "resultSchema": "TitleCheckResultSchema",
+      "tests": ["packages/server/src/__tests__/screening.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/async-jobs/{jobId}",
+      "status": "supported",
+      "sdkNamespace": "asyncJobs",
+      "sdkMethod": "get",
+      "resultSchema": "AsyncJobSnapshotSchema",
+      "tests": ["packages/server/src/__tests__/asyncJobs.test.ts"],
+      "documentation": ["docs/reference/API.md"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/profiles",
+      "status": "implement",
+      "sdkNamespace": "profiles",
+      "sdkMethod": "create",
+      "workstream": 5
+    },
+    {
+      "method": "GET",
+      "path": "/v1/profiles",
+      "status": "implement",
+      "sdkNamespace": "profiles",
+      "sdkMethod": "list",
+      "workstream": 5
+    },
+    {
+      "method": "GET",
+      "path": "/v1/profiles/{id}",
+      "status": "implement",
+      "sdkNamespace": "profiles",
+      "sdkMethod": "retrieve",
+      "workstream": 5
+    },
+    {
+      "method": "POST",
+      "path": "/v1/profiles/logo-upload-url",
+      "status": "implement",
+      "sdkNamespace": "profiles",
+      "sdkMethod": "createLogoUploadUrl",
+      "workstream": 5
+    },
+    {
+      "method": "POST",
+      "path": "/v1/upload/presign",
+      "status": "implement",
+      "sdkNamespace": "uploads",
+      "sdkMethod": "createPresignedUrls",
+      "workstream": 5,
+      "notes": "Confirm that a raw presign method has a customer-facing use case before release."
+    },
+    {
+      "method": "POST",
+      "path": "/v1/igaming/injection",
+      "status": "implement",
+      "sdkNamespace": "igaming",
+      "sdkMethod": "analyzeInjection",
+      "workstream": 6
+    },
+    {
+      "method": "POST",
+      "path": "/v1/igaming/vpn-detection",
+      "status": "implement",
+      "sdkNamespace": "igaming",
+      "sdkMethod": "detectVpn",
+      "workstream": 6
+    },
+    {
+      "method": "POST",
+      "path": "/v1/igaming/ip-jurisdiction",
+      "status": "implement",
+      "sdkNamespace": "igaming",
+      "sdkMethod": "checkIpJurisdiction",
+      "workstream": 6
+    },
+    {
+      "method": "POST",
+      "path": "/v1/igaming/anti-cheat",
+      "status": "implement",
+      "sdkNamespace": "igaming",
+      "sdkMethod": "analyzeAntiCheat",
+      "workstream": 6
+    },
+    {
+      "method": "GET",
+      "path": "/v1/igaming/self-exclusion",
+      "status": "implement",
+      "sdkNamespace": "igaming.selfExclusion",
+      "sdkMethod": "list",
+      "workstream": 6
+    },
+    {
+      "method": "POST",
+      "path": "/v1/igaming/self-exclusion/identity",
+      "status": "implement",
+      "sdkNamespace": "igaming.selfExclusion",
+      "sdkMethod": "addIdentity",
+      "workstream": 6
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/igaming/self-exclusion/identity/{document_number}",
+      "status": "implement",
+      "sdkNamespace": "igaming.selfExclusion",
+      "sdkMethod": "removeIdentity",
+      "workstream": 6
+    },
+    {
+      "method": "POST",
+      "path": "/v1/igaming/self-exclusion/face",
+      "status": "implement",
+      "sdkNamespace": "igaming.selfExclusion",
+      "sdkMethod": "addFace",
+      "workstream": 6
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/igaming/self-exclusion/face/{session_id}",
+      "status": "implement",
+      "sdkNamespace": "igaming.selfExclusion",
+      "sdkMethod": "removeFace",
+      "workstream": 6
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/igaming/anti-cheat/{session_id}",
+      "status": "implement",
+      "sdkNamespace": "igaming",
+      "sdkMethod": "purgeAntiCheatEnrollment",
+      "workstream": 6
+    },
+    {
+      "method": "POST",
+      "path": "/v1/igaming/self-exclusion/applicant",
+      "status": "implement",
+      "sdkNamespace": "igaming.selfExclusion",
+      "sdkMethod": "addApplicant",
+      "workstream": 6
+    },
+    {
+      "method": "POST",
+      "path": "/v1/aml/transactions",
+      "status": "implement",
+      "sdkNamespace": "aml",
+      "sdkMethod": "saveTransactions",
+      "workstream": 7
+    },
+    {
+      "method": "POST",
+      "path": "/v1/aml/bots/{bot_id}/monitored-users",
+      "status": "implement",
+      "sdkNamespace": "aml",
+      "sdkMethod": "addMonitoredUser",
+      "workstream": 7
+    },
+    {
+      "method": "POST",
+      "path": "/v1/age-verification",
+      "status": "implement",
+      "sdkNamespace": "ageVerification",
+      "sdkMethod": "create",
+      "workstream": 8
+    },
+    {
+      "method": "GET",
+      "path": "/v1/age-verification/parent-connect",
+      "status": "implement",
+      "sdkNamespace": "ageVerification",
+      "sdkMethod": "listParentConnectRequests",
+      "workstream": 8
+    },
+    {
+      "method": "GET",
+      "path": "/v1/age-verification/parent-connect/{parentConnectId}",
+      "status": "implement",
+      "sdkNamespace": "ageVerification",
+      "sdkMethod": "retrieveParentConnectRequest",
+      "workstream": 8
+    },
+    {
+      "method": "GET",
+      "path": "/v1/age-verification/boundaries/{childAttestationId}",
+      "status": "implement",
+      "sdkNamespace": "ageVerification",
+      "sdkMethod": "getBoundaries",
+      "workstream": 8
+    },
+    {
+      "method": "POST",
+      "path": "/v1/re-verifications",
+      "status": "implement",
+      "sdkNamespace": "reVerifications",
+      "sdkMethod": "create",
+      "workstream": 8
+    },
+    {
+      "method": "POST",
+      "path": "/v1/re-verifications/{id}/liveness/start",
+      "status": "implement",
+      "sdkNamespace": "reVerifications",
+      "sdkMethod": "startLiveness",
+      "workstream": 8
+    },
+    {
+      "method": "POST",
+      "path": "/v1/re-verifications/{id}/liveness/upload-url",
+      "status": "implement",
+      "sdkNamespace": "reVerifications",
+      "sdkMethod": "createLivenessUploadUrl",
+      "workstream": 8
+    },
+    {
+      "method": "POST",
+      "path": "/v1/re-verifications/{id}/liveness/complete",
+      "status": "implement",
+      "sdkNamespace": "reVerifications",
+      "sdkMethod": "completeLiveness",
+      "workstream": 8
+    }
+  ]
+}

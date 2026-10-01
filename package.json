@@ -9,7 +9,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "pnpm -r clean",
-    "test:types": "cd test/consumer && npx tsc --noEmit"
+    "test:types": "cd test/consumer && npx tsc --noEmit",
+    "test:openapi-parity": "node --test scripts/__tests__/openapi-parity.test.mjs",
+    "check:openapi-parity": "node scripts/check-openapi-parity.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
