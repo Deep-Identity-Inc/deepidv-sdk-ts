@@ -387,6 +387,7 @@ export type {
   SelfExclusionApplicantInput,
   SelfExclusionApplicantResult,
 } from './igaming.types.js';
+
 export {
   IGamingCheckVerdictSchema,
   InjectionSignalSchema,
@@ -415,9 +416,56 @@ export {
   SelfExclusionApplicantResultSchema,
 } from './igaming.types.js';
 
+// ---------------------------------------------------------------------------
+// 17. AML transaction monitoring
+// ---------------------------------------------------------------------------
+export type {
+  AmlTransactionDirection,
+  AmlTransactionType,
+  AmlTransactionStatus,
+  AmlTransactionChannel,
+  AmlAmount,
+  AmlNormalizedAmount,
+  AmlCounterparty,
+  AmlGeography,
+  AmlCrypto,
+  AmlSubject,
+  AmlTransactionInput,
+  AmlSaveTransactionsInput,
+  AmlRecordStatus,
+  AmlRecordError,
+  AmlRecordResult,
+  AmlSaveTransactionsResult,
+  AmlQuotaExceeded,
+  AddMonitoredUserInput,
+  MonitoredUser,
+} from './aml.types.js';
+export {
+  AmlTransactionDirectionSchema,
+  AmlTransactionTypeSchema,
+  AmlTransactionStatusSchema,
+  AmlTransactionChannelSchema,
+  AmlAmountSchema,
+  AmlNormalizedAmountSchema,
+  AmlCounterpartySchema,
+  AmlGeographySchema,
+  AmlCryptoSchema,
+  AmlSubjectSchema,
+  AmlTransactionInputSchema,
+  AmlSaveTransactionsInputSchema,
+  AmlRecordStatusSchema,
+  AmlRecordErrorSchema,
+  AmlRecordResultSchema,
+  AmlSaveTransactionsResultSchema,
+  AmlQuotaExceededSchema,
+  AddMonitoredUserInputSchema,
+  MonitoredUserSchema,
+} from './aml.types.js';
+
 // NOTE: Namespace classes are
 // NOT exported. Consumers access them exclusively through client.sessions,
 // client.document, client.face, client.identity, client.screening, and
 // client.asyncJobs, client.deepfake, client.auth, client.workflows,
 // client.workflowSessions, client.financial, client.creditTerms, and
-// client.creditChecks, client.profiles, and client.igaming (per D-01, API-05).
+// client.creditChecks, client.profiles, client.igaming, and client.aml
+// (per D-01, API-05).

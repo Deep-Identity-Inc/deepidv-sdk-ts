@@ -152,6 +152,25 @@ import {
   AntiCheatPurgeResultSchema,
   SelfExclusionApplicantInputSchema,
   SelfExclusionApplicantResultSchema,
+  AmlTransactionDirectionSchema,
+  AmlTransactionTypeSchema,
+  AmlTransactionStatusSchema,
+  AmlTransactionChannelSchema,
+  AmlAmountSchema,
+  AmlNormalizedAmountSchema,
+  AmlCounterpartySchema,
+  AmlGeographySchema,
+  AmlCryptoSchema,
+  AmlSubjectSchema,
+  AmlTransactionInputSchema,
+  AmlSaveTransactionsInputSchema,
+  AmlRecordStatusSchema,
+  AmlRecordErrorSchema,
+  AmlRecordResultSchema,
+  AmlSaveTransactionsResultSchema,
+  AmlQuotaExceededSchema,
+  AddMonitoredUserInputSchema,
+  MonitoredUserSchema,
 } from '@deepidv/server';
 import type {
   DeepIDVOptions,
@@ -294,6 +313,25 @@ import type {
   AntiCheatPurgeResult,
   SelfExclusionApplicantInput,
   SelfExclusionApplicantResult,
+  AmlTransactionDirection,
+  AmlTransactionType,
+  AmlTransactionStatus,
+  AmlTransactionChannel,
+  AmlAmount,
+  AmlNormalizedAmount,
+  AmlCounterparty,
+  AmlGeography,
+  AmlCrypto,
+  AmlSubject,
+  AmlTransactionInput,
+  AmlSaveTransactionsInput,
+  AmlRecordStatus,
+  AmlRecordError,
+  AmlRecordResult,
+  AmlSaveTransactionsResult,
+  AmlQuotaExceeded,
+  AddMonitoredUserInput,
+  MonitoredUser,
 } from '@deepidv/server';
 
 const client = new DeepIDV({ apiKey: 'test' });
@@ -314,6 +352,7 @@ const namespaces = [
   client.profiles,
   client.igaming,
   client.igaming.selfExclusion,
+  client.aml,
 ];
 
 const values = [
@@ -467,6 +506,25 @@ const values = [
   AntiCheatPurgeResultSchema,
   SelfExclusionApplicantInputSchema,
   SelfExclusionApplicantResultSchema,
+  AmlTransactionDirectionSchema,
+  AmlTransactionTypeSchema,
+  AmlTransactionStatusSchema,
+  AmlTransactionChannelSchema,
+  AmlAmountSchema,
+  AmlNormalizedAmountSchema,
+  AmlCounterpartySchema,
+  AmlGeographySchema,
+  AmlCryptoSchema,
+  AmlSubjectSchema,
+  AmlTransactionInputSchema,
+  AmlSaveTransactionsInputSchema,
+  AmlRecordStatusSchema,
+  AmlRecordErrorSchema,
+  AmlRecordResultSchema,
+  AmlSaveTransactionsResultSchema,
+  AmlQuotaExceededSchema,
+  AddMonitoredUserInputSchema,
+  MonitoredUserSchema,
 ];
 
 type PublicTypes =
@@ -609,7 +667,26 @@ type PublicTypes =
   | SelfExclusionFaceRemoveResult
   | AntiCheatPurgeResult
   | SelfExclusionApplicantInput
-  | SelfExclusionApplicantResult;
+  | SelfExclusionApplicantResult
+  | AmlTransactionDirection
+  | AmlTransactionType
+  | AmlTransactionStatus
+  | AmlTransactionChannel
+  | AmlAmount
+  | AmlNormalizedAmount
+  | AmlCounterparty
+  | AmlGeography
+  | AmlCrypto
+  | AmlSubject
+  | AmlTransactionInput
+  | AmlSaveTransactionsInput
+  | AmlRecordStatus
+  | AmlRecordError
+  | AmlRecordResult
+  | AmlSaveTransactionsResult
+  | AmlQuotaExceeded
+  | AddMonitoredUserInput
+  | MonitoredUser;
 
 declare const publicType: PublicTypes;
 void namespaces;

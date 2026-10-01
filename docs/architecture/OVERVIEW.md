@@ -8,7 +8,7 @@ The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [
 
 **Web-standards-first.** The SDK uses only native web APIs (`fetch`, `AbortController`, `ReadableStream`, `Uint8Array`, `crypto.subtle`). No Node-specific imports in the core package. This is what enables universal runtime support.
 
-**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, `client.asyncJobs`, `client.deepfake`, `client.auth`, `client.workflows`, `client.workflowSessions`, `client.financial`, `client.creditTerms`, `client.creditChecks`, `client.profiles`, and `client.igaming` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
+**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, `client.asyncJobs`, `client.deepfake`, `client.auth`, `client.workflows`, `client.workflowSessions`, `client.financial`, `client.creditTerms`, `client.creditChecks`, `client.profiles`, `client.igaming`, and `client.aml` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
 
 **Single dependency.** The only production dependency is [zod](https://zod.dev) for runtime input validation. Zod schemas are the single source of truth for both TypeScript types and runtime checks.
 
@@ -22,6 +22,7 @@ The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [
 | **Async job**         | Queue work and poll a typed handle for its result.           | `screening.adverseMedia()`, `screening.titleCheck()`                       |
 | **Capture lifecycle** | Coordinate device capture with explicit resumable calls.     | `face.createLivenessSession()`, `deepfake.createUploadUrls()`              |
 | **Workflow runner**   | Define workflows and resume ordered execution by session ID. | `workflows.createSession()`, `workflowSessions.submitStep()`               |
+| **Batch ingest**      | Submit bounded batches and inspect per-record outcomes.      | `aml.saveTransactions()`                                                   |
 
 ## Public API Surface
 
@@ -46,6 +47,7 @@ classDiagram
         +creditChecks: CreditChecks
         +profiles: Profiles
         +igaming: IGaming
+        +aml: Aml
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -156,6 +158,11 @@ classDiagram
         +addApplicant(input) SelfExclusionApplicantResult
     }
 
+    class Aml {
+        +saveTransactions(input) AmlSaveTransactionsResult
+        +addMonitoredUser(botId, input) MonitoredUser
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
@@ -172,6 +179,7 @@ classDiagram
     DeepIDV *-- Profiles : profiles
     DeepIDV *-- IGaming : igaming
     IGaming *-- SelfExclusion : selfExclusion
+    DeepIDV *-- Aml : aml
 ```
 
 The `DeepIDV` class is the only public entry point. Namespace classes are **not exported** — consumers access them exclusively through the client instance.
