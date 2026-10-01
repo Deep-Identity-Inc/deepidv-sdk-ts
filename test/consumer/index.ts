@@ -171,6 +171,27 @@ import {
   AmlQuotaExceededSchema,
   AddMonitoredUserInputSchema,
   MonitoredUserSchema,
+  AgeVerificationMethodSchema,
+  PlatformRestrictionSchema,
+  AgeVerificationCreateInputSchema,
+  AgeVerificationLinkSchema,
+  AgeVerificationCreateResultSchema,
+  ParentConnectStatusSchema,
+  ParentConnectListParamsSchema,
+  ParentConnectRequestSchema,
+  ParentConnectListResultSchema,
+  AgeVerificationBoundariesSchema,
+  ReVerificationCreateInputSchema,
+  ReVerificationCreateResultSchema,
+  LivenessChallengeStepSchema,
+  LivenessChallengeScriptSchema,
+  ReVerificationLivenessStartResultSchema,
+  ReVerificationLivenessUploadUrlInputSchema,
+  ReVerificationLivenessUploadUrlResultSchema,
+  ReVerificationDecisionSchema,
+  ReVerificationDecisionResultSchema,
+  ReVerificationErrorCodeSchema,
+  ReVerificationLifecycleErrorCodeSchema,
 } from '@deepidv/server';
 import type {
   DeepIDVOptions,
@@ -332,6 +353,27 @@ import type {
   AmlQuotaExceeded,
   AddMonitoredUserInput,
   MonitoredUser,
+  AgeVerificationMethod,
+  PlatformRestriction,
+  AgeVerificationCreateInput,
+  AgeVerificationLink,
+  AgeVerificationCreateResult,
+  ParentConnectStatus,
+  ParentConnectListParams,
+  ParentConnectRequest,
+  ParentConnectListResult,
+  AgeVerificationBoundaries,
+  ReVerificationCreateInput,
+  ReVerificationCreateResult,
+  LivenessChallengeStep,
+  LivenessChallengeScript,
+  ReVerificationLivenessStartResult,
+  ReVerificationLivenessUploadUrlInput,
+  ReVerificationLivenessUploadUrlResult,
+  ReVerificationDecision,
+  ReVerificationDecisionResult,
+  ReVerificationErrorCode,
+  ReVerificationLifecycleErrorCode,
 } from '@deepidv/server';
 
 const client = new DeepIDV({ apiKey: 'test' });
@@ -353,6 +395,8 @@ const namespaces = [
   client.igaming,
   client.igaming.selfExclusion,
   client.aml,
+  client.ageVerification,
+  client.reVerifications,
 ];
 
 const values = [
@@ -525,6 +569,27 @@ const values = [
   AmlQuotaExceededSchema,
   AddMonitoredUserInputSchema,
   MonitoredUserSchema,
+  AgeVerificationMethodSchema,
+  PlatformRestrictionSchema,
+  AgeVerificationCreateInputSchema,
+  AgeVerificationLinkSchema,
+  AgeVerificationCreateResultSchema,
+  ParentConnectStatusSchema,
+  ParentConnectListParamsSchema,
+  ParentConnectRequestSchema,
+  ParentConnectListResultSchema,
+  AgeVerificationBoundariesSchema,
+  ReVerificationCreateInputSchema,
+  ReVerificationCreateResultSchema,
+  LivenessChallengeStepSchema,
+  LivenessChallengeScriptSchema,
+  ReVerificationLivenessStartResultSchema,
+  ReVerificationLivenessUploadUrlInputSchema,
+  ReVerificationLivenessUploadUrlResultSchema,
+  ReVerificationDecisionSchema,
+  ReVerificationDecisionResultSchema,
+  ReVerificationErrorCodeSchema,
+  ReVerificationLifecycleErrorCodeSchema,
 ];
 
 type PublicTypes =
@@ -686,7 +751,28 @@ type PublicTypes =
   | AmlSaveTransactionsResult
   | AmlQuotaExceeded
   | AddMonitoredUserInput
-  | MonitoredUser;
+  | MonitoredUser
+  | AgeVerificationMethod
+  | PlatformRestriction
+  | AgeVerificationCreateInput
+  | AgeVerificationLink
+  | AgeVerificationCreateResult
+  | ParentConnectStatus
+  | ParentConnectListParams
+  | ParentConnectRequest
+  | ParentConnectListResult
+  | AgeVerificationBoundaries
+  | ReVerificationCreateInput
+  | ReVerificationCreateResult
+  | LivenessChallengeStep
+  | LivenessChallengeScript
+  | ReVerificationLivenessStartResult
+  | ReVerificationLivenessUploadUrlInput
+  | ReVerificationLivenessUploadUrlResult
+  | ReVerificationDecision
+  | ReVerificationDecisionResult
+  | ReVerificationErrorCode
+  | ReVerificationLifecycleErrorCode;
 
 declare const publicType: PublicTypes;
 void namespaces;

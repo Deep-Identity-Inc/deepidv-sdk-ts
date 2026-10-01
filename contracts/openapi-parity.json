@@ -728,66 +728,86 @@
     {
       "method": "POST",
       "path": "/v1/age-verification",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "ageVerification",
       "sdkMethod": "create",
-      "workstream": 8
+      "inputSchema": "AgeVerificationCreateInputSchema",
+      "resultSchema": "AgeVerificationCreateResultSchema",
+      "tests": ["packages/server/src/__tests__/ageVerification.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/age-verification/parent-connect",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "ageVerification",
       "sdkMethod": "listParentConnectRequests",
-      "workstream": 8
+      "inputSchema": "ParentConnectListParamsSchema",
+      "resultSchema": "ParentConnectListResultSchema",
+      "tests": ["packages/server/src/__tests__/ageVerification.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/age-verification/parent-connect/{parentConnectId}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "ageVerification",
       "sdkMethod": "retrieveParentConnectRequest",
-      "workstream": 8
+      "resultSchema": "ParentConnectRequestSchema",
+      "tests": ["packages/server/src/__tests__/ageVerification.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/age-verification/boundaries/{childAttestationId}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "ageVerification",
       "sdkMethod": "getBoundaries",
-      "workstream": 8
+      "resultSchema": "AgeVerificationBoundariesSchema",
+      "tests": ["packages/server/src/__tests__/ageVerification.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/re-verifications",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "reVerifications",
       "sdkMethod": "create",
-      "workstream": 8
+      "inputSchema": "ReVerificationCreateInputSchema",
+      "resultSchema": "ReVerificationCreateResultSchema",
+      "tests": ["packages/server/src/__tests__/reVerifications.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/re-verifications/{id}/liveness/start",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "reVerifications",
       "sdkMethod": "startLiveness",
-      "workstream": 8
+      "resultSchema": "ReVerificationLivenessStartResultSchema",
+      "tests": ["packages/server/src/__tests__/reVerifications.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/re-verifications/{id}/liveness/upload-url",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "reVerifications",
       "sdkMethod": "createLivenessUploadUrl",
-      "workstream": 8
+      "inputSchema": "ReVerificationLivenessUploadUrlInputSchema",
+      "resultSchema": "ReVerificationLivenessUploadUrlResultSchema",
+      "tests": ["packages/server/src/__tests__/reVerifications.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/re-verifications/{id}/liveness/complete",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "reVerifications",
       "sdkMethod": "completeLiveness",
-      "workstream": 8
+      "resultSchema": "ReVerificationDecisionResultSchema",
+      "tests": ["packages/server/src/__tests__/reVerifications.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     }
   ]
 }
