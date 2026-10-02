@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { HttpClient } from '@deepidv/core';
-import { mapZodError, ValidationError } from '@deepidv/core';
+import { mapZodError, NotFoundError, ValidationError } from '@deepidv/core';
 import { buildCursorQuery } from './pagination.js';
 import {
   CreditTermsCreateInputSchema,
@@ -41,8 +41,13 @@ export class CreditTerms {
     params: z.input<typeof CreditTermsListParamsSchema> = {},
   ): Promise<CreditTermsListResult> {
     const parsed = parse(CreditTermsListParamsSchema, params);
-    const raw = await this.client.get<unknown>(`/v1/credit-terms${buildCursorQuery(parsed)}`);
-    return CreditTermsListWireResultSchema.parse(raw);
+    try {
+      const raw = await this.client.get<unknown>(`/v1/credit-terms${buildCursorQuery(parsed)}`);
+      return CreditTermsListWireResultSchema.parse(raw);
+    } catch (error) {
+      if (error instanceof NotFoundError) return { creditTerms: [], nextToken: null };
+      throw error;
+    }
   }
 
   async retrieve(id: string): Promise<CreditTermsRecord> {
@@ -57,9 +62,14 @@ export class CreditTerms {
   ): Promise<CreditTermsListResult> {
     validateId(externalId, 'externalId');
     const parsed = parse(CreditTermsListParamsSchema, params);
-    const raw = await this.client.get<unknown>(
-      `/v1/credit-terms/externalId/${encodeURIComponent(externalId)}${buildCursorQuery(parsed)}`,
-    );
-    return CreditTermsListWireResultSchema.parse(raw);
+    try {
+      const raw = await this.client.get<unknown>(
+        `/v1/credit-terms/externalId/${encodeURIComponent(externalId)}${buildCursorQuery(parsed)}`,
+      );
+      return CreditTermsListWireResultSchema.parse(raw);
+    } catch (error) {
+      if (error instanceof NotFoundError) return { creditTerms: [], nextToken: null };
+      throw error;
+    }
   }
 }

@@ -88,6 +88,26 @@ describe('Financial', () => {
     expect(paths).toContain('/v1/financial/externalId/customer%2F1');
   });
 
+  it('normalizes empty list responses from 404s', async () => {
+    server.use(
+      http.get(`${BASE_URL}/v1/financial`, () =>
+        HttpResponse.json({ error: 'not found' }, { status: 404 }),
+      ),
+      http.get(`${BASE_URL}/v1/financial/externalId/:externalId`, () =>
+        HttpResponse.json({ error: 'not found' }, { status: 404 }),
+      ),
+    );
+
+    await expect(createFinancial().list({ nextToken: 'empty-page' })).resolves.toEqual({
+      bankStatements: [],
+      nextToken: null,
+    });
+    await expect(createFinancial().listByExternalId('missing')).resolves.toEqual({
+      bankStatements: [],
+      nextToken: null,
+    });
+  });
+
   it('rejects invalid inputs before transmission', async () => {
     await expect(
       createFinancial().create({ email: 'x', firstName: 'J', lastName: 'D', phone: '123' }),

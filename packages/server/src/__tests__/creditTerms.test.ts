@@ -73,6 +73,26 @@ describe('CreditTerms', () => {
     expect(externalPath).toBe('/v1/credit-terms/externalId/customer%2F1');
   });
 
+  it('normalizes empty list responses from 404s', async () => {
+    server.use(
+      http.get(`${BASE_URL}/v1/credit-terms`, () =>
+        HttpResponse.json({ error: 'not found' }, { status: 404 }),
+      ),
+      http.get(`${BASE_URL}/v1/credit-terms/externalId/:externalId`, () =>
+        HttpResponse.json({ error: 'not found' }, { status: 404 }),
+      ),
+    );
+
+    await expect(createCreditTerms().list({ nextToken: 'empty-page' })).resolves.toEqual({
+      creditTerms: [],
+      nextToken: null,
+    });
+    await expect(createCreditTerms().listByExternalId('missing')).resolves.toEqual({
+      creditTerms: [],
+      nextToken: null,
+    });
+  });
+
   it('validates amounts and identifiers locally', async () => {
     await expect(
       createCreditTerms().create({

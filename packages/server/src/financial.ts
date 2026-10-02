@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { HttpClient } from '@deepidv/core';
-import { mapZodError, ValidationError } from '@deepidv/core';
+import { mapZodError, NotFoundError, ValidationError } from '@deepidv/core';
 import { buildCursorQuery } from './pagination.js';
 import {
   FinancialCreateInputSchema,
@@ -37,8 +37,13 @@ export class Financial {
 
   async list(params: z.input<typeof FinancialListParamsSchema> = {}): Promise<FinancialListResult> {
     const parsed = parse(FinancialListParamsSchema, params);
-    const raw = await this.client.get<unknown>(`/v1/financial${buildCursorQuery(parsed)}`);
-    return FinancialListWireResultSchema.parse(raw);
+    try {
+      const raw = await this.client.get<unknown>(`/v1/financial${buildCursorQuery(parsed)}`);
+      return FinancialListWireResultSchema.parse(raw);
+    } catch (error) {
+      if (error instanceof NotFoundError) return { bankStatements: [], nextToken: null };
+      throw error;
+    }
   }
 
   async retrieve(id: string): Promise<FinancialRecord> {
@@ -53,9 +58,14 @@ export class Financial {
   ): Promise<FinancialListResult> {
     validateId(externalId, 'externalId');
     const parsed = parse(FinancialListParamsSchema, params);
-    const raw = await this.client.get<unknown>(
-      `/v1/financial/externalId/${encodeURIComponent(externalId)}${buildCursorQuery(parsed)}`,
-    );
-    return FinancialListWireResultSchema.parse(raw);
+    try {
+      const raw = await this.client.get<unknown>(
+        `/v1/financial/externalId/${encodeURIComponent(externalId)}${buildCursorQuery(parsed)}`,
+      );
+      return FinancialListWireResultSchema.parse(raw);
+    } catch (error) {
+      if (error instanceof NotFoundError) return { bankStatements: [], nextToken: null };
+      throw error;
+    }
   }
 }
