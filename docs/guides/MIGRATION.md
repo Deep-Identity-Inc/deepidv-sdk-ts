@@ -4,17 +4,17 @@ If you're currently calling `api.deepidv.com` directly with `fetch` or `curl`, t
 
 ## Endpoint Mapping
 
-| REST Endpoint                                                                      | SDK Method                                             |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `POST /v1/sessions`                                                                | `client.sessions.create(input)`                        |
-| `GET /v1/sessions/:id`                                                             | `client.sessions.retrieve(id)`                         |
-| `GET /v1/sessions`                                                                 | `client.sessions.list(params)`                         |
-| `PATCH /v1/sessions/:id/update-status`                                             | `client.sessions.updateStatus(id, status)`             |
-| `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/document/scan`                | `client.document.scan({ image })`                      |
-| `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/face/detect`                  | `client.face.detect({ image })`                        |
-| `POST /v1/uploads/presign` (count:2) → 2x `PUT` to S3 → `POST /v1/face/compare`    | `client.face.compare({ source, target })`              |
-| `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/face/estimate-age`            | `client.face.estimateAge({ image })`                   |
-| `POST /v1/uploads/presign` (count:2) → 2x `PUT` to S3 → `POST /v1/identity/verify` | `client.identity.verify({ documentImage, faceImage })` |
+| REST Endpoint                                                                     | SDK Method                                             |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `POST /v1/sessions`                                                               | `client.sessions.create(input)`                        |
+| `GET /v1/sessions/:id`                                                            | `client.sessions.retrieve(id)`                         |
+| `GET /v1/sessions`                                                                | `client.sessions.list(params)`                         |
+| `PATCH /v1/sessions/:id/update-status`                                            | `client.sessions.updateStatus(id, status)`             |
+| `POST /v1/upload/presign` → `PUT` to S3 → `POST /v1/document/scan`                | `client.document.scan({ image })`                      |
+| `POST /v1/upload/presign` → `PUT` to S3 → `POST /v1/face/detect`                  | `client.face.detect({ image })`                        |
+| `POST /v1/upload/presign` (2 files) → 2x `PUT` to S3 → `POST /v1/face/compare`    | `client.face.compare({ source, target })`              |
+| `POST /v1/upload/presign` → `PUT` to S3 → `POST /v1/face/estimate-age`            | `client.face.estimateAge({ image })`                   |
+| `POST /v1/upload/presign` (2 files) → 2x `PUT` to S3 → `POST /v1/identity/verify` | `client.identity.verify({ documentImage, faceImage })` |
 
 | `GET /v1/workflows` | `client.workflows.list()` |
 | `POST /v1/workflows` | `client.workflows.create(input)` |
@@ -93,10 +93,12 @@ const headers = {
 };
 
 // Step 1: Get presigned URL
-const presignRes = await fetch('https://api.deepidv.com/v1/uploads/presign', {
+const presignRes = await fetch('https://api.deepidv.com/v1/upload/presign', {
   method: 'POST',
   headers,
-  body: JSON.stringify({ contentType: 'image/jpeg', count: 1 }),
+  body: JSON.stringify({
+    files: [{ contentType: 'image/jpeg', byteLength: image.byteLength }],
+  }),
 });
 const { uploads } = await presignRes.json();
 
@@ -139,10 +141,15 @@ const source = readFileSync('id-photo.jpg');
 const target = readFileSync('selfie.jpg');
 
 // Step 1: Batch presign
-const presignRes = await fetch('https://api.deepidv.com/v1/uploads/presign', {
+const presignRes = await fetch('https://api.deepidv.com/v1/upload/presign', {
   method: 'POST',
   headers,
-  body: JSON.stringify({ contentType: 'image/jpeg', count: 2 }),
+  body: JSON.stringify({
+    files: [
+      { contentType: 'image/jpeg', byteLength: source.byteLength },
+      { contentType: 'image/jpeg', byteLength: target.byteLength },
+    ],
+  }),
 });
 const { uploads } = await presignRes.json();
 

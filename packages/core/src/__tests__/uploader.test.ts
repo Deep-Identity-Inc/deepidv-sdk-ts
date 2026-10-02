@@ -236,6 +236,65 @@ function makeUploader(configOverrides?: {
 // ---------------------------------------------------------------------------
 
 describe('FileUploader', () => {
+  it('rejects an empty generic upload batch before requesting presigned URLs', async () => {
+    const { uploader } = makeUploader();
+    await expect(uploader.upload([])).rejects.toThrow(ValidationError);
+  });
+
+  it('validates the generic presign response at runtime', async () => {
+    server.use(
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
+        HttpResponse.json({ uploads: [{ uploadUrl: 123, fileKey: 'key-1' }] }),
+      ),
+    );
+    const { uploader } = makeUploader();
+    await expect(uploader.upload(JPEG_BYTES)).rejects.toThrow(z.ZodError);
+  });
+
+  it('rejects a presign response whose upload count does not match the request', async () => {
+    server.use(
+      http.post('https://api.deepidv.com/v1/upload/presign', () =>
+        HttpResponse.json({ uploads: [] }),
+      ),
+    );
+    const { uploader } = makeUploader();
+    await expect(uploader.upload(JPEG_BYTES)).rejects.toMatchObject({
+      code: 'invalid_presign_response',
+    });
+  });
+
+  it('uploadWithPresign validates metadata, uploads, and returns the resolved file key', async () => {
+    let metadata: unknown;
+    let putRequest: Request | undefined;
+    server.use(
+      http.put('https://s3.example.com/domain-upload', ({ request }) => {
+        putRequest = request;
+        return HttpResponse.text('', { status: 200 });
+      }),
+    );
+    const { uploader } = makeUploader();
+    const result = await uploader.uploadWithPresign(JPEG_BYTES, 'image/jpeg', (input) => {
+      metadata = input;
+      return Promise.resolve({
+        uploadUrl: 'https://s3.example.com/domain-upload',
+        fileKey: 'domain-key',
+      });
+    });
+    expect(metadata).toEqual({ contentType: 'image/jpeg', byteLength: JPEG_BYTES.byteLength });
+    expect(result).toBe('domain-key');
+    expect(putRequest?.headers.get('content-type')).toBe('image/jpeg');
+    expect(putRequest?.headers.get('x-api-key')).toBeNull();
+  });
+
+  it('uploadWithPresign validates the domain-specific target', async () => {
+    const { uploader } = makeUploader();
+    await expect(
+      uploader.uploadWithPresign(JPEG_BYTES, 'image/jpeg', () =>
+        Promise.resolve({ uploadUrl: undefined, fileKey: 'key' } as never),
+      ),
+    ).rejects.toThrow(z.ZodError);
+  });
+
   it('upload(jpegBytes) calls POST /v1/upload/presign with a single-entry files array carrying contentType + byteLength', async () => {
     let presignBody: unknown;
     server.use(

@@ -2,7 +2,7 @@
  * Tests for the Identity module.
  *
  * Uses msw + real HttpClient + real FileUploader to intercept native fetch calls.
- * Covers Identity.verify() — happy path, batch presign count:2 (IDV-02), field
+ * Covers Identity.verify() — happy path, two-file batch presign (IDV-02), field
  * forwarding (documentImage, faceImage, documentType), unknown field stripping
  * (D-06), verified:false case, and Zod validation errors.
  */
@@ -135,7 +135,7 @@ describe('Identity', () => {
       expect(result.overallConfidence).toBe(94);
     });
 
-    it('sends batch presign with count: 2', async () => {
+    it('sends a batch presign request with two file entries', async () => {
       // mockPresignBatch() asserts count === 2 inline — test passes if assertion does not throw
       server.use(mockPresignBatch(), ...mockS3Puts(), mockIdentityVerify());
 

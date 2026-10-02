@@ -62,7 +62,7 @@ export class Identity {
    * Verify an identity by combining document OCR, face detection, and face matching.
    *
    * Uploads both the document image and face image in parallel via a batch presign
-   * request (count: 2) with parallel S3 PUTs (IDV-02, D-02). A single POST to
+   * request with two file entries and parallel S3 PUTs (IDV-02, D-02). A single POST to
    * `/v1/identity/verify` returns a unified result — server-side orchestration
    * handles scan + detect + compare internally (IDV-01, D-01).
    *
@@ -101,7 +101,7 @@ export class Identity {
       throw err;
     }
 
-    // Step 2: Batch upload both images in parallel (IDV-02, D-02 — batch presign count:2)
+    // Step 2: Batch upload both images in parallel (IDV-02, D-02)
     const fileKeys = await this.uploader.upload([validated.documentImage, validated.faceImage]);
 
     // Step 3: POST to single API endpoint (IDV-01, D-01 — server handles scan+detect+compare)

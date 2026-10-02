@@ -6,7 +6,7 @@
  * - `FileInput` — normalized input type accepted on all upload APIs
  * - `SupportedContentType` — MIME type literals for JPEG and PNG
  * - `UploadOptions` — validated options accepted by upload methods
- * - `PresignResponse` — shape of the presign API response
+ * - presign request and response schemas — runtime validation for upload targets
  * - `toUint8Array` — normalizes any FileInput to Uint8Array
  * - `detectContentType` — magic-byte content-type detection
  * - `mapZodError` — maps ZodError to ValidationError with path info
@@ -43,6 +43,8 @@ export type FileInput = Uint8Array | ReadableStream<Uint8Array> | string;
  */
 export type SupportedContentType = 'image/jpeg' | 'image/png';
 
+const MAX_PRESIGNED_UPLOAD_SIZE_BYTES = 15 * 1024 * 1024;
+
 // ---------------------------------------------------------------------------
 // Zod schemas (D-10, D-11)
 // ---------------------------------------------------------------------------
@@ -59,16 +61,35 @@ const UploadOptionsSchema = z.object({
 export type UploadOptions = z.infer<typeof UploadOptionsSchema>;
 
 // ---------------------------------------------------------------------------
-// Public response type
+// Presign contract schemas
 // ---------------------------------------------------------------------------
 
-/**
- * Response from `POST /v1/upload/presign`. Contains presigned S3 URLs
- * and the file keys to reference after upload.
- */
-export interface PresignResponse {
-  uploads: Array<{ uploadUrl: string; fileKey: string }>;
-}
+/** Metadata for one file submitted to `POST /v1/upload/presign`. */
+export const PresignUrlFileSchema = z.object({
+  contentType: z.string().min(1),
+  byteLength: z.number().int().positive().max(MAX_PRESIGNED_UPLOAD_SIZE_BYTES),
+});
+
+/** Request body for the generic presign endpoint. */
+export const PresignUrlRequestSchema = z.object({
+  files: z.array(PresignUrlFileSchema).min(1),
+});
+
+/** One upload target returned by a presign endpoint. */
+export const PresignUrlEntrySchema = z.object({
+  uploadUrl: z.string(),
+  fileKey: z.string(),
+});
+
+/** Response from `POST /v1/upload/presign`. */
+export const PresignUrlResponseSchema = z.object({
+  uploads: z.array(PresignUrlEntrySchema),
+});
+
+export type PresignUrlFile = z.infer<typeof PresignUrlFileSchema>;
+export type PresignUrlEntry = z.infer<typeof PresignUrlEntrySchema>;
+export type PresignResponse = z.infer<typeof PresignUrlResponseSchema>;
+export type PresignTargetResolver = (file: PresignUrlFile) => Promise<PresignUrlEntry>;
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -328,12 +349,23 @@ export class FileUploader {
       }),
     );
 
-    const presignResponse = await this.httpClient.post<PresignResponse>('/v1/upload/presign', {
+    const request = PresignUrlRequestSchema.safeParse({
       files: files.map((f) => ({
         contentType: f.contentType,
         byteLength: f.bytes.byteLength,
       })),
     });
+    if (!request.success) throw mapZodError(request.error);
+
+    const raw = await this.httpClient.post<unknown>('/v1/upload/presign', request.data);
+    const presignResponse = PresignUrlResponseSchema.parse(raw);
+
+    if (presignResponse.uploads.length !== files.length) {
+      throw new DeepIDVError(
+        `Presign returned ${String(presignResponse.uploads.length)} uploads for ${String(files.length)} files.`,
+        { code: 'invalid_presign_response' },
+      );
+    }
 
     await Promise.all(
       presignResponse.uploads.map((upload, i) => {
@@ -346,6 +378,31 @@ export class FileUploader {
     );
 
     return presignResponse.uploads.map((u) => u.fileKey);
+  }
+
+  /**
+   * Upload one file through a domain-specific presign endpoint.
+   *
+   * The resolver receives validated content type and byte length, then returns
+   * the presigned target used by the same S3 transport as generic uploads.
+   *
+   * @internal Used by server-package namespaces such as profile logo upload.
+   */
+  async uploadWithPresign(
+    input: FileInput,
+    contentType: string,
+    resolveTarget: PresignTargetResolver,
+  ): Promise<string> {
+    const bytes = await toUint8Array(input);
+    const metadata = PresignUrlFileSchema.safeParse({
+      contentType,
+      byteLength: bytes.byteLength,
+    });
+    if (!metadata.success) throw mapZodError(metadata.error);
+
+    const target = PresignUrlEntrySchema.parse(await resolveTarget(metadata.data));
+    await this._putToS3(target.uploadUrl, bytes, metadata.data.contentType);
+    return target.fileKey;
   }
 
   /**

@@ -120,6 +120,13 @@ import {
   CreditCheckTypeSchema,
   CreditCheckLinkSchema,
   CreditCheckCreateResultSchema,
+  ProfileLogoContentTypeSchema,
+  ProfileLogoUploadUrlInputSchema,
+  ProfileLogoUploadUrlResultSchema,
+  ProfileLogoUploadInputSchema,
+  ProfileCreateInputSchema,
+  ProfileSchema,
+  ProfileListResultSchema,
 } from '@deepidv/server';
 import type {
   DeepIDVOptions,
@@ -230,6 +237,13 @@ import type {
   CreditCheckType,
   CreditCheckLink,
   CreditCheckCreateResult,
+  ProfileLogoContentType,
+  ProfileLogoUploadUrlInput,
+  ProfileLogoUploadUrlResult,
+  ProfileLogoUploadInput,
+  ProfileCreateInput,
+  Profile,
+  ProfileListResult,
 } from '@deepidv/server';
 
 const client = new DeepIDV({ apiKey: 'test' });
@@ -247,6 +261,7 @@ const namespaces = [
   client.financial,
   client.creditTerms,
   client.creditChecks,
+  client.profiles,
 ];
 
 const values = [
@@ -368,6 +383,13 @@ const values = [
   CreditCheckTypeSchema,
   CreditCheckLinkSchema,
   CreditCheckCreateResultSchema,
+  ProfileLogoContentTypeSchema,
+  ProfileLogoUploadUrlInputSchema,
+  ProfileLogoUploadUrlResultSchema,
+  ProfileLogoUploadInputSchema,
+  ProfileCreateInputSchema,
+  ProfileSchema,
+  ProfileListResultSchema,
 ];
 
 type PublicTypes =
@@ -478,7 +500,14 @@ type PublicTypes =
   | CreditCheckCreateInput
   | CreditCheckType
   | CreditCheckLink
-  | CreditCheckCreateResult;
+  | CreditCheckCreateResult
+  | ProfileLogoContentType
+  | ProfileLogoUploadUrlInput
+  | ProfileLogoUploadUrlResult
+  | ProfileLogoUploadInput
+  | ProfileCreateInput
+  | Profile
+  | ProfileListResult;
 
 declare const publicType: PublicTypes;
 void namespaces;

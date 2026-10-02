@@ -534,43 +534,56 @@
     {
       "method": "POST",
       "path": "/v1/profiles",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "profiles",
       "sdkMethod": "create",
-      "workstream": 5
+      "inputSchema": "ProfileCreateInputSchema",
+      "resultSchema": "ProfileSchema",
+      "tests": ["packages/server/src/__tests__/profiles.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/profiles",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "profiles",
       "sdkMethod": "list",
-      "workstream": 5
+      "resultSchema": "ProfileListResultSchema",
+      "tests": ["packages/server/src/__tests__/profiles.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/profiles/{id}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "profiles",
       "sdkMethod": "retrieve",
-      "workstream": 5
+      "resultSchema": "ProfileSchema",
+      "tests": ["packages/server/src/__tests__/profiles.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/profiles/logo-upload-url",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "profiles",
       "sdkMethod": "createLogoUploadUrl",
-      "workstream": 5
+      "inputSchema": "ProfileLogoUploadUrlInputSchema",
+      "resultSchema": "ProfileLogoUploadUrlResultSchema",
+      "tests": ["packages/server/src/__tests__/profiles.test.ts"],
+      "documentation": ["docs/reference/API.md", "docs/architecture/UPLOAD-FLOW.md"]
     },
     {
       "method": "POST",
       "path": "/v1/upload/presign",
-      "status": "implement",
-      "sdkNamespace": "uploads",
-      "sdkMethod": "createPresignedUrls",
-      "workstream": 5,
-      "notes": "Confirm that a raw presign method has a customer-facing use case before release."
+      "status": "supported",
+      "sdkNamespace": "internalUploader",
+      "sdkMethod": "upload",
+      "inputSchema": "PresignUrlRequestSchema",
+      "resultSchema": "PresignUrlResponseSchema",
+      "tests": ["packages/core/src/__tests__/uploader.test.ts"],
+      "documentation": ["docs/architecture/UPLOAD-FLOW.md"],
+      "notes": "Intentionally internal: higher-level SDK methods own presigning and upload orchestration."
     },
     {
       "method": "POST",

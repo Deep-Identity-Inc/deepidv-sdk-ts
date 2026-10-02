@@ -335,9 +335,31 @@ export {
   CreditCheckCreateResultSchema,
 } from './creditChecks.types.js';
 
+// ---------------------------------------------------------------------------
+// 15. Organization branding profiles
+// ---------------------------------------------------------------------------
+export type {
+  ProfileLogoContentType,
+  ProfileLogoUploadUrlInput,
+  ProfileLogoUploadUrlResult,
+  ProfileLogoUploadInput,
+  ProfileCreateInput,
+  Profile,
+  ProfileListResult,
+} from './profiles.types.js';
+export {
+  ProfileLogoContentTypeSchema,
+  ProfileLogoUploadUrlInputSchema,
+  ProfileLogoUploadUrlResultSchema,
+  ProfileLogoUploadInputSchema,
+  ProfileCreateInputSchema,
+  ProfileSchema,
+  ProfileListResultSchema,
+} from './profiles.types.js';
+
 // NOTE: Namespace classes are
 // NOT exported. Consumers access them exclusively through client.sessions,
 // client.document, client.face, client.identity, client.screening, and
 // client.asyncJobs, client.deepfake, client.auth, client.workflows,
 // client.workflowSessions, client.financial, client.creditTerms, and
-// client.creditChecks (per D-01, API-05).
+// client.creditChecks, and client.profiles (per D-01, API-05).

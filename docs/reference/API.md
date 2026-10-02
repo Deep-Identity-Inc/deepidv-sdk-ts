@@ -56,6 +56,7 @@ const client = new DeepIDV({
 | `financial`        | `Financial`        | Bank-statement request management          |
 | `creditTerms`      | `CreditTerms`      | Credit-terms application management        |
 | `creditChecks`     | `CreditChecks`     | Hard and soft credit-check creation        |
+| `profiles`         | `Profiles`         | Organization branding profiles and logos   |
 
 ### `on(event, listener)`
 
@@ -668,6 +669,28 @@ Pass the returned `nextToken` back unchanged to retrieve the next page. Creation
 Create applicant sessions with `client.creditChecks.createHard(input)` or `client.creditChecks.createSoft(input)`. The result includes the created ID, normalized `sessionUrl`, resolved check type, and links.
 
 The preview `GET /v1/credit-checks` routes are intentionally not exposed because the pinned OpenAPI contract currently defines only a `501` response and no successful result shape.
+
+## Profiles
+
+Use `client.profiles` to manage organization branding profiles.
+
+- `create(input)` creates a profile from a name and optional existing `logoUrl` file key. It also accepts `logo: { file, contentType }` and completes the presign and S3 upload before creating the profile.
+- `list()` returns `{ profiles }` for the authenticated organization.
+- `retrieve(profileId)` returns one profile.
+- `createLogoUploadUrl(input)` exposes the profile-specific presign operation for callers that need to perform the S3 PUT themselves.
+- `uploadLogo(input)` requests a profile upload target, uploads the file, and returns its `fileKey`.
+
+```typescript
+const profile = await client.profiles.create({
+  name: 'Acme onboarding',
+  logo: {
+    file: logoBuffer,
+    contentType: 'image/png',
+  },
+});
+```
+
+Profile logos accept JPEG, PNG, WebP, and GIF files up to 15 MiB. When using the low-level `createLogoUploadUrl()` method, send the returned `fileKey` as `logoUrl` to `create()` after the PUT succeeds. Profile creation is not automatically retried.
 
 ## Async jobs
 

@@ -8,7 +8,7 @@ The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [
 
 **Web-standards-first.** The SDK uses only native web APIs (`fetch`, `AbortController`, `ReadableStream`, `Uint8Array`, `crypto.subtle`). No Node-specific imports in the core package. This is what enables universal runtime support.
 
-**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, `client.asyncJobs`, `client.deepfake`, `client.auth`, `client.workflows`, `client.workflowSessions`, `client.financial`, `client.creditTerms`, and `client.creditChecks` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
+**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, `client.asyncJobs`, `client.deepfake`, `client.auth`, `client.workflows`, `client.workflowSessions`, `client.financial`, `client.creditTerms`, `client.creditChecks`, and `client.profiles` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
 
 **Single dependency.** The only production dependency is [zod](https://zod.dev) for runtime input validation. Zod schemas are the single source of truth for both TypeScript types and runtime checks.
 
@@ -44,6 +44,7 @@ classDiagram
         +financial: Financial
         +creditTerms: CreditTerms
         +creditChecks: CreditChecks
+        +profiles: Profiles
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -128,6 +129,14 @@ classDiagram
         +createSoft(input) CreditCheckCreateResult
     }
 
+    class Profiles {
+        +create(input) Profile
+        +list() ProfileListResult
+        +retrieve(profileId) Profile
+        +createLogoUploadUrl(input) ProfileLogoUploadUrlResult
+        +uploadLogo(input) string
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
@@ -141,6 +150,7 @@ classDiagram
     DeepIDV *-- Financial : financial
     DeepIDV *-- CreditTerms : creditTerms
     DeepIDV *-- CreditChecks : creditChecks
+    DeepIDV *-- Profiles : profiles
 ```
 
 The `DeepIDV` class is the only public entry point. Namespace classes are **not exported** — consumers access them exclusively through the client instance.
@@ -270,6 +280,6 @@ The `DeepIDV` constructor wires all dependencies eagerly:
 3. Creates a `TypedEmitter` instance
 4. Creates an `HttpClient` with the resolved config and emitter
 5. Creates a `FileUploader` with the config, HTTP client, and emitter
-6. Instantiates every public namespace, including workflows, screening, financial, credit terms, and credit checks
+6. Instantiates every public namespace, including workflows, screening, financial, credit terms, credit checks, and profiles
 
 No lazy loading, no service locator, no global state.

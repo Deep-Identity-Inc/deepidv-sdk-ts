@@ -1,6 +1,6 @@
 # Presigned Upload Flow
 
-Every file-based operation in the SDK (document scan, face detection, face comparison, age estimation, identity verification) uses the same presigned URL upload flow. The developer passes an image — the SDK handles everything else.
+File-based operations in the SDK use presigned URL upload flows. The generic `/v1/upload/presign` endpoint powers document, face, and identity methods internally. Profile logos use their domain-specific `/v1/profiles/logo-upload-url` endpoint. In both cases, the developer can pass a file and let the SDK complete the S3 upload.
 
 ## Single-File Upload
 
@@ -20,7 +20,7 @@ sequenceDiagram
     Note over SDK: 1. Validate input (Zod)
     Note over SDK: 2. toUint8Array(input)
     Note over SDK: 3. detectContentType(bytes)
-    SDK->>API: POST /v1/uploads/presign<br/>{ contentType: "image/jpeg", count: 1 }
+    SDK->>API: POST /v1/upload/presign<br/>{ files: [{ contentType: "image/jpeg", byteLength }] }
     API-->>SDK: { uploads: [{ uploadUrl, fileKey }] }
     Note over SDK: emit("upload:start")
     SDK->>S3: PUT uploadUrl<br/>Content-Type: image/jpeg<br/>(raw bytes)
@@ -49,7 +49,7 @@ sequenceDiagram
     Note over SDK: 1. Validate both inputs (Zod)
     Note over SDK: 2. toUint8Array(source), toUint8Array(target)
     Note over SDK: 3. detectContentType for each
-    SDK->>API: POST /v1/uploads/presign<br/>{ contentType: "image/jpeg", count: 2 }
+    SDK->>API: POST /v1/upload/presign<br/>{ files: [{ contentType, byteLength }, { contentType, byteLength }] }
     API-->>SDK: { uploads: [<br/>  { uploadUrl: url1, fileKey: key1 },<br/>  { uploadUrl: url2, fileKey: key2 }<br/>] }
     par Parallel S3 PUTs (Promise.all)
         SDK->>S3: PUT url1 (source bytes)
@@ -63,7 +63,30 @@ sequenceDiagram
     SDK-->>Dev: FaceCompareResult
 ```
 
-Key difference: a **single** presign request with `count: 2` returns two upload slots. The S3 PUTs happen in parallel via `Promise.all`, making batch uploads faster than sequential.
+Key difference: a **single** presign request with two file metadata entries returns two upload slots. The S3 PUTs happen in parallel via `Promise.all`, making batch uploads faster than sequential.
+
+## Profile Logo Upload
+
+`client.profiles.uploadLogo()` and the `logo` option on `client.profiles.create()` use the profile-specific presign route:
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant SDK as SDK
+    participant API as api.deepidv.com
+    participant S3 as S3
+
+    Dev->>SDK: profiles.create({ name, logo: { file, contentType } })
+    SDK->>API: POST /v1/profiles/logo-upload-url<br/>{ contentType, byteLength }
+    API-->>SDK: { uploadUrl, fileKey }
+    SDK->>S3: PUT uploadUrl (raw bytes)
+    S3-->>SDK: 200 OK
+    SDK->>API: POST /v1/profiles<br/>{ name, logoUrl: fileKey }
+    API-->>SDK: Profile
+    SDK-->>Dev: Profile
+```
+
+The lower-level `client.profiles.createLogoUploadUrl()` method is available when an application needs to perform the PUT itself. The generic presign endpoint remains internal because document, face, and identity methods already own that orchestration.
 
 ## Accepted Input Types
 
@@ -98,6 +121,8 @@ The SDK detects image format from magic bytes — the first few bytes of the fil
 If the bytes don't match any known format, a `ValidationError` is thrown before any network call.
 
 You can override detection by passing `contentType` in upload options (used internally by module methods).
+
+Profile-logo methods require an explicit content type and additionally accept `image/webp` and `image/gif`. All presign inputs enforce the OpenAPI limit of 15 MiB per file before making a request.
 
 ## Timeout Configuration
 
