@@ -16,6 +16,15 @@ If you're currently calling `api.deepidv.com` directly with `fetch` or `curl`, t
 | `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/face/estimate-age`            | `client.face.estimateAge({ image })`                   |
 | `POST /v1/uploads/presign` (count:2) → 2x `PUT` to S3 → `POST /v1/identity/verify` | `client.identity.verify({ documentImage, faceImage })` |
 
+| `GET /v1/workflows` | `client.workflows.list()` |
+| `POST /v1/workflows` | `client.workflows.create(input)` |
+| `GET /v1/workflows/:id` | `client.workflows.retrieve(id)` |
+| `PATCH /v1/workflows/:workflowId/steps/:stepId/config` | `client.workflows.updateStepConfig(workflowId, stepId, config)` |
+| `POST /v1/workflows/:workflowId/sessions` | `client.workflows.createSession(workflowId, input)` |
+| `GET /v1/sessions/:sessionId/workflow` | `client.workflowSessions.retrieve(sessionId)` |
+| `POST /v1/sessions/:sessionId/workflow/start` | `client.workflowSessions.start(sessionId)` |
+| `POST /v1/sessions/:sessionId/steps/:stepId` | `client.workflowSessions.submitStep(sessionId, stepId, input)` |
+
 ## Upgrading from an earlier SDK version
 
 This parity release intentionally removes or changes SDK shapes that did not match the public API:

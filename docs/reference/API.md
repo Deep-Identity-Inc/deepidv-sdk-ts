@@ -41,16 +41,18 @@ const client = new DeepIDV({
 
 ### Properties
 
-| Property    | Type        | Description                                |
-| ----------- | ----------- | ------------------------------------------ |
-| `sessions`  | `Sessions`  | Session management methods                 |
-| `document`  | `Document`  | Document scanning methods                  |
-| `face`      | `Face`      | Face detection and comparison methods      |
-| `identity`  | `Identity`  | Orchestrated identity verification         |
-| `screening` | `Screening` | Synchronous and async screening operations |
-| `asyncJobs` | `AsyncJobs` | Resumable async-job polling                |
-| `deepfake`  | `Deepfake`  | Deepfake challenge, upload, and analysis   |
-| `auth`      | `Auth`      | API-key connection verification            |
+| Property           | Type               | Description                                |
+| ------------------ | ------------------ | ------------------------------------------ |
+| `sessions`         | `Sessions`         | Session management methods                 |
+| `document`         | `Document`         | Document scanning methods                  |
+| `face`             | `Face`             | Face detection and comparison methods      |
+| `identity`         | `Identity`         | Orchestrated identity verification         |
+| `screening`        | `Screening`        | Synchronous and async screening operations |
+| `asyncJobs`        | `AsyncJobs`        | Resumable async-job polling                |
+| `deepfake`         | `Deepfake`         | Deepfake challenge, upload, and analysis   |
+| `auth`             | `Auth`             | API-key connection verification            |
+| `workflows`        | `Workflows`        | Workflow definitions and session creation  |
+| `workflowSessions` | `WorkflowSessions` | Resumable workflow execution               |
 
 ### `on(event, listener)`
 
@@ -517,6 +519,94 @@ Use `client.auth.verify()` as a connection test for the configured REST API key.
 const connection = await client.auth.verify();
 console.log(connection.organization.name);
 ```
+
+---
+
+## Workflows
+
+Access workflow definitions through `client.workflows`.
+
+### `list()` and `retrieve(workflowId)`
+
+```typescript
+const { workflows } = await client.workflows.list();
+const { workflow } = await client.workflows.retrieve(workflows[0].id);
+```
+
+### `create(input)`
+
+Creates an ordered workflow containing 1–10 unique steps. Step configuration uses the snake_case keys documented by the OpenAPI contract.
+
+```typescript
+const { workflow } = await client.workflows.create({
+  name: 'Identity and liveness',
+  steps: [
+    { id: 'ID_VERIFICATION', config: { minimum_age: 18 } },
+    { id: 'FACE_LIVENESS', config: { confidence_threshold: 80 } },
+  ],
+});
+```
+
+Workflow creation is not automatically retried because a lost response could otherwise create a duplicate definition.
+
+### `updateStepConfig(workflowId, stepId, config)`
+
+Partially updates one existing step. The API validates the supplied config against that step's current contract and can return `ConflictError` for legacy `propertyGroups` workflows.
+
+```typescript
+await client.workflows.updateStepConfig(workflow.id, 'FACE_LIVENESS', {
+  confidence_threshold: 85,
+});
+```
+
+### `createSession(workflowId, input)`
+
+Creates a headless workflow session without sending an invite or returning a hosted URL.
+
+```typescript
+const session = await client.workflows.createSession(workflow.id, {
+  email: 'jane@example.com',
+  firstName: 'Jane',
+  lastName: 'Doe',
+  phone: '+15192223333',
+  externalId: 'customer-42',
+  expiresInHours: 24,
+});
+```
+
+This operation performs a funds preflight and is not automatically retried.
+
+## Workflow sessions
+
+`client.workflowSessions` is stateless: every method accepts a session ID, so an interrupted process can resume without preserving an SDK handle.
+
+### `retrieve(sessionId)`
+
+Returns ordered execution state, the current step, attempts remaining, and each step's server-resolved requirements. It is safe to poll.
+
+### `start(sessionId)`
+
+Validates and hands over a fresh headless session. The API does not write during this call, so the SDK retains normal retry behavior until the first step submission.
+
+```typescript
+const state = await client.workflowSessions.start(session.sessionId);
+```
+
+### `submitStep(sessionId, stepId, input)`
+
+Validates the input against the selected public workflow step and submits it in order. State-changing step submissions are never automatically retried.
+
+```typescript
+const result = await client.workflowSessions.submitStep(session.sessionId, 'ID_VERIFICATION', {
+  documentType: 'passport',
+  uploads: {
+    idFront: 'sessions/.../id_front.jpg',
+    selfieFront: 'sessions/.../selfie_front.jpg',
+  },
+});
+```
+
+The common result fields are normalized to camelCase. Step-specific response objects are retained in `result.payload`, including fields that the OpenAPI contract adds in future versions. Out-of-order, concurrent, not-ready, and terminal-session submissions return `ConflictError`.
 
 ---
 

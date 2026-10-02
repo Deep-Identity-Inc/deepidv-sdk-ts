@@ -423,6 +423,20 @@ Deepfake exports schemas and inferred types for challenge responses, upload targ
 
 `AuthVerifyResult` is `{ valid: true, organization: { id, name, status } }`.
 
+## Workflow Types
+
+`WorkflowStepId` is the union of the 21 public step identifiers in the pinned OpenAPI workflow registry. `WORKFLOW_STEP_IDS` and `WorkflowStepIdSchema` expose the same canonical set at runtime.
+
+`WorkflowCreateInput` contains a name and 1–10 unique `WorkflowCreateStep` values. The SDK validates prerequisite ordering for background checks and AI bank-statement analysis before sending a request. Step `config` objects retain their OpenAPI snake_case keys so the SDK does not maintain a second configuration dialect.
+
+`WorkflowSessionCreateResult` contains the resumable `sessionId`, expiry, ordered steps, requirements, and zero-based `currentStep`.
+
+`WorkflowSessionState` adds per-step attempt counts, timestamps and failure reasons, plus the session-wide `attemptsRemaining` value. Requirements are represented as `Record<string, unknown>` because their shape is selected dynamically by the server's workflow registry.
+
+`WorkflowStepSubmissionInput<TStepId>` maps a workflow step ID to its accepted camelCase SDK input. Config-dependent fields are still enforced by the API using the stored workflow definition.
+
+`WorkflowStepSubmitResult` contains the normalized common execution envelope and a `payload` record containing step-specific results.
+
 ## Common Types
 
 ### `FileInput`

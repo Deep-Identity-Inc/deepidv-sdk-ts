@@ -186,66 +186,94 @@
     {
       "method": "GET",
       "path": "/v1/workflows",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "workflows",
       "sdkMethod": "list",
-      "workstream": 3
+      "workstream": 3,
+      "resultSchema": "WorkflowListResultSchema",
+      "tests": ["packages/server/src/__tests__/workflows.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/workflows",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "workflows",
       "sdkMethod": "create",
-      "workstream": 3
+      "workstream": 3,
+      "inputSchema": "WorkflowCreateInputSchema",
+      "resultSchema": "WorkflowResultSchema",
+      "tests": ["packages/server/src/__tests__/workflows.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/workflows/{id}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "workflows",
       "sdkMethod": "retrieve",
-      "workstream": 3
+      "workstream": 3,
+      "resultSchema": "WorkflowResultSchema",
+      "tests": ["packages/server/src/__tests__/workflows.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "PATCH",
       "path": "/v1/workflows/{workflow_id}/steps/{step_id}/config",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "workflows",
       "sdkMethod": "updateStepConfig",
-      "workstream": 3
+      "workstream": 3,
+      "inputSchema": "WorkflowStepConfigSchema",
+      "resultSchema": "WorkflowResultSchema",
+      "tests": ["packages/server/src/__tests__/workflows.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/workflows/{workflow_id}/sessions",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "workflows",
       "sdkMethod": "createSession",
-      "workstream": 3
+      "workstream": 3,
+      "inputSchema": "WorkflowSessionCreateInputSchema",
+      "resultSchema": "WorkflowSessionCreateResultSchema",
+      "tests": ["packages/server/src/__tests__/workflows.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/sessions/{session_id}/workflow",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "workflowSessions",
       "sdkMethod": "retrieve",
-      "workstream": 3
+      "workstream": 3,
+      "resultSchema": "WorkflowSessionStateSchema",
+      "tests": ["packages/server/src/__tests__/workflowSessions.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/sessions/{session_id}/workflow/start",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "workflowSessions",
       "sdkMethod": "start",
-      "workstream": 3
+      "workstream": 3,
+      "resultSchema": "WorkflowSessionStateSchema",
+      "tests": ["packages/server/src/__tests__/workflowSessions.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/sessions/{session_id}/steps/{step_id}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "workflowSessions",
       "sdkMethod": "submitStep",
-      "workstream": 3
+      "workstream": 3,
+      "inputSchema": "WorkflowStepSubmissionSchemas",
+      "resultSchema": "WorkflowStepSubmitResultSchema",
+      "tests": ["packages/server/src/__tests__/workflowSessions.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",

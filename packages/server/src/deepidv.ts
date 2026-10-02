@@ -26,6 +26,8 @@ import { Screening } from './screening.js';
 import { AsyncJobs } from './asyncJobs.js';
 import { Deepfake } from './deepfake.js';
 import { Auth } from './auth.js';
+import { Workflows } from './workflows.js';
+import { WorkflowSessions } from './workflowSessions.js';
 
 // ---------------------------------------------------------------------------
 // Config schema (exported for consumers per D-02)
@@ -158,6 +160,12 @@ export class DeepIDV {
   /** API-key verification and organization connection checks. */
   readonly auth: Auth;
 
+  /** Workflow definition management and headless-session creation. */
+  readonly workflows: Workflows;
+
+  /** Resumable, session-ID based workflow execution. */
+  readonly workflowSessions: WorkflowSessions;
+
   /** Internal emitter — not exposed directly to consumers. */
   private readonly emitter: TypedEmitter;
 
@@ -197,6 +205,8 @@ export class DeepIDV {
     this.screening = new Screening(httpClient, asyncJobs);
     this.deepfake = new Deepfake(httpClient);
     this.auth = new Auth(httpClient);
+    this.workflows = new Workflows(httpClient);
+    this.workflowSessions = new WorkflowSessions(httpClient);
   }
 
   /**

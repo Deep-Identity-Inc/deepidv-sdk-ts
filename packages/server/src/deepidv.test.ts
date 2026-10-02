@@ -19,6 +19,8 @@ describe('DeepIDV constructor', () => {
     expect(client.asyncJobs).toBeDefined();
     expect(client.deepfake).toBeDefined();
     expect(client.auth).toBeDefined();
+    expect(client.workflows).toBeDefined();
+    expect(client.workflowSessions).toBeDefined();
   });
 
   it('Test 2: throws ValidationError containing "apiKey" when no apiKey is provided', () => {

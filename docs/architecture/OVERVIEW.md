@@ -8,19 +8,20 @@ The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [
 
 **Web-standards-first.** The SDK uses only native web APIs (`fetch`, `AbortController`, `ReadableStream`, `Uint8Array`, `crypto.subtle`). No Node-specific imports in the core package. This is what enables universal runtime support.
 
-**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, `client.asyncJobs`, `client.deepfake`, and `client.auth` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
+**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, `client.asyncJobs`, `client.deepfake`, `client.auth`, `client.workflows`, and `client.workflowSessions` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
 
 **Single dependency.** The only production dependency is [zod](https://zod.dev) for runtime input validation. Zod schemas are the single source of truth for both TypeScript types and runtime checks.
 
 ## Service Patterns
 
-| Tier                  | Pattern                                                  | Examples                                                                   |
-| --------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------- |
-| **Synchronous**       | One call, one result. Image in, structured data out.     | `document.scan()`, `face.detect()`, `face.compare()`, `face.estimateAge()` |
-| **Orchestrated**      | One call, multiple operations coordinated server-side.   | `identity.verify()` (document scan + face detect + face compare)           |
-| **Session-based**     | Create session, user completes steps, retrieve results.  | `sessions.create()`, `sessions.retrieve()`                                 |
-| **Async job**         | Queue work and poll a typed handle for its result.       | `screening.adverseMedia()`, `screening.titleCheck()`                       |
-| **Capture lifecycle** | Coordinate device capture with explicit resumable calls. | `face.createLivenessSession()`, `deepfake.createUploadUrls()`              |
+| Tier                  | Pattern                                                      | Examples                                                                   |
+| --------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| **Synchronous**       | One call, one result. Image in, structured data out.         | `document.scan()`, `face.detect()`, `face.compare()`, `face.estimateAge()` |
+| **Orchestrated**      | One call, multiple operations coordinated server-side.       | `identity.verify()` (document scan + face detect + face compare)           |
+| **Session-based**     | Create session, user completes steps, retrieve results.      | `sessions.create()`, `sessions.retrieve()`                                 |
+| **Async job**         | Queue work and poll a typed handle for its result.           | `screening.adverseMedia()`, `screening.titleCheck()`                       |
+| **Capture lifecycle** | Coordinate device capture with explicit resumable calls.     | `face.createLivenessSession()`, `deepfake.createUploadUrls()`              |
+| **Workflow runner**   | Define workflows and resume ordered execution by session ID. | `workflows.createSession()`, `workflowSessions.submitStep()`               |
 
 ## Public API Surface
 
@@ -38,6 +39,8 @@ classDiagram
         +asyncJobs: AsyncJobs
         +deepfake: Deepfake
         +auth: Auth
+        +workflows: Workflows
+        +workflowSessions: WorkflowSessions
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -86,6 +89,20 @@ classDiagram
         +verify() AuthVerifyResult
     }
 
+    class Workflows {
+        +list() WorkflowListResult
+        +create(input) WorkflowResult
+        +retrieve(workflowId) WorkflowResult
+        +updateStepConfig(workflowId, stepId, config) WorkflowResult
+        +createSession(workflowId, input) WorkflowSessionCreateResult
+    }
+
+    class WorkflowSessions {
+        +retrieve(sessionId) WorkflowSessionState
+        +start(sessionId) WorkflowSessionState
+        +submitStep(sessionId, stepId, input) WorkflowStepSubmitResult
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
@@ -94,6 +111,8 @@ classDiagram
     DeepIDV *-- AsyncJobs : asyncJobs
     DeepIDV *-- Deepfake : deepfake
     DeepIDV *-- Auth : auth
+    DeepIDV *-- Workflows : workflows
+    DeepIDV *-- WorkflowSessions : workflowSessions
 ```
 
 The `DeepIDV` class is the only public entry point. The module classes (`Sessions`, `Document`, `Face`, `Identity`) are **not exported** — consumers access them exclusively through the client instance.
