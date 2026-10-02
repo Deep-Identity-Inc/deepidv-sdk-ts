@@ -145,6 +145,25 @@ type SessionStatusUpdate = 'VERIFIED' | 'REJECTED';
 
 **Zod schema:** `SessionStatusUpdateSchema`
 
+### Session upload types
+
+```typescript
+type SessionUploadFile =
+  | { fileName: string; contentType: string; uploadType: SessionUploadType }
+  | { fileName: string; contentType: string; slot: string };
+
+interface SessionUploadUrlsInput {
+  files: SessionUploadFile[];
+}
+
+interface SessionSignedUrl {
+  fileKey: string;
+  slot: string;
+  uploadType?: SessionUploadType;
+  uploadUrl: string;
+}
+```
+
 ## Document Types
 
 ### `DocumentScanInput`
@@ -285,6 +304,30 @@ type Gender = 'male' | 'female';
 
 **Zod schema:** `GenderSchema`
 
+### Face liveness types
+
+```typescript
+type FaceLivenessChallengeType = 'FaceMovementChallenge' | 'FaceMovementAndLightChallenge';
+
+interface FaceLivenessSessionResult {
+  livenessSessionId: string;
+  region: string;
+  credentials: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    sessionToken: string;
+    expiration: string;
+  };
+  expiresAt: string;
+}
+
+interface FaceLivenessResult {
+  status: 'SUCCEEDED' | 'IN_PROGRESS' | 'FAILED';
+  confidence?: number;
+  passed: boolean;
+}
+```
+
 ## Identity Types
 
 ### `IdentityVerifyInput`
@@ -374,6 +417,12 @@ interface AsyncResultHandle<TResult, TSnapshot> {
 
 `AsyncJobSnapshot` is a discriminated union with `pending`, `processing`, `ready`, and `failed` statuses. Ready snapshots contain `result`; failed snapshots contain `error`.
 
+## Deepfake and Authentication Types
+
+Deepfake exports schemas and inferred types for challenge responses, upload targets, the five capture actions, six-frame metadata, S3 keys, analysis input, verdicts, trust verdicts, diagnostics, and analysis results.
+
+`AuthVerifyResult` is `{ valid: true, organization: { id, name, status } }`.
+
 ## Common Types
 
 ### `FileInput`
@@ -421,6 +470,7 @@ import {
   AuthenticationError, // 401 (redactedKey)
   RateLimitError, // 429 (retryAfter)
   ValidationError, // 400
+  ConflictError, // 409
   NetworkError, // Connection failures
   TimeoutError, // Timeout exceeded
 } from '@deepidv/server';

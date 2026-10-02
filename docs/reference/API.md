@@ -41,12 +41,16 @@ const client = new DeepIDV({
 
 ### Properties
 
-| Property   | Type       | Description                           |
-| ---------- | ---------- | ------------------------------------- |
-| `sessions` | `Sessions` | Session management methods            |
-| `document` | `Document` | Document scanning methods             |
-| `face`     | `Face`     | Face detection and comparison methods |
-| `identity` | `Identity` | Orchestrated identity verification    |
+| Property    | Type        | Description                                |
+| ----------- | ----------- | ------------------------------------------ |
+| `sessions`  | `Sessions`  | Session management methods                 |
+| `document`  | `Document`  | Document scanning methods                  |
+| `face`      | `Face`      | Face detection and comparison methods      |
+| `identity`  | `Identity`  | Orchestrated identity verification         |
+| `screening` | `Screening` | Synchronous and async screening operations |
+| `asyncJobs` | `AsyncJobs` | Resumable async-job polling                |
+| `deepfake`  | `Deepfake`  | Deepfake challenge, upload, and analysis   |
+| `auth`      | `Auth`      | API-key connection verification            |
 
 ### `on(event, listener)`
 
@@ -210,6 +214,21 @@ Update session status. Only `VERIFIED` and `REJECTED` are valid targets.
 await client.sessions.updateStatus('session-id-123', 'VERIFIED');
 ```
 
+### `createUploadUrls(sessionId, input)`
+
+Generate session-scoped presigned PUT URLs for legacy identity slots or dynamic workflow slots.
+
+```typescript
+const { signedUrls } = await client.sessions.createUploadUrls('session-id-123', {
+  files: [
+    { fileName: 'front.jpg', contentType: 'image/jpeg', uploadType: 'id_front' },
+    { fileName: 'letter.pdf', contentType: 'application/pdf', slot: 'employment_letter' },
+  ],
+});
+```
+
+Each entry returns `fileKey`, `slot`, `uploadUrl`, and an optional legacy `uploadType`. Upload the file with an HTTP `PUT` whose `Content-Type` exactly matches the requested value. Dynamic slots must be required by the session's current workflow step. Terminal sessions and sessions without an active compatible step return `ConflictError`.
+
 ---
 
 ## Document
@@ -359,6 +378,32 @@ const result = await client.face.estimateAge({ image: readFileSync('photo.jpg') 
 console.log(`Age: ${result.estimatedAge} (${result.ageRange.low}–${result.ageRange.high})`);
 ```
 
+### `createLivenessSession(input?)`
+
+Create an AWS Rekognition Face Liveness session and receive short-lived credentials for the device-side streaming component.
+
+```typescript
+const liveness = await client.face.createLivenessSession({
+  sessionId: 'session-id-123',
+  challengeType: 'FaceMovementAndLightChallenge',
+});
+```
+
+The returned `credentials` are sensitive and expire at `expiresAt`. Do not log or persist them. This server SDK does not perform camera capture or add an AWS Amplify dependency.
+
+Standalone creation is billable and is never automatically retried. Passing `sessionId` associates the result with an existing verification session.
+
+### `getLivenessResult(livenessSessionId, params?)`
+
+```typescript
+const result = await client.face.getLivenessResult(liveness.livenessSessionId, {
+  sessionId: 'session-id-123',
+  confidenceThreshold: 80,
+});
+```
+
+Returns `status` (`SUCCEEDED`, `IN_PROGRESS`, or `FAILED`), optional confidence from 0–100, and the server-computed `passed` flag. `confidenceThreshold` must be an integer from 1–100.
+
 ---
 
 ## Identity
@@ -426,6 +471,51 @@ if (result.verified) {
   console.log(`Face match: ${result.faceMatch.isMatch}`);
   console.log(`Document confidence: ${result.document.confidence}`);
 }
+```
+
+---
+
+## Deepfake
+
+Access via `client.deepfake`. Capture remains application-owned; the SDK exposes the three resumable server operations without keeping hidden lifecycle state.
+
+### `getChallenge(sessionId)`
+
+Returns the phrase the user must speak for a workflow session. The session ID must be a UUID.
+
+### `createUploadUrls(input)`
+
+```typescript
+const targets = await client.deepfake.createUploadUrls({
+  sessionId,
+  includeAudio: true,
+});
+```
+
+Returns presigned URLs and matching S3 keys for six JPEG frames plus optional `audio/mp4`. Perform the PUTs directly and retain the returned keys for analysis.
+
+### `analyze(input)`
+
+Submit exactly six frame-metadata entries and the uploaded S3 keys. Analysis is synchronous and billable, consumes ephemeral media, and is never automatically retried.
+
+```typescript
+const verdict = await client.deepfake.analyze({
+  scanDurationMs: 4000,
+  challengeWord: challenge.challengeWord,
+  frameMeta,
+  s3Keys: targets.uploadKeys,
+});
+```
+
+The result includes `verdict`, `riskScore`, `trustVerdict`, `trustScore`, failure reasons, and diagnostic details.
+
+## Authentication
+
+Use `client.auth.verify()` as a connection test for the configured REST API key. It returns `valid: true` and the owning organization's ID, name, and status. This is separate from hosted MCP OAuth client management.
+
+```typescript
+const connection = await client.auth.verify();
+console.log(connection.organization.name);
 ```
 
 ---

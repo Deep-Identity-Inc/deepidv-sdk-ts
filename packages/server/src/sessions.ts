@@ -11,11 +11,14 @@ import {
   SessionRetrieveWireResultSchema,
   SessionStatusUpdateSchema,
   SessionStatusUpdateWireResultSchema,
+  SessionUploadUrlsInputSchema,
+  SessionUploadUrlsWireResultSchema,
   type SessionCreateResult,
   type SessionListParams,
   type SessionListResult,
   type SessionRetrieveResult,
   type SessionStatusUpdateResult,
+  type SessionUploadUrlsResult,
 } from './sessions.types.js';
 
 function validateSessionId(sessionId: string): void {
@@ -74,5 +77,26 @@ export class Sessions {
       { new_status: parsed.data },
     );
     return SessionStatusUpdateWireResultSchema.parse(raw);
+  }
+
+  /** Generate session-scoped presigned URLs for legacy or workflow upload slots. */
+  async createUploadUrls(
+    sessionId: string,
+    input: z.input<typeof SessionUploadUrlsInputSchema>,
+  ): Promise<SessionUploadUrlsResult> {
+    validateSessionId(sessionId);
+    const parsed = SessionUploadUrlsInputSchema.safeParse(input);
+    if (!parsed.success) throw mapZodError(parsed.error);
+
+    const files = parsed.data.files.map((file) => ({
+      file_name: file.fileName,
+      content_type: file.contentType,
+      ...('slot' in file ? { slot: file.slot } : { upload_type: file.uploadType }),
+    }));
+    const raw = await this.client.post<unknown>(
+      `/v1/sessions/${encodeURIComponent(sessionId)}/uploads`,
+      { files },
+    );
+    return SessionUploadUrlsWireResultSchema.parse(raw);
   }
 }

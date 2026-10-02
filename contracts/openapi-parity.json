@@ -55,42 +55,61 @@
     {
       "method": "POST",
       "path": "/v1/face/liveness/sessions",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "face",
       "sdkMethod": "createLivenessSession",
-      "workstream": 2
+      "workstream": 2,
+      "inputSchema": "FaceLivenessSessionInputSchema",
+      "resultSchema": "FaceLivenessSessionResultSchema",
+      "tests": ["packages/server/src/__tests__/face.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/face/liveness/sessions/{liveness_session_id}/result",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "face",
       "sdkMethod": "getLivenessResult",
-      "workstream": 2
+      "workstream": 2,
+      "inputSchema": "FaceLivenessResultParamsSchema",
+      "resultSchema": "FaceLivenessResultSchema",
+      "tests": ["packages/server/src/__tests__/face.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/deepfake/challenge/{sessionId}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "deepfake",
       "sdkMethod": "getChallenge",
-      "workstream": 2
+      "workstream": 2,
+      "resultSchema": "DeepfakeChallengeResultSchema",
+      "tests": ["packages/server/src/__tests__/deepfake.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/deepfake/upload-urls",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "deepfake",
       "sdkMethod": "createUploadUrls",
-      "workstream": 2
+      "workstream": 2,
+      "inputSchema": "DeepfakeUploadUrlsInputSchema",
+      "resultSchema": "DeepfakeUploadUrlsResultSchema",
+      "tests": ["packages/server/src/__tests__/deepfake.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/deepfake/analyze",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "deepfake",
       "sdkMethod": "analyze",
-      "workstream": 2
+      "workstream": 2,
+      "inputSchema": "DeepfakeAnalyzeInputSchema",
+      "resultSchema": "DeepfakeAnalyzeResultSchema",
+      "tests": ["packages/server/src/__tests__/deepfake.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
@@ -148,10 +167,14 @@
     {
       "method": "POST",
       "path": "/v1/sessions/{session_id}/uploads",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "sessions",
       "sdkMethod": "createUploadUrls",
-      "workstream": 2
+      "workstream": 2,
+      "inputSchema": "SessionUploadUrlsInputSchema",
+      "resultSchema": "SessionUploadUrlsResultSchema",
+      "tests": ["packages/server/src/__tests__/sessions.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
@@ -323,10 +346,13 @@
     {
       "method": "GET",
       "path": "/v1/auth/verify",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "auth",
       "sdkMethod": "verify",
-      "workstream": 2
+      "workstream": 2,
+      "resultSchema": "AuthVerifyResultSchema",
+      "tests": ["packages/server/src/__tests__/auth.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",

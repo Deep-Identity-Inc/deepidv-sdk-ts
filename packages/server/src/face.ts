@@ -18,9 +18,15 @@ import {
   FaceCompareResultSchema,
   FaceEstimateAgeInputSchema,
   FaceEstimateAgeResultSchema,
+  FaceLivenessSessionInputSchema,
+  FaceLivenessSessionWireResultSchema,
+  FaceLivenessResultParamsSchema,
+  FaceLivenessResultSchema,
   type FaceDetectResult,
   type FaceCompareResult,
   type FaceEstimateAgeResult,
+  type FaceLivenessSessionResult,
+  type FaceLivenessResult,
 } from './face.types.js';
 
 // ---------------------------------------------------------------------------
@@ -161,5 +167,46 @@ export class Face {
     const [fileKey] = await this.uploader.upload(validated.image);
     const raw = await this.client.post<unknown>('/v1/face/estimate-age', { image: fileKey });
     return FaceEstimateAgeResultSchema.parse(raw);
+  }
+
+  /** Create a face-liveness session and vend short-lived streaming credentials. */
+  async createLivenessSession(
+    input?: z.input<typeof FaceLivenessSessionInputSchema>,
+  ): Promise<FaceLivenessSessionResult> {
+    const parsed = FaceLivenessSessionInputSchema.safeParse(input ?? {});
+    if (!parsed.success) throw mapZodError(parsed.error);
+    const raw = await this.client.post<unknown>(
+      '/v1/face/liveness/sessions',
+      {
+        ...(parsed.data.sessionId !== undefined ? { session_id: parsed.data.sessionId } : {}),
+        ...(parsed.data.challengeType !== undefined
+          ? { challenge_type: parsed.data.challengeType }
+          : {}),
+      },
+      { maxRetries: 0 },
+    );
+    return FaceLivenessSessionWireResultSchema.parse(raw);
+  }
+
+  /** Fetch the latest normalized result for a face-liveness session. */
+  async getLivenessResult(
+    livenessSessionId: string,
+    params?: z.input<typeof FaceLivenessResultParamsSchema>,
+  ): Promise<FaceLivenessResult> {
+    const id = z.string().min(1).safeParse(livenessSessionId);
+    if (!id.success) throw mapZodError(id.error);
+    const parsed = FaceLivenessResultParamsSchema.safeParse(params ?? {});
+    if (!parsed.success) throw mapZodError(parsed.error);
+
+    const query = new URLSearchParams();
+    if (parsed.data.sessionId !== undefined) query.set('session_id', parsed.data.sessionId);
+    if (parsed.data.confidenceThreshold !== undefined) {
+      query.set('confidence_threshold', String(parsed.data.confidenceThreshold));
+    }
+    const queryString = query.size > 0 ? `?${query.toString()}` : '';
+    const raw = await this.client.get<unknown>(
+      `/v1/face/liveness/sessions/${encodeURIComponent(id.data)}/result${queryString}`,
+    );
+    return FaceLivenessResultSchema.parse(raw);
   }
 }

@@ -34,6 +34,7 @@ export {
   DeepIDVError,
   AuthenticationError,
   AuthorizationError,
+  ConflictError,
   RateLimitError,
   ValidationError,
   NotFoundError,
@@ -68,6 +69,13 @@ export type {
   SessionListResult,
   SessionStatusUpdate,
   SessionStatusUpdateResult,
+  SessionUploadType,
+  LegacySessionUploadFile,
+  DynamicSessionUploadFile,
+  SessionUploadFile,
+  SessionUploadUrlsInput,
+  SessionSignedUrl,
+  SessionUploadUrlsResult,
 } from './sessions.types.js';
 export {
   SessionCreateInputSchema,
@@ -82,6 +90,13 @@ export {
   SessionStatusUpdateSchema,
   SessionStatusUpdateResultSchema,
   SessionStatusSchema,
+  SessionUploadTypeSchema,
+  LegacySessionUploadFileSchema,
+  DynamicSessionUploadFileSchema,
+  SessionUploadFileSchema,
+  SessionUploadUrlsInputSchema,
+  SessionSignedUrlSchema,
+  SessionUploadUrlsResultSchema,
 } from './sessions.types.js';
 
 // ---------------------------------------------------------------------------
@@ -105,6 +120,12 @@ export type {
   FaceEstimateAgeInput,
   FaceEstimateAgeResult,
   Gender,
+  FaceLivenessChallengeType,
+  FaceLivenessSessionInput,
+  FaceLivenessCredentials,
+  FaceLivenessSessionResult,
+  FaceLivenessResultParams,
+  FaceLivenessResult,
 } from './face.types.js';
 export {
   FaceDetectInputSchema,
@@ -114,6 +135,12 @@ export {
   FaceEstimateAgeInputSchema,
   FaceEstimateAgeResultSchema,
   GenderSchema,
+  FaceLivenessChallengeTypeSchema,
+  FaceLivenessSessionInputSchema,
+  FaceLivenessCredentialsSchema,
+  FaceLivenessSessionResultSchema,
+  FaceLivenessResultParamsSchema,
+  FaceLivenessResultSchema,
 } from './face.types.js';
 
 // ---------------------------------------------------------------------------
@@ -165,7 +192,43 @@ export type { AdverseMediaHandle, AdverseMediaWaitOptions } from './asyncJobHand
 export type { AsyncJobStatus, AsyncJobSnapshot } from './asyncJobs.types.js';
 export { AsyncJobStatusSchema, AsyncJobSnapshotSchema } from './asyncJobs.types.js';
 
-// NOTE: Sessions, Document, Face, Identity, Screening, AsyncJobs classes are
+// ---------------------------------------------------------------------------
+// 11. Deepfake types and schemas
+// ---------------------------------------------------------------------------
+export type {
+  DeepfakeChallengeResult,
+  DeepfakeUploadUrlsInput,
+  DeepfakeUploadUrlsResult,
+  DeepfakeAction,
+  DeepfakeFrameMeta,
+  DeepfakeS3Keys,
+  DeepfakeAnalyzeInput,
+  DeepfakeVerdict,
+  DeepfakeTrustVerdict,
+  DeepfakeAnalyzeDetails,
+  DeepfakeAnalyzeResult,
+} from './deepfake.types.js';
+export {
+  DeepfakeChallengeResultSchema,
+  DeepfakeUploadUrlsInputSchema,
+  DeepfakeUploadUrlsResultSchema,
+  DeepfakeActionSchema,
+  DeepfakeFrameMetaSchema,
+  DeepfakeS3KeysSchema,
+  DeepfakeAnalyzeInputSchema,
+  DeepfakeVerdictSchema,
+  DeepfakeTrustVerdictSchema,
+  DeepfakeAnalyzeDetailsSchema,
+  DeepfakeAnalyzeResultSchema,
+} from './deepfake.types.js';
+
+// ---------------------------------------------------------------------------
+// 12. Authentication types and schemas
+// ---------------------------------------------------------------------------
+export type { AuthOrganization, AuthVerifyResult } from './auth.types.js';
+export { AuthOrganizationSchema, AuthVerifyResultSchema } from './auth.types.js';
+
+// NOTE: Namespace classes are
 // NOT exported. Consumers access them exclusively through client.sessions,
 // client.document, client.face, client.identity, client.screening, and
-// client.asyncJobs (per D-01, API-05).
+// client.asyncJobs, client.deepfake, and client.auth (per D-01, API-05).

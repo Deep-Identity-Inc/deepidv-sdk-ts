@@ -6,6 +6,7 @@ import {
   DeepIDVError,
   AuthenticationError,
   AuthorizationError,
+  ConflictError,
   RateLimitError,
   ValidationError,
   NotFoundError,
@@ -28,6 +29,13 @@ import {
   SessionStatusUpdateSchema,
   SessionStatusUpdateResultSchema,
   SessionStatusSchema,
+  SessionUploadTypeSchema,
+  LegacySessionUploadFileSchema,
+  DynamicSessionUploadFileSchema,
+  SessionUploadFileSchema,
+  SessionUploadUrlsInputSchema,
+  SessionSignedUrlSchema,
+  SessionUploadUrlsResultSchema,
   DocumentScanInputSchema,
   DocumentScanResultSchema,
   DocumentTypeSchema,
@@ -38,6 +46,12 @@ import {
   FaceEstimateAgeInputSchema,
   FaceEstimateAgeResultSchema,
   GenderSchema,
+  FaceLivenessChallengeTypeSchema,
+  FaceLivenessSessionInputSchema,
+  FaceLivenessCredentialsSchema,
+  FaceLivenessSessionResultSchema,
+  FaceLivenessResultParamsSchema,
+  FaceLivenessResultSchema,
   IdentityVerifyInputSchema,
   IdentityVerificationResultSchema,
   IdentityDocumentResultSchema,
@@ -53,6 +67,19 @@ import {
   TitleCheckResultSchema,
   AsyncJobStatusSchema,
   AsyncJobSnapshotSchema,
+  DeepfakeChallengeResultSchema,
+  DeepfakeUploadUrlsInputSchema,
+  DeepfakeUploadUrlsResultSchema,
+  DeepfakeActionSchema,
+  DeepfakeFrameMetaSchema,
+  DeepfakeS3KeysSchema,
+  DeepfakeAnalyzeInputSchema,
+  DeepfakeVerdictSchema,
+  DeepfakeTrustVerdictSchema,
+  DeepfakeAnalyzeDetailsSchema,
+  DeepfakeAnalyzeResultSchema,
+  AuthOrganizationSchema,
+  AuthVerifyResultSchema,
 } from '@deepidv/server';
 import type {
   DeepIDVOptions,
@@ -71,6 +98,13 @@ import type {
   SessionListResult,
   SessionStatusUpdate,
   SessionStatusUpdateResult,
+  SessionUploadType,
+  LegacySessionUploadFile,
+  DynamicSessionUploadFile,
+  SessionUploadFile,
+  SessionUploadUrlsInput,
+  SessionSignedUrl,
+  SessionUploadUrlsResult,
   DocumentScanInput,
   DocumentScanResult,
   DocumentType,
@@ -81,6 +115,12 @@ import type {
   FaceEstimateAgeInput,
   FaceEstimateAgeResult,
   Gender,
+  FaceLivenessChallengeType,
+  FaceLivenessSessionInput,
+  FaceLivenessCredentials,
+  FaceLivenessSessionResult,
+  FaceLivenessResultParams,
+  FaceLivenessResult,
   IdentityVerifyInput,
   IdentityVerificationResult,
   IdentityDocumentResult,
@@ -98,6 +138,19 @@ import type {
   TitleCheckResult,
   AsyncJobStatus,
   AsyncJobSnapshot,
+  DeepfakeChallengeResult,
+  DeepfakeUploadUrlsInput,
+  DeepfakeUploadUrlsResult,
+  DeepfakeAction,
+  DeepfakeFrameMeta,
+  DeepfakeS3Keys,
+  DeepfakeAnalyzeInput,
+  DeepfakeVerdict,
+  DeepfakeTrustVerdict,
+  DeepfakeAnalyzeDetails,
+  DeepfakeAnalyzeResult,
+  AuthOrganization,
+  AuthVerifyResult,
 } from '@deepidv/server';
 
 const client = new DeepIDV({ apiKey: 'test' });
@@ -108,6 +161,8 @@ const namespaces = [
   client.identity,
   client.screening,
   client.asyncJobs,
+  client.deepfake,
+  client.auth,
 ];
 
 const values = [
@@ -115,6 +170,7 @@ const values = [
   DeepIDVError,
   AuthenticationError,
   AuthorizationError,
+  ConflictError,
   RateLimitError,
   ValidationError,
   NotFoundError,
@@ -137,6 +193,13 @@ const values = [
   SessionStatusUpdateSchema,
   SessionStatusUpdateResultSchema,
   SessionStatusSchema,
+  SessionUploadTypeSchema,
+  LegacySessionUploadFileSchema,
+  DynamicSessionUploadFileSchema,
+  SessionUploadFileSchema,
+  SessionUploadUrlsInputSchema,
+  SessionSignedUrlSchema,
+  SessionUploadUrlsResultSchema,
   DocumentScanInputSchema,
   DocumentScanResultSchema,
   DocumentTypeSchema,
@@ -147,6 +210,12 @@ const values = [
   FaceEstimateAgeInputSchema,
   FaceEstimateAgeResultSchema,
   GenderSchema,
+  FaceLivenessChallengeTypeSchema,
+  FaceLivenessSessionInputSchema,
+  FaceLivenessCredentialsSchema,
+  FaceLivenessSessionResultSchema,
+  FaceLivenessResultParamsSchema,
+  FaceLivenessResultSchema,
   IdentityVerifyInputSchema,
   IdentityVerificationResultSchema,
   IdentityDocumentResultSchema,
@@ -162,6 +231,19 @@ const values = [
   TitleCheckResultSchema,
   AsyncJobStatusSchema,
   AsyncJobSnapshotSchema,
+  DeepfakeChallengeResultSchema,
+  DeepfakeUploadUrlsInputSchema,
+  DeepfakeUploadUrlsResultSchema,
+  DeepfakeActionSchema,
+  DeepfakeFrameMetaSchema,
+  DeepfakeS3KeysSchema,
+  DeepfakeAnalyzeInputSchema,
+  DeepfakeVerdictSchema,
+  DeepfakeTrustVerdictSchema,
+  DeepfakeAnalyzeDetailsSchema,
+  DeepfakeAnalyzeResultSchema,
+  AuthOrganizationSchema,
+  AuthVerifyResultSchema,
 ];
 
 type PublicTypes =
@@ -181,6 +263,13 @@ type PublicTypes =
   | SessionListResult
   | SessionStatusUpdate
   | SessionStatusUpdateResult
+  | SessionUploadType
+  | LegacySessionUploadFile
+  | DynamicSessionUploadFile
+  | SessionUploadFile
+  | SessionUploadUrlsInput
+  | SessionSignedUrl
+  | SessionUploadUrlsResult
   | DocumentScanInput
   | DocumentScanResult
   | DocumentType
@@ -191,6 +280,12 @@ type PublicTypes =
   | FaceEstimateAgeInput
   | FaceEstimateAgeResult
   | Gender
+  | FaceLivenessChallengeType
+  | FaceLivenessSessionInput
+  | FaceLivenessCredentials
+  | FaceLivenessSessionResult
+  | FaceLivenessResultParams
+  | FaceLivenessResult
   | IdentityVerifyInput
   | IdentityVerificationResult
   | IdentityDocumentResult
@@ -207,7 +302,20 @@ type PublicTypes =
   | TitleCheckInput
   | TitleCheckResult
   | AsyncJobStatus
-  | AsyncJobSnapshot;
+  | AsyncJobSnapshot
+  | DeepfakeChallengeResult
+  | DeepfakeUploadUrlsInput
+  | DeepfakeUploadUrlsResult
+  | DeepfakeAction
+  | DeepfakeFrameMeta
+  | DeepfakeS3Keys
+  | DeepfakeAnalyzeInput
+  | DeepfakeVerdict
+  | DeepfakeTrustVerdict
+  | DeepfakeAnalyzeDetails
+  | DeepfakeAnalyzeResult
+  | AuthOrganization
+  | AuthVerifyResult;
 
 declare const publicType: PublicTypes;
 void namespaces;
