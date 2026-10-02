@@ -776,9 +776,11 @@ A well-formed envelope returns HTTP 200 even when individual records are rejecte
 
 `accepted` counts every stored record, including the informational `warned` subset. Always inspect `results`. Known request fields are converted to snake case, but keys inside `metadata` are preserved exactly.
 
-Ingestion is idempotent on `clientTxnId`, so normal retry behavior is retained. Reposting an ID replaces the complete stored transaction rather than patching it; include every field that should remain present.
+Stored transaction data is idempotent on the composite key `(organizationId, subjectUserId, clientTxnId)`. Reposting the same key replaces the complete stored transaction rather than patching it, so include every field that should remain present. The same `clientTxnId` for a different subject creates a separate record.
 
-Monthly quota failures throw `RateLimitError`. Parse the structured body when quota details are needed:
+Monthly quota is reserved per request attempt before transaction upserts. A replay after a lost response, timeout, or server error can therefore consume quota again even when the stored data is deduplicated. The SDK disables automatic retries for `saveTransactions()`; manually retry only after accounting for this quota behavior.
+
+Monthly quota failures throw `RateLimitError` immediately without SDK retry. Parse the structured body when quota details are needed:
 
 ```typescript
 const quota = AmlQuotaExceededSchema.safeParse(error.response?.body);

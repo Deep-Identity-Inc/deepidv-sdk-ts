@@ -105,10 +105,15 @@ export class Aml {
    *
    * Record validation remains server-side so one malformed record does not
    * prevent valid records in the same batch from being stored.
+   * Automatic retries are disabled because the server reserves monthly quota
+   * before its idempotent transaction upserts. Replaying a timed-out request
+   * can therefore consume quota more than once even when stored data is deduplicated.
    */
   async saveTransactions(input: AmlSaveTransactionsInput): Promise<AmlSaveTransactionsResult> {
     const parsed = parse(AmlSaveTransactionsInputSchema, input);
-    const raw = await this.client.post('/v1/aml/transactions', toWireBatch(parsed));
+    const raw = await this.client.post('/v1/aml/transactions', toWireBatch(parsed), {
+      maxRetries: 0,
+    });
     return AmlSaveTransactionsWireResultSchema.parse(raw);
   }
 

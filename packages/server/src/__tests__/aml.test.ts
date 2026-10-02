@@ -250,9 +250,11 @@ describe('Aml', () => {
   });
 
   it('exposes structured quota details from a RateLimitError body', async () => {
+    let calls = 0;
     server.use(
-      http.post(`${BASE_URL}/v1/aml/transactions`, () =>
-        HttpResponse.json(
+      http.post(`${BASE_URL}/v1/aml/transactions`, () => {
+        calls += 1;
+        return HttpResponse.json(
           {
             error: 'Monthly transaction quota exceeded',
             code: 'QUOTA_EXCEEDED',
@@ -263,13 +265,13 @@ describe('Aml', () => {
             resets_at: '2026-09-01T00:00:00.000Z',
           },
           { status: 429 },
-        ),
-      ),
+        );
+      }),
     );
 
     let error: unknown;
     try {
-      await createAml().saveTransactions([transaction()]);
+      await createAml(3).saveTransactions([transaction()]);
     } catch (caught: unknown) {
       error = caught;
     }
@@ -278,6 +280,7 @@ describe('Aml', () => {
       code: 'QUOTA_EXCEEDED',
       resetsAt: '2026-09-01T00:00:00.000Z',
     });
+    expect(calls).toBe(1);
   });
 
   it('enrols a monitored user with an encoded bot id and normalizes the result', async () => {
@@ -328,23 +331,25 @@ describe('Aml', () => {
     );
   });
 
-  it.each([
-    ['saveTransactions', '/v1/aml/transactions'],
-    ['addMonitoredUser', '/v1/aml/bots/bot-1/monitored-users'],
-  ] as const)('retries the idempotent %s operation', async (method, path) => {
+  it('does not retry transaction ingestion after a transient failure', async () => {
     let calls = 0;
     server.use(
-      http.post(`${BASE_URL}${path}`, () => {
+      http.post(`${BASE_URL}/v1/aml/transactions`, () => {
+        calls += 1;
+        return HttpResponse.json({ error: 'down' }, { status: 503 });
+      }),
+    );
+
+    await expect(createAml(2).saveTransactions([transaction()])).rejects.toThrow();
+    expect(calls).toBe(1);
+  });
+
+  it('retries idempotent monitored-user enrolment', async () => {
+    let calls = 0;
+    server.use(
+      http.post(`${BASE_URL}/v1/aml/bots/bot-1/monitored-users`, () => {
         calls += 1;
         if (calls === 1) return HttpResponse.json({ error: 'down' }, { status: 503 });
-        if (method === 'saveTransactions') {
-          return HttpResponse.json({
-            accepted: 1,
-            warned: 0,
-            rejected: 0,
-            results: [{ index: 0, client_txn_id: 'txn-1', status: 'accepted' }],
-          });
-        }
         return HttpResponse.json({
           org_id: 'org-1',
           bot_id: 'bot-1',
@@ -362,9 +367,7 @@ describe('Aml', () => {
       }),
     );
 
-    const aml = createAml(1);
-    if (method === 'saveTransactions') await aml.saveTransactions([transaction()]);
-    else await aml.addMonitoredUser('bot-1', { subjectUserId: 'subject-1' });
+    await createAml(1).addMonitoredUser('bot-1', { subjectUserId: 'subject-1' });
     expect(calls).toBe(2);
   });
 });
