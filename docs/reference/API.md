@@ -725,7 +725,7 @@ The session must belong to a workflow already configured with the corresponding 
 The nested `client.igaming.selfExclusion` namespace provides:
 
 - `list({ limit? })` — list identity and face registry entries. Limit defaults server-side to 200 and cannot exceed 1000.
-- `addIdentity(input)` and `removeIdentity(documentNumber)` — manage document-number exclusions.
+- `addIdentity(input)` and `removeIdentity(documentNumber)` — manage document-number exclusions. Pass exactly one of `documentNumber` or `documentNumbers` to `addIdentity()`.
 - `addFace(input)` and `removeFace(sessionId)` — manage a session's enrolled-face exclusion flag.
 - `addApplicant(input)` — preferred compound operation that excludes the applicant's face and available document number together.
 
@@ -735,6 +735,8 @@ const result = await client.igaming.selfExclusion.addApplicant({
   reason: 'Applicant self-exclusion request',
 });
 ```
+
+A successful HTTP response does not necessarily mean an exclusion was added. Check `excluded` after `addFace()`; `false` indicates no enrolled face was available and `reason` explains why. After `addApplicant()`, inspect `faceAttached` and `documentNumber` independently because `false` and `null` mean the corresponding face or identity exclusion was not attached.
 
 Removing a face exclusion only clears its exclusion flag. `purgeAntiCheatEnrollment()` deletes the underlying biometric enrolment. All analysis, self-exclusion, and purge mutations disable automatic retries so a lost response cannot change returned status flags on replay.
 

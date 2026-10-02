@@ -112,10 +112,10 @@ export const SelfExclusionIdentityAddInputSchema = z
   })
   .refine(
     ({ documentNumber, documentNumbers }) =>
-      documentNumber !== undefined || (documentNumbers !== undefined && documentNumbers.length > 0),
+      (documentNumber !== undefined) !== (documentNumbers !== undefined),
     {
       path: ['documentNumber'],
-      message: 'Provide documentNumber or a non-empty documentNumbers array',
+      message: 'Provide exactly one of documentNumber or documentNumbers',
     },
   );
 

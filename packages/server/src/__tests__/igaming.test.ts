@@ -220,6 +220,18 @@ describe('IGaming', () => {
     });
   });
 
+  it('preserves a successful response when no enrolled face was excluded', async () => {
+    server.use(
+      http.post(`${BASE_URL}/v1/igaming/self-exclusion/face`, () =>
+        HttpResponse.json({ excluded: false, reason: 'no_enrolled_face' }),
+      ),
+    );
+
+    await expect(
+      createIGaming().selfExclusion.addFace({ sessionId: 'session_without_face' }),
+    ).resolves.toEqual({ excluded: false, reason: 'no_enrolled_face' });
+  });
+
   it('excludes an applicant and normalizes compound face and identity results', async () => {
     let body: unknown;
     server.use(
@@ -246,6 +258,26 @@ describe('IGaming', () => {
     });
   });
 
+  it('preserves a successful response when no applicant exclusion was attached', async () => {
+    server.use(
+      http.post(`${BASE_URL}/v1/igaming/self-exclusion/applicant`, () =>
+        HttpResponse.json({
+          face_attached: false,
+          document_number: null,
+          message: 'No enrolled face or document number was available',
+        }),
+      ),
+    );
+
+    await expect(
+      createIGaming().selfExclusion.addApplicant({ sessionId: 'session_without_identifiers' }),
+    ).resolves.toEqual({
+      faceAttached: false,
+      documentNumber: null,
+      message: 'No enrolled face or document number was available',
+    });
+  });
+
   it('validates IPs, list limits, registry inputs, and identifiers locally', async () => {
     const igaming = createIGaming();
     await expect(
@@ -255,6 +287,12 @@ describe('IGaming', () => {
     await expect(igaming.selfExclusion.addIdentity({ reason: 'missing identity' })).rejects.toThrow(
       ValidationError,
     );
+    await expect(
+      igaming.selfExclusion.addIdentity({
+        documentNumber: 'DOC-1',
+        documentNumbers: ['DOC-2'],
+      }),
+    ).rejects.toThrow(ValidationError);
     await expect(igaming.selfExclusion.removeIdentity('')).rejects.toThrow(ValidationError);
     await expect(igaming.purgeAntiCheatEnrollment('')).rejects.toThrow(ValidationError);
   });
