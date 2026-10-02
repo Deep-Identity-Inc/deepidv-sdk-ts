@@ -15,7 +15,10 @@ export const SessionCreateInputSchema = z.object({
   email: z.email(),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
-  phone: z.string().regex(/^\+[1-9]\d{9,14}$/u, 'phone must be a valid E.164 number'),
+  phone: z
+    .string()
+    .regex(/^\+[1-9]\d{9,14}$/u, 'phone must be a valid E.164 number')
+    .optional(),
   externalId: z.string().optional(),
   sendEmailInvite: z.boolean().optional(),
   sendPhoneInvite: z.boolean().optional(),

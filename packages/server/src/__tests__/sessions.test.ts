@@ -43,6 +43,28 @@ const RAW_SESSION = {
 };
 
 describe('Sessions.create', () => {
+  it('allows the optional phone number to be omitted', async () => {
+    let body: unknown;
+    server.use(
+      http.post(`${BASE_URL}/v1/sessions`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({ id: 'sess_1', session_url: 'https://verify.test', links: [] });
+      }),
+    );
+
+    await createSessions().create({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: 'jane@example.com',
+    });
+
+    expect(body).toEqual({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: 'jane@example.com',
+    });
+  });
+
   it('normalizes the documented wire response', async () => {
     server.use(
       http.post(`${BASE_URL}/v1/sessions`, () =>
