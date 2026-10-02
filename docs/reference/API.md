@@ -53,6 +53,9 @@ const client = new DeepIDV({
 | `auth`             | `Auth`             | API-key connection verification            |
 | `workflows`        | `Workflows`        | Workflow definitions and session creation  |
 | `workflowSessions` | `WorkflowSessions` | Resumable workflow execution               |
+| `financial`        | `Financial`        | Bank-statement request management          |
+| `creditTerms`      | `CreditTerms`      | Credit-terms application management        |
+| `creditChecks`     | `CreditChecks`     | Hard and soft credit-check creation        |
 
 ### `on(event, listener)`
 
@@ -617,6 +620,9 @@ Access via `client.screening`.
 - `pepSanctions(input)` returns a `PepSanctionsResult` synchronously.
 - `adverseMedia(input)` returns an `AdverseMediaHandle`.
 - `titleCheck(input)` returns a `TitleCheckResult` synchronously.
+- `carrierAgeGate(input)` confirms whether a carrier reports that a subscriber meets the required age threshold.
+- `phoneOwnership(input)` compares applicant-supplied identity data with the carrier subscriber record.
+- `phoneTrust(input)` returns passive SIM-swap and call-forwarding risk signals.
 
 The adverse-media handle exposes `jobId`, `refresh()` for one poll, and `wait(options?)` for polling until a typed result is ready. For adverse-media requests, the SDK sends an `Idempotency-Key` header from `input.idempotencyKey` or generates one automatically.
 
@@ -628,6 +634,40 @@ const titleResult = await client.screening.titleCheck({
   address: '123 Main St, Austin, TX',
 });
 ```
+
+Phone checks can run standalone with a phone number, or attach to an existing verification session by passing `sessionId`. Standalone calls that require applicant identity accept the documented name, address, and date-of-birth fields. These billable synchronous calls are not automatically retried.
+
+```typescript
+const ownership = await client.screening.phoneOwnership({
+  phone: '+447425604497',
+  firstName: 'Jane',
+  lastName: 'Doe',
+  strictness: 'strict',
+});
+
+const trust = await client.screening.phoneTrust({ sessionId });
+```
+
+## Financial
+
+Use `client.financial` to create and retrieve bank-statement requests.
+
+- `create(input)` creates and sends a request.
+- `list(params?)` returns a cursor page.
+- `retrieve(id)` fetches one record.
+- `listByExternalId(externalId, params?)` returns matching records.
+
+Pass the returned `nextToken` back unchanged to retrieve the next page. Creation sends an applicant invitation and is not automatically retried.
+
+## Credit terms
+
+`client.creditTerms` provides the same create, list, retrieve, and external-ID lookup pattern for credit-terms applications. Credit-terms records use the API's shared financial-record shape, exposed as `CreditTermsRecord`.
+
+## Credit checks
+
+Create applicant sessions with `client.creditChecks.createHard(input)` or `client.creditChecks.createSoft(input)`. The result includes the created ID, normalized `sessionUrl`, resolved check type, and links.
+
+The preview `GET /v1/credit-checks` routes are intentionally not exposed because the pinned OpenAPI contract currently defines only a `501` response and no successful result shape.
 
 ## Async jobs
 

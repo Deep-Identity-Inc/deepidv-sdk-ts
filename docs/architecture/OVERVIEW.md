@@ -8,7 +8,7 @@ The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [
 
 **Web-standards-first.** The SDK uses only native web APIs (`fetch`, `AbortController`, `ReadableStream`, `Uint8Array`, `crypto.subtle`). No Node-specific imports in the core package. This is what enables universal runtime support.
 
-**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, `client.asyncJobs`, `client.deepfake`, `client.auth`, `client.workflows`, and `client.workflowSessions` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
+**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, `client.asyncJobs`, `client.deepfake`, `client.auth`, `client.workflows`, `client.workflowSessions`, `client.financial`, `client.creditTerms`, and `client.creditChecks` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
 
 **Single dependency.** The only production dependency is [zod](https://zod.dev) for runtime input validation. Zod schemas are the single source of truth for both TypeScript types and runtime checks.
 
@@ -41,6 +41,9 @@ classDiagram
         +auth: Auth
         +workflows: Workflows
         +workflowSessions: WorkflowSessions
+        +financial: Financial
+        +creditTerms: CreditTerms
+        +creditChecks: CreditChecks
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -73,6 +76,9 @@ classDiagram
         +pepSanctions(input) PepSanctionsResult
         +adverseMedia(input) AdverseMediaHandle
         +titleCheck(input) TitleCheckResult
+        +carrierAgeGate(input) CarrierAgeGateResult
+        +phoneOwnership(input) PhoneOwnershipResult
+        +phoneTrust(input) PhoneTrustResult
     }
 
     class AsyncJobs {
@@ -103,6 +109,25 @@ classDiagram
         +submitStep(sessionId, stepId, input) WorkflowStepSubmitResult
     }
 
+    class Financial {
+        +create(input) FinancialCreateResult
+        +list(params?) FinancialListResult
+        +retrieve(id) FinancialRecord
+        +listByExternalId(externalId, params?) FinancialListResult
+    }
+
+    class CreditTerms {
+        +create(input) CreditTermsCreateResult
+        +list(params?) CreditTermsListResult
+        +retrieve(id) CreditTermsRecord
+        +listByExternalId(externalId, params?) CreditTermsListResult
+    }
+
+    class CreditChecks {
+        +createHard(input) CreditCheckCreateResult
+        +createSoft(input) CreditCheckCreateResult
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
@@ -113,9 +138,12 @@ classDiagram
     DeepIDV *-- Auth : auth
     DeepIDV *-- Workflows : workflows
     DeepIDV *-- WorkflowSessions : workflowSessions
+    DeepIDV *-- Financial : financial
+    DeepIDV *-- CreditTerms : creditTerms
+    DeepIDV *-- CreditChecks : creditChecks
 ```
 
-The `DeepIDV` class is the only public entry point. The module classes (`Sessions`, `Document`, `Face`, `Identity`) are **not exported** — consumers access them exclusively through the client instance.
+The `DeepIDV` class is the only public entry point. Namespace classes are **not exported** — consumers access them exclusively through the client instance.
 
 ## Core Internals
 
@@ -242,6 +270,6 @@ The `DeepIDV` constructor wires all dependencies eagerly:
 3. Creates a `TypedEmitter` instance
 4. Creates an `HttpClient` with the resolved config and emitter
 5. Creates a `FileUploader` with the config, HTTP client, and emitter
-6. Instantiates the sessions, document, face, identity, screening, async-jobs, deepfake, and auth namespaces
+6. Instantiates every public namespace, including workflows, screening, financial, credit terms, and credit checks
 
 No lazy loading, no service locator, no global state.

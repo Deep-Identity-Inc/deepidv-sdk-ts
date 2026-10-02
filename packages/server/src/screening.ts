@@ -18,11 +18,20 @@ import { mapZodError } from '@deepidv/core';
 import {
   AdverseMediaInputSchema,
   AdverseMediaQueuedResponseSchema,
+  CarrierAgeGateInputSchema,
+  CarrierAgeGateResultSchema,
   PepSanctionsInputSchema,
   PepSanctionsResultSchema,
+  PhoneOwnershipInputSchema,
+  PhoneOwnershipResultSchema,
+  PhoneTrustInputSchema,
+  PhoneTrustResultSchema,
   TitleCheckInputSchema,
   TitleCheckResultSchema,
+  type CarrierAgeGateResult,
   type PepSanctionsResult,
+  type PhoneOwnershipResult,
+  type PhoneTrustResult,
   type TitleCheckResult,
 } from './screening.types.js';
 import type { AsyncJobs } from './asyncJobs.js';
@@ -97,6 +106,40 @@ export class Screening {
       { maxRetries: 0 },
     );
     return PepSanctionsResultSchema.parse(raw);
+  }
+
+  /** Run a carrier age-gate check without disclosing the subscriber's age. */
+  async carrierAgeGate(
+    input: z.input<typeof CarrierAgeGateInputSchema>,
+  ): Promise<CarrierAgeGateResult> {
+    const parsed = CarrierAgeGateInputSchema.safeParse(input);
+    if (!parsed.success) throw mapZodError(parsed.error);
+    const raw = await this.client.post<unknown>('/v1/screening/carrier-age-gate', parsed.data, {
+      maxRetries: 0,
+    });
+    return CarrierAgeGateResultSchema.parse(raw);
+  }
+
+  /** Match applicant-supplied identity data against a carrier subscriber record. */
+  async phoneOwnership(
+    input: z.input<typeof PhoneOwnershipInputSchema>,
+  ): Promise<PhoneOwnershipResult> {
+    const parsed = PhoneOwnershipInputSchema.safeParse(input);
+    if (!parsed.success) throw mapZodError(parsed.error);
+    const raw = await this.client.post<unknown>('/v1/screening/phone-ownership', parsed.data, {
+      maxRetries: 0,
+    });
+    return PhoneOwnershipResultSchema.parse(raw);
+  }
+
+  /** Check passive SIM-swap and call-forwarding risk signals. */
+  async phoneTrust(input: z.input<typeof PhoneTrustInputSchema>): Promise<PhoneTrustResult> {
+    const parsed = PhoneTrustInputSchema.safeParse(input);
+    if (!parsed.success) throw mapZodError(parsed.error);
+    const raw = await this.client.post<unknown>('/v1/screening/phone-trust', parsed.data, {
+      maxRetries: 0,
+    });
+    return PhoneTrustResultSchema.parse(raw);
   }
 
   /**

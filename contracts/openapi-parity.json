@@ -278,98 +278,140 @@
     {
       "method": "POST",
       "path": "/v1/financial",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "financial",
       "sdkMethod": "create",
-      "workstream": 4
+      "workstream": 4,
+      "inputSchema": "FinancialCreateInputSchema",
+      "resultSchema": "FinancialCreateResultSchema",
+      "tests": ["packages/server/src/__tests__/financial.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/financial",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "financial",
       "sdkMethod": "list",
-      "workstream": 4
+      "workstream": 4,
+      "inputSchema": "FinancialListParamsSchema",
+      "resultSchema": "FinancialListResultSchema",
+      "tests": ["packages/server/src/__tests__/financial.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/financial/{id}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "financial",
       "sdkMethod": "retrieve",
-      "workstream": 4
+      "workstream": 4,
+      "resultSchema": "FinancialRecordSchema",
+      "tests": ["packages/server/src/__tests__/financial.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/financial/externalId/{externalId}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "financial",
       "sdkMethod": "listByExternalId",
-      "workstream": 4
+      "workstream": 4,
+      "inputSchema": "FinancialListParamsSchema",
+      "resultSchema": "FinancialListResultSchema",
+      "tests": ["packages/server/src/__tests__/financial.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/credit-terms",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "creditTerms",
       "sdkMethod": "create",
-      "workstream": 4
+      "workstream": 4,
+      "inputSchema": "CreditTermsCreateInputSchema",
+      "resultSchema": "CreditTermsCreateResultSchema",
+      "tests": ["packages/server/src/__tests__/creditTerms.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/credit-terms",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "creditTerms",
       "sdkMethod": "list",
-      "workstream": 4
+      "workstream": 4,
+      "inputSchema": "CreditTermsListParamsSchema",
+      "resultSchema": "CreditTermsListResultSchema",
+      "tests": ["packages/server/src/__tests__/creditTerms.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/credit-terms/{id}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "creditTerms",
       "sdkMethod": "retrieve",
-      "workstream": 4
+      "workstream": 4,
+      "resultSchema": "CreditTermsRecordSchema",
+      "tests": ["packages/server/src/__tests__/creditTerms.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/credit-terms/externalId/{externalId}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "creditTerms",
       "sdkMethod": "listByExternalId",
-      "workstream": 4
+      "workstream": 4,
+      "inputSchema": "CreditTermsListParamsSchema",
+      "resultSchema": "CreditTermsListResultSchema",
+      "tests": ["packages/server/src/__tests__/creditTerms.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/credit-check/hard",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "creditChecks",
       "sdkMethod": "createHard",
-      "workstream": 4
+      "workstream": 4,
+      "inputSchema": "CreditCheckCreateInputSchema",
+      "resultSchema": "CreditCheckCreateResultSchema",
+      "tests": ["packages/server/src/__tests__/creditChecks.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/credit-check/soft",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "creditChecks",
       "sdkMethod": "createSoft",
-      "workstream": 4
+      "workstream": 4,
+      "inputSchema": "CreditCheckCreateInputSchema",
+      "resultSchema": "CreditCheckCreateResultSchema",
+      "tests": ["packages/server/src/__tests__/creditChecks.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/credit-checks",
-      "status": "implement",
+      "status": "blocked-contract",
       "sdkNamespace": "creditChecks",
       "sdkMethod": "list",
-      "workstream": 4
+      "workstream": 4,
+      "reason": "The pinned OpenAPI contract documents this preview route as returning 501 only and defines no successful response schema.",
+      "owner": "OpenAPI contract"
     },
     {
       "method": "GET",
       "path": "/v1/credit-checks/{id}",
-      "status": "implement",
+      "status": "blocked-contract",
       "sdkNamespace": "creditChecks",
       "sdkMethod": "retrieve",
-      "workstream": 4
+      "workstream": 4,
+      "reason": "The pinned OpenAPI contract documents this preview route as returning 501 only and defines no successful response schema.",
+      "owner": "OpenAPI contract"
     },
     {
       "method": "GET",
@@ -424,26 +466,38 @@
     {
       "method": "POST",
       "path": "/v1/screening/carrier-age-gate",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "screening",
       "sdkMethod": "carrierAgeGate",
-      "workstream": 4
+      "workstream": 4,
+      "inputSchema": "CarrierAgeGateInputSchema",
+      "resultSchema": "CarrierAgeGateResultSchema",
+      "tests": ["packages/server/src/__tests__/screeningPhone.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/screening/phone-ownership",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "screening",
       "sdkMethod": "phoneOwnership",
-      "workstream": 4
+      "workstream": 4,
+      "inputSchema": "PhoneOwnershipInputSchema",
+      "resultSchema": "PhoneOwnershipResultSchema",
+      "tests": ["packages/server/src/__tests__/screeningPhone.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/screening/phone-trust",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "screening",
       "sdkMethod": "phoneTrust",
-      "workstream": 4
+      "workstream": 4,
+      "inputSchema": "PhoneTrustInputSchema",
+      "resultSchema": "PhoneTrustResultSchema",
+      "tests": ["packages/server/src/__tests__/screeningPhone.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",

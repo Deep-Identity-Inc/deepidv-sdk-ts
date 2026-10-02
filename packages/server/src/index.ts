@@ -173,6 +173,13 @@ export type {
   AdverseMediaJobSnapshot,
   TitleCheckInput,
   TitleCheckResult,
+  CarrierAgeGateInput,
+  CarrierAgeGateResult,
+  PhoneOwnershipInput,
+  PhoneOwnershipResult,
+  PhoneTrustInput,
+  PhoneTrustTripReason,
+  PhoneTrustResult,
 } from './screening.types.js';
 export {
   PepSanctionsInputSchema,
@@ -183,6 +190,13 @@ export {
   AdverseMediaJobSnapshotSchema,
   TitleCheckInputSchema,
   TitleCheckResultSchema,
+  CarrierAgeGateInputSchema,
+  CarrierAgeGateResultSchema,
+  PhoneOwnershipInputSchema,
+  PhoneOwnershipResultSchema,
+  PhoneTrustInputSchema,
+  PhoneTrustTripReasonSchema,
+  PhoneTrustResultSchema,
 } from './screening.types.js';
 export type { AdverseMediaHandle, AdverseMediaWaitOptions } from './asyncJobHandle.js';
 
@@ -277,8 +291,53 @@ export {
   WorkflowStepSubmitResultSchema,
 } from './workflowSessions.types.js';
 
+// ---------------------------------------------------------------------------
+// 14. Financial, credit terms, and credit checks
+// ---------------------------------------------------------------------------
+export type {
+  FinancialCreateInput,
+  FinancialCreateResult,
+  FinancialRecord,
+  FinancialListParams,
+  FinancialListResult,
+} from './financial.types.js';
+export {
+  FinancialCreateInputSchema,
+  FinancialCreateResultSchema,
+  FinancialRecordSchema,
+  FinancialListParamsSchema,
+  FinancialListResultSchema,
+} from './financial.types.js';
+export type {
+  CreditTermsCreateInput,
+  CreditTermsCreateResult,
+  CreditTermsRecord,
+  CreditTermsListParams,
+  CreditTermsListResult,
+} from './creditTerms.types.js';
+export {
+  CreditTermsCreateInputSchema,
+  CreditTermsCreateResultSchema,
+  CreditTermsRecordSchema,
+  CreditTermsListParamsSchema,
+  CreditTermsListResultSchema,
+} from './creditTerms.types.js';
+export type {
+  CreditCheckCreateInput,
+  CreditCheckType,
+  CreditCheckLink,
+  CreditCheckCreateResult,
+} from './creditChecks.types.js';
+export {
+  CreditCheckCreateInputSchema,
+  CreditCheckTypeSchema,
+  CreditCheckLinkSchema,
+  CreditCheckCreateResultSchema,
+} from './creditChecks.types.js';
+
 // NOTE: Namespace classes are
 // NOT exported. Consumers access them exclusively through client.sessions,
 // client.document, client.face, client.identity, client.screening, and
-// client.asyncJobs, client.deepfake, client.auth, client.workflows, and
-// client.workflowSessions (per D-01, API-05).
+// client.asyncJobs, client.deepfake, client.auth, client.workflows,
+// client.workflowSessions, client.financial, client.creditTerms, and
+// client.creditChecks (per D-01, API-05).

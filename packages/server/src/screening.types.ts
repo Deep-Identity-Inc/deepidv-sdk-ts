@@ -94,6 +94,108 @@ export const TitleCheckInputSchema = z.object({
   address: z.string().min(1).max(500),
 });
 
+const PhoneNumberSchema = z
+  .string()
+  .regex(/^\+?[0-9()\-\s.]{7,20}$/u, 'phone must be a valid mobile number');
+
+const OptionalApplicantSchema = z.object({
+  phone: PhoneNumberSchema.optional(),
+  sessionId: z.uuid().optional(),
+  email: z.string().optional(),
+  firstName: z.string().min(1).max(255).optional(),
+  lastName: z.string().min(1).max(255).optional(),
+});
+
+/** Input for a carrier age-gate check. */
+export const CarrierAgeGateInputSchema = OptionalApplicantSchema.refine(
+  ({ phone, sessionId }) => phone !== undefined || sessionId !== undefined,
+  { message: 'phone is required when sessionId is not provided', path: ['phone'] },
+);
+
+/** Carrier age-gate result. */
+export const CarrierAgeGateResultSchema = z
+  .object({
+    outcome: z.enum(['PASS', 'FAIL', 'NO_DATA']),
+    ageVerified: z.enum(['VERIFIED', 'NOT_VERIFIED', 'NO_DATA']),
+    requiredAge: z.number().int(),
+    carrierThreshold: z.number().int().optional(),
+    statusMessage: z.string(),
+    checkedAt: z.string(),
+    correlationId: z.string().optional(),
+    sessionId: z.string().optional(),
+  })
+  .strip();
+
+/** Input for matching an applicant to a carrier subscriber record. */
+export const PhoneOwnershipInputSchema = OptionalApplicantSchema.extend({
+  address: z.string().min(1).max(500).optional(),
+  dateOfBirth: z.iso.date().optional(),
+  strictness: z.enum(['relaxed', 'medium', 'strict']).optional(),
+}).superRefine(({ phone, sessionId, firstName, lastName }, ctx) => {
+  if (sessionId === undefined && phone === undefined) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'phone is required when sessionId is not provided',
+      path: ['phone'],
+    });
+  }
+  if (sessionId === undefined && firstName === undefined && lastName === undefined) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'firstName or lastName is required when sessionId is not provided',
+      path: ['firstName'],
+    });
+  }
+});
+
+/** Phone ownership match result. */
+export const PhoneOwnershipResultSchema = z
+  .object({
+    outcome: z.enum(['MATCH', 'NO_MATCH', 'NO_DATA']),
+    nameScore: z.number().int().min(-1).max(100).optional(),
+    firstNameScore: z.number().int().min(-1).max(100).optional(),
+    lastNameScore: z.number().int().min(-1).max(100).optional(),
+    dobScore: z.number().int().min(-1).max(100).optional(),
+    addressScore: z.number().int().min(-1).max(100).optional(),
+    strictness: z.enum(['relaxed', 'medium', 'strict']),
+    threshold: z.number().int(),
+    statusMessage: z.string(),
+    checkedAt: z.string(),
+    correlationId: z.string().optional(),
+    sessionId: z.string().optional(),
+  })
+  .strip();
+
+/** Input for passive SIM-swap and call-forwarding risk checks. */
+export const PhoneTrustInputSchema = OptionalApplicantSchema.extend({
+  sensitivity: z.enum(['low', 'medium', 'high']).optional(),
+}).refine(({ phone, sessionId }) => phone !== undefined || sessionId !== undefined, {
+  message: 'phone is required when sessionId is not provided',
+  path: ['phone'],
+});
+
+export const PhoneTrustTripReasonSchema = z.enum([
+  'SIM_SWAP_HIGH_RISK',
+  'SIM_SWAP_MEDIUM_RISK',
+  'CALL_FORWARDING_ACTIVE',
+]);
+
+/** Phone trust result. */
+export const PhoneTrustResultSchema = z
+  .object({
+    tripped: z.boolean(),
+    tripReasons: z.array(PhoneTrustTripReasonSchema),
+    simSwappedRisk: z.enum(['NO_DATA', 'LOW_RISK', 'MEDIUM_RISK', 'HIGH_RISK']),
+    simChangedDate: z.string().optional(),
+    forwardingRisk: z.enum(['NO_DATA', 'NO_RISK', 'HIGH_RISK']),
+    sensitivity: z.enum(['low', 'medium', 'high']),
+    statusMessage: z.string(),
+    checkedAt: z.string(),
+    correlationId: z.string().optional(),
+    sessionId: z.string().optional(),
+  })
+  .strip();
+
 // ---------------------------------------------------------------------------
 // Sub-schemas for PEP/S response
 // ---------------------------------------------------------------------------
@@ -371,3 +473,11 @@ export type TitleCheckInput = z.infer<typeof TitleCheckInputSchema>;
 
 /** Response from `screening.titleCheck()` — discriminated on `status`. */
 export type TitleCheckResult = z.infer<typeof TitleCheckResultSchema>;
+
+export type CarrierAgeGateInput = z.infer<typeof CarrierAgeGateInputSchema>;
+export type CarrierAgeGateResult = z.infer<typeof CarrierAgeGateResultSchema>;
+export type PhoneOwnershipInput = z.infer<typeof PhoneOwnershipInputSchema>;
+export type PhoneOwnershipResult = z.infer<typeof PhoneOwnershipResultSchema>;
+export type PhoneTrustInput = z.infer<typeof PhoneTrustInputSchema>;
+export type PhoneTrustTripReason = z.infer<typeof PhoneTrustTripReasonSchema>;
+export type PhoneTrustResult = z.infer<typeof PhoneTrustResultSchema>;
