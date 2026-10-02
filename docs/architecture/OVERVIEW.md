@@ -8,7 +8,7 @@ The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [
 
 **Web-standards-first.** The SDK uses only native web APIs (`fetch`, `AbortController`, `ReadableStream`, `Uint8Array`, `crypto.subtle`). No Node-specific imports in the core package. This is what enables universal runtime support.
 
-**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, `client.asyncJobs`, `client.deepfake`, `client.auth`, `client.workflows`, `client.workflowSessions`, `client.financial`, `client.creditTerms`, `client.creditChecks`, and `client.profiles` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
+**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, `client.asyncJobs`, `client.deepfake`, `client.auth`, `client.workflows`, `client.workflowSessions`, `client.financial`, `client.creditTerms`, `client.creditChecks`, `client.profiles`, and `client.igaming` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
 
 **Single dependency.** The only production dependency is [zod](https://zod.dev) for runtime input validation. Zod schemas are the single source of truth for both TypeScript types and runtime checks.
 
@@ -45,6 +45,7 @@ classDiagram
         +creditTerms: CreditTerms
         +creditChecks: CreditChecks
         +profiles: Profiles
+        +igaming: IGaming
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -137,6 +138,24 @@ classDiagram
         +uploadLogo(input) string
     }
 
+    class IGaming {
+        +analyzeInjection(input) AnalyzeInjectionResult
+        +detectVpn(input) IpCheckResult
+        +checkIpJurisdiction(input) IpCheckResult
+        +analyzeAntiCheat(input) AntiCheatResult
+        +purgeAntiCheatEnrollment(sessionId) AntiCheatPurgeResult
+        +selfExclusion: SelfExclusion
+    }
+
+    class SelfExclusion {
+        +list(params?) SelfExclusionListResult
+        +addIdentity(input) SelfExclusionIdentityAddResult
+        +removeIdentity(documentNumber) SelfExclusionIdentityRemoveResult
+        +addFace(input) SelfExclusionFaceResult
+        +removeFace(sessionId) SelfExclusionFaceRemoveResult
+        +addApplicant(input) SelfExclusionApplicantResult
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
@@ -151,6 +170,8 @@ classDiagram
     DeepIDV *-- CreditTerms : creditTerms
     DeepIDV *-- CreditChecks : creditChecks
     DeepIDV *-- Profiles : profiles
+    DeepIDV *-- IGaming : igaming
+    IGaming *-- SelfExclusion : selfExclusion
 ```
 
 The `DeepIDV` class is the only public entry point. Namespace classes are **not exported** — consumers access them exclusively through the client instance.
@@ -280,6 +301,6 @@ The `DeepIDV` constructor wires all dependencies eagerly:
 3. Creates a `TypedEmitter` instance
 4. Creates an `HttpClient` with the resolved config and emitter
 5. Creates a `FileUploader` with the config, HTTP client, and emitter
-6. Instantiates every public namespace, including workflows, screening, financial, credit terms, credit checks, and profiles
+6. Instantiates every public namespace, including workflows, screening, financial, credit terms, credit checks, profiles, and iGaming
 
 No lazy loading, no service locator, no global state.

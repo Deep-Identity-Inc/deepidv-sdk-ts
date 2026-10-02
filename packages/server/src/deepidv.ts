@@ -32,6 +32,7 @@ import { Financial } from './financial.js';
 import { CreditTerms } from './creditTerms.js';
 import { CreditChecks } from './creditChecks.js';
 import { Profiles } from './profiles.js';
+import { IGaming } from './igaming.js';
 
 // ---------------------------------------------------------------------------
 // Config schema (exported for consumers per D-02)
@@ -182,6 +183,9 @@ export class DeepIDV {
   /** Organization branding profiles and profile-logo uploads. */
   readonly profiles: Profiles;
 
+  /** Session iGaming checks and organization self-exclusion management. */
+  readonly igaming: IGaming;
+
   /** Internal emitter — not exposed directly to consumers. */
   private readonly emitter: TypedEmitter;
 
@@ -227,6 +231,7 @@ export class DeepIDV {
     this.creditTerms = new CreditTerms(httpClient);
     this.creditChecks = new CreditChecks(httpClient);
     this.profiles = new Profiles(httpClient, uploader);
+    this.igaming = new IGaming(httpClient);
   }
 
   /**

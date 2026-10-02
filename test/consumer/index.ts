@@ -127,6 +127,31 @@ import {
   ProfileCreateInputSchema,
   ProfileSchema,
   ProfileListResultSchema,
+  IGamingCheckVerdictSchema,
+  InjectionSignalSchema,
+  AnalyzeInjectionInputSchema,
+  AnalyzeInjectionResultSchema,
+  AnalyzeIpCheckInputSchema,
+  IpCheckResultSchema,
+  AntiCheatVerdictSchema,
+  AntiCheatActionSchema,
+  AnalyzeAntiCheatInputSchema,
+  AntiCheatResultSchema,
+  SelfExclusionListParamsSchema,
+  SelfExclusionIdentityEntrySchema,
+  SelfExclusionFaceEntrySchema,
+  SelfExclusionEntrySchema,
+  SelfExclusionListResultSchema,
+  SelfExclusionIdentityAddInputSchema,
+  SelfExclusionIdentityStatusSchema,
+  SelfExclusionIdentityAddResultSchema,
+  SelfExclusionIdentityRemoveResultSchema,
+  SelfExclusionFaceInputSchema,
+  SelfExclusionFaceResultSchema,
+  SelfExclusionFaceRemoveResultSchema,
+  AntiCheatPurgeResultSchema,
+  SelfExclusionApplicantInputSchema,
+  SelfExclusionApplicantResultSchema,
 } from '@deepidv/server';
 import type {
   DeepIDVOptions,
@@ -244,6 +269,31 @@ import type {
   ProfileCreateInput,
   Profile,
   ProfileListResult,
+  IGamingCheckVerdict,
+  InjectionSignal,
+  AnalyzeInjectionInput,
+  AnalyzeInjectionResult,
+  AnalyzeIpCheckInput,
+  IpCheckResult,
+  AntiCheatVerdict,
+  AntiCheatAction,
+  AnalyzeAntiCheatInput,
+  AntiCheatResult,
+  SelfExclusionListParams,
+  SelfExclusionIdentityEntry,
+  SelfExclusionFaceEntry,
+  SelfExclusionEntry,
+  SelfExclusionListResult,
+  SelfExclusionIdentityAddInput,
+  SelfExclusionIdentityStatus,
+  SelfExclusionIdentityAddResult,
+  SelfExclusionIdentityRemoveResult,
+  SelfExclusionFaceInput,
+  SelfExclusionFaceResult,
+  SelfExclusionFaceRemoveResult,
+  AntiCheatPurgeResult,
+  SelfExclusionApplicantInput,
+  SelfExclusionApplicantResult,
 } from '@deepidv/server';
 
 const client = new DeepIDV({ apiKey: 'test' });
@@ -262,6 +312,8 @@ const namespaces = [
   client.creditTerms,
   client.creditChecks,
   client.profiles,
+  client.igaming,
+  client.igaming.selfExclusion,
 ];
 
 const values = [
@@ -390,6 +442,31 @@ const values = [
   ProfileCreateInputSchema,
   ProfileSchema,
   ProfileListResultSchema,
+  IGamingCheckVerdictSchema,
+  InjectionSignalSchema,
+  AnalyzeInjectionInputSchema,
+  AnalyzeInjectionResultSchema,
+  AnalyzeIpCheckInputSchema,
+  IpCheckResultSchema,
+  AntiCheatVerdictSchema,
+  AntiCheatActionSchema,
+  AnalyzeAntiCheatInputSchema,
+  AntiCheatResultSchema,
+  SelfExclusionListParamsSchema,
+  SelfExclusionIdentityEntrySchema,
+  SelfExclusionFaceEntrySchema,
+  SelfExclusionEntrySchema,
+  SelfExclusionListResultSchema,
+  SelfExclusionIdentityAddInputSchema,
+  SelfExclusionIdentityStatusSchema,
+  SelfExclusionIdentityAddResultSchema,
+  SelfExclusionIdentityRemoveResultSchema,
+  SelfExclusionFaceInputSchema,
+  SelfExclusionFaceResultSchema,
+  SelfExclusionFaceRemoveResultSchema,
+  AntiCheatPurgeResultSchema,
+  SelfExclusionApplicantInputSchema,
+  SelfExclusionApplicantResultSchema,
 ];
 
 type PublicTypes =
@@ -507,7 +584,32 @@ type PublicTypes =
   | ProfileLogoUploadInput
   | ProfileCreateInput
   | Profile
-  | ProfileListResult;
+  | ProfileListResult
+  | IGamingCheckVerdict
+  | InjectionSignal
+  | AnalyzeInjectionInput
+  | AnalyzeInjectionResult
+  | AnalyzeIpCheckInput
+  | IpCheckResult
+  | AntiCheatVerdict
+  | AntiCheatAction
+  | AnalyzeAntiCheatInput
+  | AntiCheatResult
+  | SelfExclusionListParams
+  | SelfExclusionIdentityEntry
+  | SelfExclusionFaceEntry
+  | SelfExclusionEntry
+  | SelfExclusionListResult
+  | SelfExclusionIdentityAddInput
+  | SelfExclusionIdentityStatus
+  | SelfExclusionIdentityAddResult
+  | SelfExclusionIdentityRemoveResult
+  | SelfExclusionFaceInput
+  | SelfExclusionFaceResult
+  | SelfExclusionFaceRemoveResult
+  | AntiCheatPurgeResult
+  | SelfExclusionApplicantInput
+  | SelfExclusionApplicantResult;
 
 declare const publicType: PublicTypes;
 void namespaces;

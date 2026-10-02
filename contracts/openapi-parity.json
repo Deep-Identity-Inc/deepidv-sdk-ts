@@ -588,90 +588,120 @@
     {
       "method": "POST",
       "path": "/v1/igaming/injection",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "igaming",
       "sdkMethod": "analyzeInjection",
-      "workstream": 6
+      "inputSchema": "AnalyzeInjectionInputSchema",
+      "resultSchema": "AnalyzeInjectionResultSchema",
+      "tests": ["packages/server/src/__tests__/igaming.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/igaming/vpn-detection",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "igaming",
       "sdkMethod": "detectVpn",
-      "workstream": 6
+      "inputSchema": "AnalyzeIpCheckInputSchema",
+      "resultSchema": "IpCheckResultSchema",
+      "tests": ["packages/server/src/__tests__/igaming.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/igaming/ip-jurisdiction",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "igaming",
       "sdkMethod": "checkIpJurisdiction",
-      "workstream": 6
+      "inputSchema": "AnalyzeIpCheckInputSchema",
+      "resultSchema": "IpCheckResultSchema",
+      "tests": ["packages/server/src/__tests__/igaming.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/igaming/anti-cheat",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "igaming",
       "sdkMethod": "analyzeAntiCheat",
-      "workstream": 6
+      "inputSchema": "AnalyzeAntiCheatInputSchema",
+      "resultSchema": "AntiCheatResultSchema",
+      "tests": ["packages/server/src/__tests__/igaming.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "GET",
       "path": "/v1/igaming/self-exclusion",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "igaming.selfExclusion",
       "sdkMethod": "list",
-      "workstream": 6
+      "inputSchema": "SelfExclusionListParamsSchema",
+      "resultSchema": "SelfExclusionListResultSchema",
+      "tests": ["packages/server/src/__tests__/igaming.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/igaming/self-exclusion/identity",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "igaming.selfExclusion",
       "sdkMethod": "addIdentity",
-      "workstream": 6
+      "inputSchema": "SelfExclusionIdentityAddInputSchema",
+      "resultSchema": "SelfExclusionIdentityAddResultSchema",
+      "tests": ["packages/server/src/__tests__/igaming.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "DELETE",
       "path": "/v1/igaming/self-exclusion/identity/{document_number}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "igaming.selfExclusion",
       "sdkMethod": "removeIdentity",
-      "workstream": 6
+      "resultSchema": "SelfExclusionIdentityRemoveResultSchema",
+      "tests": ["packages/server/src/__tests__/igaming.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/igaming/self-exclusion/face",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "igaming.selfExclusion",
       "sdkMethod": "addFace",
-      "workstream": 6
+      "inputSchema": "SelfExclusionFaceInputSchema",
+      "resultSchema": "SelfExclusionFaceResultSchema",
+      "tests": ["packages/server/src/__tests__/igaming.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "DELETE",
       "path": "/v1/igaming/self-exclusion/face/{session_id}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "igaming.selfExclusion",
       "sdkMethod": "removeFace",
-      "workstream": 6
+      "resultSchema": "SelfExclusionFaceRemoveResultSchema",
+      "tests": ["packages/server/src/__tests__/igaming.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "DELETE",
       "path": "/v1/igaming/anti-cheat/{session_id}",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "igaming",
       "sdkMethod": "purgeAntiCheatEnrollment",
-      "workstream": 6
+      "resultSchema": "AntiCheatPurgeResultSchema",
+      "tests": ["packages/server/src/__tests__/igaming.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/igaming/self-exclusion/applicant",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "igaming.selfExclusion",
       "sdkMethod": "addApplicant",
-      "workstream": 6
+      "inputSchema": "SelfExclusionApplicantInputSchema",
+      "resultSchema": "SelfExclusionApplicantResultSchema",
+      "tests": ["packages/server/src/__tests__/igaming.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",

@@ -57,6 +57,7 @@ const client = new DeepIDV({
 | `creditTerms`      | `CreditTerms`      | Credit-terms application management        |
 | `creditChecks`     | `CreditChecks`     | Hard and soft credit-check creation        |
 | `profiles`         | `Profiles`         | Organization branding profiles and logos   |
+| `igaming`          | `IGaming`          | iGaming checks and self-exclusion registry |
 
 ### `on(event, listener)`
 
@@ -691,6 +692,53 @@ const profile = await client.profiles.create({
 ```
 
 Profile logos accept JPEG, PNG, WebP, and GIF files up to 15 MiB. When using the low-level `createLogoUploadUrl()` method, send the returned `fileKey` as `logoUrl` to `create()` after the PUT succeeds. Profile creation is not automatically retried.
+
+## iGaming
+
+Use `client.igaming` for session-scoped iGaming checks and organization self-exclusion management.
+
+### Session checks
+
+- `analyzeInjection(input)` evaluates device-integrity, media-source, and frame-timing signals.
+- `detectVpn(input)` evaluates an IPv4 or IPv6 address against anonymizer feeds.
+- `checkIpJurisdiction(input)` evaluates an IP address against the session workflow's jurisdiction rules.
+- `analyzeAntiCheat(input)` runs biometric deduplication, multi-accounting, and self-exclusion checks using a base64 image.
+- `purgeAntiCheatEnrollment(sessionId)` deletes the session's own enrolled face and dedup crosswalk.
+
+```typescript
+const vpn = await client.igaming.detectVpn({
+  sessionId,
+  ipAddress: '203.0.113.10',
+});
+
+const antiCheat = await client.igaming.analyzeAntiCheat({
+  sessionId,
+  image: selfieBase64,
+  deviceFingerprint: 'device-fingerprint',
+});
+```
+
+The session must belong to a workflow already configured with the corresponding iGaming step. These iGaming workflow steps are not exposed through public workflow creation. IPv6 is accepted syntactically, but checks backed by IPv4-only data may return `UNAVAILABLE`.
+
+### Self-exclusion
+
+The nested `client.igaming.selfExclusion` namespace provides:
+
+- `list({ limit? })` — list identity and face registry entries. Limit defaults server-side to 200 and cannot exceed 1000.
+- `addIdentity(input)` and `removeIdentity(documentNumber)` — manage document-number exclusions. Pass exactly one of `documentNumber` or `documentNumbers` to `addIdentity()`.
+- `addFace(input)` and `removeFace(sessionId)` — manage a session's enrolled-face exclusion flag.
+- `addApplicant(input)` — preferred compound operation that excludes the applicant's face and available document number together.
+
+```typescript
+const result = await client.igaming.selfExclusion.addApplicant({
+  sessionId,
+  reason: 'Applicant self-exclusion request',
+});
+```
+
+A successful HTTP response does not necessarily mean an exclusion was added. Check `excluded` after `addFace()`; `false` indicates no enrolled face was available and `reason` explains why. After `addApplicant()`, inspect `faceAttached` and `documentNumber` independently because `false` and `null` mean the corresponding face or identity exclusion was not attached.
+
+Removing a face exclusion only clears its exclusion flag. `purgeAntiCheatEnrollment()` deletes the underlying biometric enrolment. All analysis, self-exclusion, and purge mutations disable automatic retries so a lost response cannot change returned status flags on replay.
 
 ## Async jobs
 
