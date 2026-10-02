@@ -37,6 +37,7 @@ This parity release intentionally removes or changes SDK shapes that did not mat
 - `DocumentScanResult` no longer contains `faceImage`, which is not returned by the public document-scan response. Keep the original image when it is needed by `face.compare()` or use `identity.verify()` for the combined document-and-face flow.
 
 Session records normalize `auto_decision` to `autoDecision` and `decision_source` to `decisionSource`. A `pending` auto-decision means you should continue polling; `AUTO_APPROVE` and `DECLINED` distinguish AI decisions from operator-set statuses.
+
 ## Before / After Examples
 
 ### Create a Session
