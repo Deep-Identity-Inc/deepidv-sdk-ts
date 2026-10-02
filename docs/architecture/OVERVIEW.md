@@ -8,7 +8,7 @@ The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [
 
 **Web-standards-first.** The SDK uses only native web APIs (`fetch`, `AbortController`, `ReadableStream`, `Uint8Array`, `crypto.subtle`). No Node-specific imports in the core package. This is what enables universal runtime support.
 
-**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, `client.asyncJobs`, `client.deepfake`, `client.auth`, `client.workflows`, `client.workflowSessions`, `client.financial`, `client.creditTerms`, `client.creditChecks`, `client.profiles`, `client.igaming`, and `client.aml` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
+**Grouped modules.** Methods are organized by domain — `client.sessions`, `client.document`, `client.face`, `client.identity`, `client.screening`, `client.asyncJobs`, `client.deepfake`, `client.auth`, `client.workflows`, `client.workflowSessions`, `client.financial`, `client.creditTerms`, `client.creditChecks`, `client.profiles`, `client.igaming`, `client.aml`, `client.ageVerification`, and `client.reVerifications` — matching the API structure. This gives better autocomplete and discoverability than a flat API.
 
 **Single dependency.** The only production dependency is [zod](https://zod.dev) for runtime input validation. Zod schemas are the single source of truth for both TypeScript types and runtime checks.
 
@@ -20,7 +20,7 @@ The `@deepidv/server` SDK is a backend-first TypeScript library that wraps the [
 | **Orchestrated**      | One call, multiple operations coordinated server-side.       | `identity.verify()` (document scan + face detect + face compare)           |
 | **Session-based**     | Create session, user completes steps, retrieve results.      | `sessions.create()`, `sessions.retrieve()`                                 |
 | **Async job**         | Queue work and poll a typed handle for its result.           | `screening.adverseMedia()`, `screening.titleCheck()`                       |
-| **Capture lifecycle** | Coordinate device capture with explicit resumable calls.     | `face.createLivenessSession()`, `deepfake.createUploadUrls()`              |
+| **Capture lifecycle** | Coordinate device capture with explicit resumable calls.     | `face.createLivenessSession()`, `reVerifications.startLiveness()`          |
 | **Workflow runner**   | Define workflows and resume ordered execution by session ID. | `workflows.createSession()`, `workflowSessions.submitStep()`               |
 | **Batch ingest**      | Submit bounded batches and inspect per-record outcomes.      | `aml.saveTransactions()`                                                   |
 
@@ -48,6 +48,8 @@ classDiagram
         +profiles: Profiles
         +igaming: IGaming
         +aml: Aml
+        +ageVerification: AgeVerification
+        +reVerifications: ReVerifications
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -163,6 +165,20 @@ classDiagram
         +addMonitoredUser(botId, input) MonitoredUser
     }
 
+    class AgeVerification {
+        +create(input) AgeVerificationCreateResult
+        +listParentConnectRequests(params?) ParentConnectListResult
+        +retrieveParentConnectRequest(id) ParentConnectRequest
+        +getBoundaries(childAttestationId) AgeVerificationBoundaries
+    }
+
+    class ReVerifications {
+        +create(input) ReVerificationCreateResult
+        +startLiveness(id) ReVerificationLivenessStartResult
+        +createLivenessUploadUrl(id, input) ReVerificationLivenessUploadUrlResult
+        +completeLiveness(id) ReVerificationDecisionResult
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
@@ -180,6 +196,8 @@ classDiagram
     DeepIDV *-- IGaming : igaming
     IGaming *-- SelfExclusion : selfExclusion
     DeepIDV *-- Aml : aml
+    DeepIDV *-- AgeVerification : ageVerification
+    DeepIDV *-- ReVerifications : reVerifications
 ```
 
 The `DeepIDV` class is the only public entry point. Namespace classes are **not exported** — consumers access them exclusively through the client instance.
@@ -309,6 +327,6 @@ The `DeepIDV` constructor wires all dependencies eagerly:
 3. Creates a `TypedEmitter` instance
 4. Creates an `HttpClient` with the resolved config and emitter
 5. Creates a `FileUploader` with the config, HTTP client, and emitter
-6. Instantiates every public namespace, including workflows, screening, financial, credit terms, credit checks, profiles, and iGaming
+6. Instantiates every public namespace, including workflows, screening, financial, credit terms, credit checks, profiles, iGaming, AML, age verification, and re-verification
 
 No lazy loading, no service locator, no global state.

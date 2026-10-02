@@ -19,6 +19,8 @@ classDiagram
         +profiles: Profiles
         +igaming: IGaming
         +aml: Aml
+        +ageVerification: AgeVerification
+        +reVerifications: ReVerifications
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -134,6 +136,20 @@ classDiagram
         +addMonitoredUser(botId, input) MonitoredUser
     }
 
+    class AgeVerification {
+        +create(input) AgeVerificationCreateResult
+        +listParentConnectRequests(params?) ParentConnectListResult
+        +retrieveParentConnectRequest(id) ParentConnectRequest
+        +getBoundaries(childAttestationId) AgeVerificationBoundaries
+    }
+
+    class ReVerifications {
+        +create(input) ReVerificationCreateResult
+        +startLiveness(id) ReVerificationLivenessStartResult
+        +createLivenessUploadUrl(id, input) ReVerificationLivenessUploadUrlResult
+        +completeLiveness(id) ReVerificationDecisionResult
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
@@ -151,3 +167,5 @@ classDiagram
     DeepIDV *-- IGaming : igaming
     IGaming *-- SelfExclusion : selfExclusion
     DeepIDV *-- Aml : aml
+    DeepIDV *-- AgeVerification : ageVerification
+    DeepIDV *-- ReVerifications : reVerifications

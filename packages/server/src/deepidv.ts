@@ -34,6 +34,8 @@ import { CreditChecks } from './creditChecks.js';
 import { Profiles } from './profiles.js';
 import { IGaming } from './igaming.js';
 import { Aml } from './aml.js';
+import { AgeVerification } from './ageVerification.js';
+import { ReVerifications } from './reVerifications.js';
 
 // ---------------------------------------------------------------------------
 // Config schema (exported for consumers per D-02)
@@ -190,6 +192,12 @@ export class DeepIDV {
   /** AML transaction ingestion and monitored-user enrolment. */
   readonly aml: Aml;
 
+  /** Standalone age verification and read-only Parent Connect resources. */
+  readonly ageVerification: AgeVerification;
+
+  /** Resumable re-verification liveness lifecycle operations. */
+  readonly reVerifications: ReVerifications;
+
   /** Internal emitter — not exposed directly to consumers. */
   private readonly emitter: TypedEmitter;
 
@@ -237,6 +245,8 @@ export class DeepIDV {
     this.profiles = new Profiles(httpClient, uploader);
     this.igaming = new IGaming(httpClient);
     this.aml = new Aml(httpClient);
+    this.ageVerification = new AgeVerification(httpClient);
+    this.reVerifications = new ReVerifications(httpClient);
   }
 
   /**

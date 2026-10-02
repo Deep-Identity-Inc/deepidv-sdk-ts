@@ -440,6 +440,7 @@ export type {
   AddMonitoredUserInput,
   MonitoredUser,
 } from './aml.types.js';
+
 export {
   AmlTransactionDirectionSchema,
   AmlTransactionTypeSchema,
@@ -462,10 +463,69 @@ export {
   MonitoredUserSchema,
 } from './aml.types.js';
 
+// ---------------------------------------------------------------------------
+// 18. Age verification and Parent Connect
+// ---------------------------------------------------------------------------
+export type {
+  AgeVerificationMethod,
+  PlatformRestriction,
+  AgeVerificationCreateInput,
+  AgeVerificationLink,
+  AgeVerificationCreateResult,
+  ParentConnectStatus,
+  ParentConnectListParams,
+  ParentConnectRequest,
+  ParentConnectListResult,
+  AgeVerificationBoundaries,
+} from './ageVerification.types.js';
+export {
+  AgeVerificationMethodSchema,
+  PlatformRestrictionSchema,
+  AgeVerificationCreateInputSchema,
+  AgeVerificationLinkSchema,
+  AgeVerificationCreateResultSchema,
+  ParentConnectStatusSchema,
+  ParentConnectListParamsSchema,
+  ParentConnectRequestSchema,
+  ParentConnectListResultSchema,
+  AgeVerificationBoundariesSchema,
+} from './ageVerification.types.js';
+
+// ---------------------------------------------------------------------------
+// 19. Re-verification lifecycle
+// ---------------------------------------------------------------------------
+export type {
+  ReVerificationCreateInput,
+  ReVerificationCreateResult,
+  LivenessChallengeStep,
+  LivenessChallengeScript,
+  ReVerificationLivenessStartResult,
+  ReVerificationLivenessUploadUrlInput,
+  ReVerificationLivenessUploadUrlResult,
+  ReVerificationDecision,
+  ReVerificationDecisionResult,
+  ReVerificationErrorCode,
+  ReVerificationLifecycleErrorCode,
+} from './reVerifications.types.js';
+export {
+  ReVerificationCreateInputSchema,
+  ReVerificationCreateResultSchema,
+  LivenessChallengeStepSchema,
+  LivenessChallengeScriptSchema,
+  ReVerificationLivenessStartResultSchema,
+  ReVerificationLivenessUploadUrlInputSchema,
+  ReVerificationLivenessUploadUrlResultSchema,
+  ReVerificationDecisionSchema,
+  ReVerificationDecisionResultSchema,
+  ReVerificationErrorCodeSchema,
+  ReVerificationLifecycleErrorCodeSchema,
+} from './reVerifications.types.js';
+
 // NOTE: Namespace classes are
 // NOT exported. Consumers access them exclusively through client.sessions,
 // client.document, client.face, client.identity, client.screening, and
 // client.asyncJobs, client.deepfake, client.auth, client.workflows,
 // client.workflowSessions, client.financial, client.creditTerms, and
-// client.creditChecks, client.profiles, client.igaming, and client.aml
+// client.creditChecks, client.profiles, client.igaming, client.aml,
+// client.ageVerification, and client.reVerifications
 // (per D-01, API-05).

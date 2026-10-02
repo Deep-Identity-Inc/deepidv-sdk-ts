@@ -799,6 +799,73 @@ const monitoredUser = await client.aml.addMonitoredUser('agt-1a2b3c4d', {
 
 Transaction ingestion normally provisions and enrols subjects automatically. Use `addMonitoredUser()` for a subject with no transactions yet or to attach a subject to another bot. Sandbox keys perform validation and return realistic results without persisting AML changes.
 
+## Age verification and Parent Connect
+
+Use `client.ageVerification` to create standalone age-verification sessions and read Parent Connect consent state.
+
+- `create(input)` supports `quiz`, `credit-card`, and `parent-connect` methods.
+- `listParentConnectRequests(params?)` lists this organization's consent requests.
+- `retrieveParentConnectRequest(parentConnectId)` retrieves one consent lifecycle.
+- `getBoundaries(childAttestationId)` reads the current parental boundaries behind an attestation.
+
+```typescript
+const session = await client.ageVerification.create({
+  email: 'child@example.com',
+  firstName: 'Ada',
+  lastName: 'Lovelace',
+  phone: '+15192223333',
+  method: 'parent-connect',
+  ageBand: '13-17',
+  platformRestrictions: [
+    { key: 'chat', label: 'Allow chat', type: 'toggle', required: true },
+    {
+      key: 'dailyMinutes',
+      label: 'Daily usage limit',
+      type: 'minutes',
+      min: 0,
+      max: 240,
+    },
+  ],
+  eulaUrl: 'https://example.com/eula',
+});
+```
+
+`ageBand`, `platformRestrictions`, and `eulaUrl` are valid only for `parent-connect`. Restriction keys must be unique, `select` restrictions require options, and numeric minimums cannot exceed maximums. Session creation is billable and is not automatically retried.
+
+When a Parent Connect list uses a `status` filter, the API applies it after reading the page. A page may therefore be short or empty while `nextToken` remains non-null. Continue paging until `nextToken` is null.
+
+After consent, use the child attestation ID from the webhook to call `getBoundaries()`. When `boundariesMatchAttestation` is false, a parent has edited the boundaries since the immutable attestation was minted; treat the API response as the current source of truth.
+
+Parent consent, decline, and boundary-edit actions are deliberately absent. They require the parent's invite token and cannot be performed with an API key.
+
+## Re-verification
+
+`client.reVerifications` exposes a resumable liveness lifecycle for an active workflow whose ID-verification step has re-verification enabled:
+
+```typescript
+const pending = await client.reVerifications.create({
+  workflowId: 'workflow_123',
+  deviceFingerprint: 'device_123',
+});
+
+const attempt = await client.reVerifications.startLiveness(pending.reVerificationId);
+const uploads = await client.reVerifications.createLivenessUploadUrl(pending.reVerificationId, {
+  frameCount: 4,
+  clipMimeType: 'video/mp4',
+});
+
+// The applicant device PUTs JPEG frames, timeline JSON, and the optional clip
+// directly to the corresponding presigned URLs. URLs expire after 15 minutes.
+
+const decision = await client.reVerifications.completeLiveness(pending.reVerificationId);
+```
+
+Every `startLiveness()` call creates a fresh challenge script and discards the previous attempt. Persist `reVerificationId` so the flow can resume across requests or process restarts. `createLivenessUploadUrl()` can safely re-mint URLs for the same object keys and retains normal transient retries; create, start, and complete disable automatic retries because they change lifecycle state or may trigger billing.
+
+The upload-target method only mints URLs. Keep the API key on the trusted backend, give the applicant device only the short-lived presigned targets it needs, and upload capture artifacts directly to those targets before calling `completeLiveness()`.
+
+Completion returns `verified`, `retry`, `failed`, or `retry_liveness`. Lifecycle failures such as `liveness_not_started` and `liveness_upload_incomplete` are available in `error.response.body`; use `ReVerificationLifecycleErrorCodeSchema` to narrow the returned code. The SDK continues to surface their HTTP status through its standard error classes.
+
 ## Async jobs
 
 Use `client.asyncJobs.get(jobId)` to resume a persisted job. `jobId` must be a UUID. The result is discriminated by lowercase `status`: `pending`, `processing`, `ready`, or `failed`.
