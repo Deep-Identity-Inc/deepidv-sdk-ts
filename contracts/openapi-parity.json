@@ -706,18 +706,24 @@
     {
       "method": "POST",
       "path": "/v1/aml/transactions",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "aml",
       "sdkMethod": "saveTransactions",
-      "workstream": 7
+      "inputSchema": "AmlSaveTransactionsInputSchema",
+      "resultSchema": "AmlSaveTransactionsResultSchema",
+      "tests": ["packages/server/src/__tests__/aml.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",
       "path": "/v1/aml/bots/{bot_id}/monitored-users",
-      "status": "implement",
+      "status": "supported",
       "sdkNamespace": "aml",
       "sdkMethod": "addMonitoredUser",
-      "workstream": 7
+      "inputSchema": "AddMonitoredUserInputSchema",
+      "resultSchema": "MonitoredUserSchema",
+      "tests": ["packages/server/src/__tests__/aml.test.ts"],
+      "documentation": ["docs/reference/API.md"]
     },
     {
       "method": "POST",

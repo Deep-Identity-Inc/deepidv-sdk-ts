@@ -58,6 +58,7 @@ const client = new DeepIDV({
 | `creditChecks`     | `CreditChecks`     | Hard and soft credit-check creation        |
 | `profiles`         | `Profiles`         | Organization branding profiles and logos   |
 | `igaming`          | `IGaming`          | iGaming checks and self-exclusion registry |
+| `aml`              | `Aml`              | AML transaction monitoring                 |
 
 ### `on(event, listener)`
 
@@ -739,6 +740,64 @@ const result = await client.igaming.selfExclusion.addApplicant({
 A successful HTTP response does not necessarily mean an exclusion was added. Check `excluded` after `addFace()`; `false` indicates no enrolled face was available and `reason` explains why. After `addApplicant()`, inspect `faceAttached` and `documentNumber` independently because `false` and `null` mean the corresponding face or identity exclusion was not attached.
 
 Removing a face exclusion only clears its exclusion flag. `purgeAntiCheatEnrollment()` deletes the underlying biometric enrolment. All analysis, self-exclusion, and purge mutations disable automatic retries so a lost response cannot change returned status flags on replay.
+
+## AML
+
+Use `client.aml` to ingest transaction records and enrol existing subjects into monitoring bots.
+
+### `saveTransactions(input)`
+
+Accepts either a transaction array or `{ botId?, transactions }`. Each request may contain 1–500 records and must remain below the API's 5 MB request limit.
+
+```typescript
+const result = await client.aml.saveTransactions({
+  botId: 'agt-1a2b3c4d',
+  transactions: [
+    {
+      clientTxnId: 'txn-000123',
+      subjectUserId: 'cust-8821',
+      timestamp: '2026-08-01T09:00:00Z',
+      direction: 'outbound',
+      amount: { value: 12500, currency: 'USD' },
+      type: 'wire',
+      metadata: { ledger_ref: 'GL-99812' },
+    },
+  ],
+});
+
+for (const record of result.results) {
+  if (record.status !== 'accepted') {
+    console.warn(record.clientTxnId, record.warnings ?? record.errors);
+  }
+}
+```
+
+A well-formed envelope returns HTTP 200 even when individual records are rejected. The SDK therefore validates only the envelope during `saveTransactions()` and leaves authoritative record validation to the API. Use `AmlTransactionInputSchema` directly when strict local validation is useful.
+
+`accepted` counts every stored record, including the informational `warned` subset. Always inspect `results`. Known request fields are converted to snake case, but keys inside `metadata` are preserved exactly.
+
+Stored transaction data is idempotent on the composite key `(organizationId, subjectUserId, clientTxnId)`. Reposting the same key replaces the complete stored transaction rather than patching it, so include every field that should remain present. The same `clientTxnId` for a different subject creates a separate record.
+
+Monthly quota is reserved per request attempt before transaction upserts. A replay after a lost response, timeout, or server error can therefore consume quota again even when the stored data is deduplicated. The SDK disables automatic retries for `saveTransactions()`; manually retry only after accounting for this quota behavior.
+
+Monthly quota failures throw `RateLimitError` immediately without SDK retry. Parse the structured body when quota details are needed:
+
+```typescript
+const quota = AmlQuotaExceededSchema.safeParse(error.response?.body);
+if (quota.success) console.log(quota.data.resetsAt);
+```
+
+### `addMonitoredUser(botId, input)`
+
+Enrols an existing subject into a monitoring bot. The operation is idempotent and retains normal retry behavior: an existing active enrolment is returned without resetting its cadence, while a previously removed enrolment is reactivated.
+
+```typescript
+const monitoredUser = await client.aml.addMonitoredUser('agt-1a2b3c4d', {
+  subjectUserId: 'cust-8821',
+});
+```
+
+Transaction ingestion normally provisions and enrols subjects automatically. Use `addMonitoredUser()` for a subject with no transactions yet or to attach a subject to another bot. Sandbox keys perform validation and return realistic results without persisting AML changes.
 
 ## Async jobs
 

@@ -18,6 +18,7 @@ classDiagram
         +creditChecks: CreditChecks
         +profiles: Profiles
         +igaming: IGaming
+        +aml: Aml
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -128,6 +129,11 @@ classDiagram
         +addApplicant(input) SelfExclusionApplicantResult
     }
 
+    class Aml {
+        +saveTransactions(input) AmlSaveTransactionsResult
+        +addMonitoredUser(botId, input) MonitoredUser
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
@@ -144,3 +150,4 @@ classDiagram
     DeepIDV *-- Profiles : profiles
     DeepIDV *-- IGaming : igaming
     IGaming *-- SelfExclusion : selfExclusion
+    DeepIDV *-- Aml : aml
