@@ -56,7 +56,7 @@ export const FaceDetectResultSchema = z
     /** Whether a face was detected in the image. */
     faceDetected: z.boolean(),
     /** Detection confidence score (0-1). */
-    confidence: z.number(),
+    confidence: z.number().min(0).max(1),
     /** Bounding box of the detected face. Present only when `faceDetected` is true. */
     boundingBox: BoundingBoxSchema.optional(),
     /** Facial landmark positions. Present only when `faceDetected` is true. */
@@ -124,18 +124,18 @@ export const FaceEstimateAgeResultSchema = z
     /** Whether a face was detected in the image. */
     faceDetected: z.boolean(),
     /** Estimated age of the face in years. Present only when `faceDetected` is true. */
-    estimatedAge: z.number().optional(),
+    estimatedAge: z.number().int().optional(),
     /** Age range containing the estimated age. Present only when `faceDetected` is true. */
     ageRange: z
       .object({
-        low: z.number(),
-        high: z.number(),
+        low: z.number().int(),
+        high: z.number().int(),
       })
       .optional(),
     /** Predicted gender. Present only when `faceDetected` is true. */
     gender: GenderSchema.optional(),
     /** Gender prediction confidence score (0-1). Present only when `faceDetected` is true. */
-    genderConfidence: z.number().optional(),
+    genderConfidence: z.number().min(0).max(1).optional(),
   })
   .strip();
 

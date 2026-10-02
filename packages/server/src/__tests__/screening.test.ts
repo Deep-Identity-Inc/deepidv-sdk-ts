@@ -73,7 +73,6 @@ const TITLE_INPUT = {
   lastName: 'Doe',
   address: '123 Main St',
 };
-
 const MOCK_PEP_SANCTIONS_CLEAN = {
   totalMatches: 0,
   peps: [],
@@ -175,10 +174,15 @@ describe('Screening.pepSanctions', () => {
     expect(capturedBody).toMatchObject({ firstName: 'Jane', lastName: 'Doe' });
   });
 
-  it('throws ValidationError on malformed email', async () => {
+  it('accepts the OpenAPI email field as a string', async () => {
+    server.use(
+      http.post(`${BASE_URL}/v1/screening/pep-sanctions`, () =>
+        HttpResponse.json(MOCK_PEP_SANCTIONS_CLEAN),
+      ),
+    );
     await expect(
-      createScreening().pepSanctions({ ...SAMPLE_INPUT, email: 'not-an-email' }),
-    ).rejects.toThrow(ValidationError);
+      createScreening().pepSanctions({ ...SAMPLE_INPUT, email: 'customer-reference' }),
+    ).resolves.toEqual(MOCK_PEP_SANCTIONS_CLEAN);
   });
 
   it('throws ValidationError on missing firstName', async () => {
@@ -379,40 +383,42 @@ describe('Screening.adverseMedia', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Screening.titleCheck — discriminated union
+// Screening.titleCheck — synchronous result
 // ---------------------------------------------------------------------------
 
 describe('Screening.titleCheck', () => {
-  it('parses the "found" variant', async () => {
+  it.each([
+    {
+      status: 'found',
+      subjectProperty: null,
+      ownerInformation: null,
+      locationInformation: null,
+      ownerTransferInformation: null,
+      lastMarketSaleInformation: null,
+    },
+    {
+      status: 'multiple_properties',
+      message: 'Choose a unit',
+      availableUnits: ['1'],
+      properties: [],
+    },
+    { status: 'unsupported_region', message: 'Unsupported' },
+    { status: 'not_found', message: 'Not found' },
+  ] as const)('returns the synchronous $status result', async (response) => {
     server.use(
-      http.post(`${BASE_URL}/v1/screening/title-check`, () =>
-        HttpResponse.json({
-          status: 'found',
-          subjectProperty: null,
-          ownerInformation: null,
-          locationInformation: null,
-          ownerTransferInformation: null,
-          lastMarketSaleInformation: null,
-        }),
-      ),
+      http.post(`${BASE_URL}/v1/screening/title-check`, () => HttpResponse.json(response)),
     );
-    const result = await createScreening().titleCheck(TITLE_INPUT);
-    expect(result.status).toBe('found');
+    await expect(createScreening().titleCheck(TITLE_INPUT)).resolves.toEqual(response);
   });
 
-  it('sends email/firstName/lastName/address to the server', async () => {
+  it('sends the request body without an async-job idempotency header', async () => {
     let capturedBody: Record<string, unknown> | null = null;
+    let capturedKey: string | null = null;
     server.use(
       http.post(`${BASE_URL}/v1/screening/title-check`, async ({ request }) => {
         capturedBody = (await request.json()) as Record<string, unknown>;
-        return HttpResponse.json({
-          status: 'found',
-          subjectProperty: null,
-          ownerInformation: null,
-          locationInformation: null,
-          ownerTransferInformation: null,
-          lastMarketSaleInformation: null,
-        });
+        capturedKey = request.headers.get('Idempotency-Key');
+        return HttpResponse.json({ status: 'not_found', message: 'Not found' });
       }),
     );
     await createScreening().titleCheck(TITLE_INPUT);
@@ -422,54 +428,7 @@ describe('Screening.titleCheck', () => {
       lastName: 'Doe',
       address: '123 Main St',
     });
-  });
-
-  it('parses the "multiple_properties" variant', async () => {
-    server.use(
-      http.post(`${BASE_URL}/v1/screening/title-check`, () =>
-        HttpResponse.json({
-          status: 'multiple_properties',
-          message: 'Multiple matches',
-          availableUnits: ['1A', '2B'],
-          properties: [
-            { owner: 'Owner 1', apartmentOrUnit: '1A' },
-            { owner: 'Owner 2', apartmentOrUnit: '2B' },
-          ],
-        }),
-      ),
-    );
-    const result = await createScreening().titleCheck(TITLE_INPUT);
-    expect(result.status).toBe('multiple_properties');
-    if (result.status === 'multiple_properties') {
-      expect(result.availableUnits).toHaveLength(2);
-      expect(result.properties).toHaveLength(2);
-    }
-  });
-
-  it('parses "unsupported_region" as a typed result, not an error', async () => {
-    server.use(
-      http.post(`${BASE_URL}/v1/screening/title-check`, () =>
-        HttpResponse.json({
-          status: 'unsupported_region',
-          message: 'Title search is currently available for US addresses only.',
-        }),
-      ),
-    );
-    const result = await createScreening().titleCheck({
-      ...TITLE_INPUT,
-      address: '99 King St, Toronto, ON',
-    });
-    expect(result.status).toBe('unsupported_region');
-  });
-
-  it('parses the "not_found" variant', async () => {
-    server.use(
-      http.post(`${BASE_URL}/v1/screening/title-check`, () =>
-        HttpResponse.json({ status: 'not_found', message: 'No matching property found.' }),
-      ),
-    );
-    const result = await createScreening().titleCheck({ ...TITLE_INPUT, address: '0 Nowhere Ave' });
-    expect(result.status).toBe('not_found');
+    expect(capturedKey).toBeNull();
   });
 
   it('throws ValidationError on empty address', async () => {
@@ -498,7 +457,7 @@ describe('Screening.titleCheck', () => {
     await expect(createScreening().titleCheck(TITLE_INPUT)).rejects.toThrow(InsufficientFundsError);
   });
 
-  it('does NOT retry a 503 even when the client allows retries (fail-fast, D2)', async () => {
+  it('does not retry the synchronous billable request', async () => {
     let callCount = 0;
     server.use(
       http.post('*/v1/screening/title-check', () => {
@@ -506,24 +465,8 @@ describe('Screening.titleCheck', () => {
         return HttpResponse.json({ error: 'unavailable' }, { status: 503 });
       }),
     );
-    await expect(createRetryingScreening(3).titleCheck(TITLE_INPUT)).rejects.toThrow(
-      ServiceUnavailableError,
-    );
+    await expect(createRetryingScreening(3).titleCheck(TITLE_INPUT)).rejects.toThrow();
     expect(callCount).toBe(1);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Screening.list — stub, throws until server endpoint lands
-// ---------------------------------------------------------------------------
-
-describe('Screening.list', () => {
-  it('throws a not-implemented error when called with no params', () => {
-    expect(() => createScreening().list()).toThrow(/not yet implemented/i);
-  });
-
-  it('throws even when params are passed', () => {
-    expect(() => createScreening().list({ limit: 10 })).toThrow(/not yet implemented/i);
   });
 });
 

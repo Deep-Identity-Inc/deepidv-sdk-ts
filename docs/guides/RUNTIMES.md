@@ -4,7 +4,7 @@ The SDK uses only native web APIs (`fetch`, `AbortController`, `ReadableStream`,
 
 ## Runtime Support Matrix
 
-| Feature                 | Node.js 18+ | Deno | Bun | Cloudflare Workers |
+| Feature                 | Node.js 20+ | Deno | Bun | Cloudflare Workers |
 | ----------------------- | ----------- | ---- | --- | ------------------ |
 | All API methods         | Yes         | Yes  | Yes | Yes                |
 | File path input         | Yes         | Yes  | Yes | **No**             |
@@ -15,7 +15,7 @@ The SDK uses only native web APIs (`fetch`, `AbortController`, `ReadableStream`,
 | ESM import              | Yes         | Yes  | Yes | Yes                |
 | CJS require             | Yes         | N/A  | Yes | N/A                |
 
-## Node.js 18+
+## Node.js 20+
 
 Full support. All features work, including file path input.
 
@@ -34,7 +34,7 @@ const result = await client.document.scan({
 });
 ```
 
-Node.js 18 is the minimum version because it's the first LTS release with stable native `fetch`.
+Node.js 20 is the minimum supported version, matching the package engine and CI matrix.
 
 ## Deno
 

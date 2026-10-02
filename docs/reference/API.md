@@ -93,15 +93,17 @@ Create a hosted verification session.
 | `input.redirectUrl`     | `string`  | No       | —       | URL to redirect user after verification |
 | `input.sendEmailInvite` | `boolean` | No       | —       | Send email invitation                   |
 | `input.sendPhoneInvite` | `boolean` | No       | —       | Send SMS invitation                     |
+| `input.expiresInHours`  | `number`  | No       | —       | Expiry window from 1 to 8760 hours      |
 
 **Returns:** `SessionCreateResult`
 
-| Field        | Type                              | Description                    |
-| ------------ | --------------------------------- | ------------------------------ |
-| `id`         | `string`                          | Session identifier             |
-| `sessionUrl` | `string`                          | Verification URL for the user  |
-| `externalId` | `string?`                         | Your external ID (if provided) |
-| `links`      | `{ url: string, type: string }[]` | Associated links               |
+| Field        | Type                                                    | Description                    |
+| ------------ | ------------------------------------------------------- | ------------------------------ |
+| `id`         | `string`                                                | Session identifier             |
+| `sessionUrl` | `string`                                                | Verification URL for the user  |
+| `externalId` | `string?`                                               | Your external ID (if provided) |
+| `expiresAt`  | `string?`                                               | Server-calculated expiry       |
+| `links`      | `{ rel: string, href: string, description?: string }[]` | Associated links               |
 
 **Throws:** `ValidationError`, `AuthenticationError`, `RateLimitError`, `DeepIDVError`
 
@@ -132,12 +134,12 @@ Retrieve full session details including analysis results.
 
 **Returns:** `SessionRetrieveResult`
 
-| Field           | Type                      | Description                                    |
-| --------------- | ------------------------- | ---------------------------------------------- |
-| `sessionRecord` | `Session`                 | Full session object with status, analysis data |
-| `user`          | `object?`                 | Applicant user details                         |
-| `senderUser`    | `object?`                 | User who created the session                   |
-| `resourceLinks` | `Record<string, string>?` | Presigned URLs for uploaded resources          |
+| Field           | Type                     | Description                                    |
+| --------------- | ------------------------ | ---------------------------------------------- |
+| `sessionRecord` | `Session`                | Full session object with status, analysis data |
+| `user`          | `object?`                | Applicant user details                         |
+| `senderUser`    | `object?`                | User who created the session                   |
+| `resourceLinks` | `Record<string, string>` | Presigned URLs for uploaded resources          |
 
 **Throws:** `ValidationError`, `AuthenticationError`, `DeepIDVError`
 
@@ -151,32 +153,33 @@ console.log(result.sessionRecord.status);
 ### `list(params?)`
 
 ```typescript
-async list(params?: SessionListParams): Promise<PaginatedResponse<Session>>
+async list(params?: SessionListParams): Promise<SessionListResult>
 ```
 
 List sessions with optional filtering and pagination.
 
-| Parameter       | Type            | Required | Default | Description                                                      |
-| --------------- | --------------- | -------- | ------- | ---------------------------------------------------------------- |
-| `params.limit`  | `number`        | No       | —       | Max results per page                                             |
-| `params.offset` | `number`        | No       | —       | Starting offset                                                  |
-| `params.status` | `SessionStatus` | No       | —       | Filter: `PENDING`, `SUBMITTED`, `VERIFIED`, `REJECTED`, `VOIDED` |
+| Parameter               | Type              | Required | Description                          |
+| ----------------------- | ----------------- | -------- | ------------------------------------ |
+| `params.limit`          | `number`          | No       | Page size from 1 to 500              |
+| `params.nextToken`      | `string`          | No       | Cursor returned by the previous page |
+| `params.startDate`      | `string`          | No       | ISO 8601 creation-time lower bound   |
+| `params.endDate`        | `string`          | No       | ISO 8601 creation-time upper bound   |
+| `params.byOrganization` | `boolean \| null` | No       | Include organization-wide sessions   |
+| `params.externalId`     | `string`          | No       | Filter by caller reference           |
+| `params.workflowId`     | `string`          | No       | Filter by workflow                   |
 
-**Returns:** `PaginatedResponse<Session>`
+**Returns:** `SessionListResult`
 
-| Field     | Type        | Description             |
-| --------- | ----------- | ----------------------- |
-| `data`    | `Session[]` | Array of sessions       |
-| `total`   | `number?`   | Total matching sessions |
-| `hasMore` | `boolean?`  | More pages available    |
-| `limit`   | `number`    | Page size used          |
-| `offset`  | `number`    | Starting offset         |
+| Field       | Type             | Description                  |
+| ----------- | ---------------- | ---------------------------- |
+| `sessions`  | `Session[]`      | Sessions in the current page |
+| `nextToken` | `string \| null` | Cursor for the next page     |
 
 **Example:**
 
 ```typescript
-const page = await client.sessions.list({ status: 'SUBMITTED', limit: 10 });
-for (const session of page.data) {
+const page = await client.sessions.list({ workflowId: 'workflow-123', limit: 10 });
+for (const session of page.sessions) {
   console.log(`${session.id}: ${session.status}`);
 }
 ```
@@ -186,18 +189,18 @@ for (const session of page.data) {
 ```typescript
 async updateStatus(
   sessionId: string,
-  status: 'VERIFIED' | 'REJECTED' | 'VOIDED',
-): Promise<SessionRetrieveResult>
+  status: 'VERIFIED' | 'REJECTED',
+): Promise<SessionStatusUpdateResult>
 ```
 
-Update session status. Only `VERIFIED`, `REJECTED`, and `VOIDED` are valid targets.
+Update session status. Only `VERIFIED` and `REJECTED` are valid targets.
 
-| Parameter   | Type                                   | Required | Description |
-| ----------- | -------------------------------------- | -------- | ----------- |
-| `sessionId` | `string`                               | Yes      | Session ID  |
-| `status`    | `'VERIFIED' \| 'REJECTED' \| 'VOIDED'` | Yes      | New status  |
+| Parameter   | Type                       | Required | Description |
+| ----------- | -------------------------- | -------- | ----------- |
+| `sessionId` | `string`                   | Yes      | Session ID  |
+| `status`    | `'VERIFIED' \| 'REJECTED'` | Yes      | New status  |
 
-**Returns:** `SessionRetrieveResult` — updated session details.
+**Returns:** `SessionStatusUpdateResult` — the updated session record.
 
 **Throws:** `ValidationError` (invalid status), `AuthenticationError`, `DeepIDVError`
 
@@ -424,3 +427,28 @@ if (result.verified) {
   console.log(`Document confidence: ${result.document.confidence}`);
 }
 ```
+
+---
+
+## Screening
+
+Access via `client.screening`.
+
+- `pepSanctions(input)` returns a `PepSanctionsResult` synchronously.
+- `adverseMedia(input)` returns an `AdverseMediaHandle`.
+- `titleCheck(input)` returns a `TitleCheckResult` synchronously.
+
+The adverse-media handle exposes `jobId`, `refresh()` for one poll, and `wait(options?)` for polling until a typed result is ready. For adverse-media requests, the SDK sends an `Idempotency-Key` header from `input.idempotencyKey` or generates one automatically.
+
+```typescript
+const titleResult = await client.screening.titleCheck({
+  email: 'jane@example.com',
+  firstName: 'Jane',
+  lastName: 'Doe',
+  address: '123 Main St, Austin, TX',
+});
+```
+
+## Async jobs
+
+Use `client.asyncJobs.get(jobId)` to resume a persisted job. `jobId` must be a UUID. The result is discriminated by lowercase `status`: `pending`, `processing`, `ready`, or `failed`.

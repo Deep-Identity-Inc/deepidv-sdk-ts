@@ -3,10 +3,10 @@
   "source": {
     "repository": "Deep-Identity-Inc/deepidv-open-api",
     "ref": "origin/dev",
-    "commit": "b12b1352650adc2370472d50efc56ef05758a230",
+    "commit": "e9281c1a226dfd0da5aff9f21e1849f62d06c71b",
     "specPath": "infrastructure/ec2/open-api/openapi.yaml"
   },
-  "baselineDate": "2026-09-29",
+  "baselineDate": "2026-10-02",
   "operations": [
     {
       "method": "POST",

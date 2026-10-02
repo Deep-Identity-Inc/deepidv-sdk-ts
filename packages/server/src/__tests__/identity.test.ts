@@ -20,6 +20,7 @@ import {
   DeepIDVError,
 } from '@deepidv/core';
 import { Identity } from '../identity.js';
+import { IdentityVerificationResultSchema } from '../identity.types.js';
 
 const BASE_URL = 'https://api.deepidv.com';
 
@@ -264,5 +265,16 @@ describe('Identity', () => {
         identity.verify({ documentImage: JPEG_BYTES, faceImage: JPEG_BYTES_2 }),
       ).rejects.toThrow(DeepIDVError);
     });
+  });
+});
+
+describe('IdentityVerificationResultSchema', () => {
+  it('enforces documented 0-100 confidence bounds', () => {
+    expect(
+      IdentityVerificationResultSchema.safeParse({
+        ...MOCK_IDENTITY_RESULT,
+        overallConfidence: 101,
+      }).success,
+    ).toBe(false);
   });
 });

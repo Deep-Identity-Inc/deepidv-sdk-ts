@@ -42,6 +42,7 @@ export {
   InsufficientFundsError,
   ServiceUnavailableError,
   AdverseMediaFailedError,
+  TitleCheckFailedError,
   PollTimeoutError,
 } from '@deepidv/core';
 export type { RawResponse } from '@deepidv/core';
@@ -57,16 +58,29 @@ export type { SDKEventMap } from '@deepidv/core';
 export type {
   SessionCreateInput,
   SessionCreateResult,
+  SessionLocation,
+  SessionAutoDecisionState,
+  SessionAutoDecision,
+  SessionDecisionSource,
   Session,
   SessionRetrieveResult,
   SessionListParams,
+  SessionListResult,
   SessionStatusUpdate,
-  PaginatedResponse,
+  SessionStatusUpdateResult,
 } from './sessions.types.js';
 export {
   SessionCreateInputSchema,
+  SessionCreateResultSchema,
+  SessionLocationSchema,
+  SessionAutoDecisionStateSchema,
+  SessionAutoDecisionSchema,
+  SessionDecisionSourceSchema,
   SessionListParamsSchema,
+  SessionListResultSchema,
+  SessionRetrieveResultSchema,
   SessionStatusUpdateSchema,
+  SessionStatusUpdateResultSchema,
   SessionStatusSchema,
 } from './sessions.types.js';
 
@@ -124,7 +138,6 @@ export {
 // 9. Screening types and schemas
 // ---------------------------------------------------------------------------
 export type {
-  ScreeningService,
   PepSanctionsInput,
   PepSanctionsResult,
   AdverseMediaInput,
@@ -133,12 +146,8 @@ export type {
   AdverseMediaJobSnapshot,
   TitleCheckInput,
   TitleCheckResult,
-  ScreeningListInput,
-  ScreeningSession,
-  ScreeningListResult,
 } from './screening.types.js';
 export {
-  ScreeningServiceSchema,
   PepSanctionsInputSchema,
   PepSanctionsResultSchema,
   AdverseMediaInputSchema,
@@ -147,9 +156,6 @@ export {
   AdverseMediaJobSnapshotSchema,
   TitleCheckInputSchema,
   TitleCheckResultSchema,
-  ScreeningListInputSchema,
-  ScreeningSessionSchema,
-  ScreeningListResultSchema,
 } from './screening.types.js';
 export type { AdverseMediaHandle, AdverseMediaWaitOptions } from './asyncJobHandle.js';
 

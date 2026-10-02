@@ -133,9 +133,9 @@ export class DeepIDV {
   readonly identity: Identity;
 
   /**
-   * Screening namespace. Provides silent screening operations: PEP & Sanctions, adverse media, title check, and session history.
+   * Screening namespace. Provides PEP & Sanctions, adverse-media, and title-check operations.
    *
-   * @remarks Access via `client.screening.pepSanctions(...)`, `client.screening.adverseMedia(...)`, `client.screening.titleCheck(...)`, `client.screening.list(...)`.
+   * @remarks Access via `client.screening.pepSanctions(...)`, `client.screening.adverseMedia(...)`, or `client.screening.titleCheck(...)`.
    */
   readonly screening: Screening;
 

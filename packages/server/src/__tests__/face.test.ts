@@ -20,6 +20,7 @@ import {
   DeepIDVError,
 } from '@deepidv/core';
 import { Face } from '../face.js';
+import { FaceDetectResultSchema, FaceEstimateAgeResultSchema } from '../face.types.js';
 
 const BASE_URL = 'https://api.deepidv.com';
 
@@ -154,6 +155,20 @@ describe('Face.detect', () => {
     );
     const face = createFace();
     await expect(face.detect({ image: JPEG_BYTES })).rejects.toThrow(AuthenticationError);
+  });
+});
+
+describe('face response schemas', () => {
+  it('enforces documented confidence and integer constraints', () => {
+    expect(FaceDetectResultSchema.safeParse({ faceDetected: true, confidence: 1.01 }).success).toBe(
+      false,
+    );
+    expect(
+      FaceEstimateAgeResultSchema.safeParse({ faceDetected: true, estimatedAge: 20.5 }).success,
+    ).toBe(false);
+    expect(
+      FaceEstimateAgeResultSchema.safeParse({ faceDetected: true, genderConfidence: 1.01 }).success,
+    ).toBe(false);
   });
 });
 

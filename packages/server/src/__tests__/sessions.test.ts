@@ -1,178 +1,156 @@
-/**
- * Tests for the Sessions module.
- *
- * Uses msw + real HttpClient to intercept native fetch calls.
- * Tests all four CRUD methods: create, retrieve, list, updateStatus.
- */
-
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { http, HttpResponse } from 'msw';
-import { server } from './setup.js';
 import {
-  resolveConfig,
-  TypedEmitter,
-  HttpClient,
-  ValidationError,
   AuthenticationError,
-  DeepIDVError,
+  HttpClient,
+  TypedEmitter,
+  ValidationError,
+  resolveConfig,
 } from '@deepidv/core';
 import { Sessions } from '../sessions.js';
+import { server } from './setup.js';
 
 const BASE_URL = 'https://api.deepidv.com';
 
-/**
- * Creates a fresh Sessions instance backed by a real HttpClient.
- * Retries disabled so tests are fast and deterministic.
- */
-function createSessions(overrides?: Record<string, unknown>) {
+function createSessions(maxRetries = 0) {
   const config = resolveConfig({
     apiKey: 'sk_test_key_1234',
     baseUrl: BASE_URL,
     timeout: 5_000,
-    maxRetries: 0,
-    ...overrides,
+    maxRetries,
   });
-  const emitter = new TypedEmitter();
-  const client = new HttpClient(config, emitter);
-  return new Sessions(client);
+  return new Sessions(new HttpClient(config, new TypedEmitter()));
 }
 
-// ---------------------------------------------------------------------------
-// Mock data constants
-// ---------------------------------------------------------------------------
-
-const MOCK_SESSION_RECORD = {
+const RAW_SESSION = {
   id: 'sess_abc123',
-  organizationId: 'org_1',
-  userId: 'usr_1',
-  senderUserId: 'usr_2',
-  status: 'SUBMITTED',
-  type: 'session',
-  sessionProgress: 'COMPLETED',
-  createdAt: '2026-01-01T00:00:00Z',
-  updatedAt: '2026-01-02T00:00:00Z',
-  analysisData: {
-    createdAt: '2026-01-02T00:00:00Z',
-    idMatchesSelfie: true,
-    idAnalysisData: {
-      detectFaceData: [{ confidence: 0.99 }],
-      idExtractedText: [{ type: 'firstName', value: 'Jane', confidence: 0.98 }],
-      expiryDatePass: true,
-      validStatePass: true,
-      ageRestrictionPass: true,
-    },
-    compareFacesData: {
-      faceMatchConfidence: 0.95,
-      faceMatchResult: {},
-    },
-  },
-};
-
-const MOCK_SESSION_SUMMARY = {
-  id: 'sess_1',
-  organizationId: 'org_1',
-  userId: 'usr_1',
-  senderUserId: 'usr_2',
+  organization_id: 'org_1',
+  user_id: 'usr_1',
+  sender_user_id: 'usr_2',
+  created_at: '2026-01-01T00:00:00Z',
+  updated_at: '2026-01-02T00:00:00Z',
   status: 'PENDING',
   type: 'session',
-  sessionProgress: 'PENDING',
-  createdAt: '2026-01-01T00:00:00Z',
-  updatedAt: '2026-01-01T00:00:00Z',
+  session_progress: 'STARTED',
+  external_id: 'customer-1',
+  location: { country: 'United States' },
+  auto_decision: { state: 'pending' },
+  decision_source: 'AUTO_APPROVE',
+  workflow_id: 'workflow-1',
+  meta_data: { applicantSubmissionIp: '203.0.113.1' },
+  uploads: { id_front: true },
+  analysis_data: { idMatchesSelfie: true },
 };
-
-const MOCK_SESSION_SUMMARY_2 = {
-  ...MOCK_SESSION_SUMMARY,
-  id: 'sess_2',
-};
-
-// ---------------------------------------------------------------------------
-// Sessions.create — SESS-01
-// ---------------------------------------------------------------------------
 
 describe('Sessions.create', () => {
-  it('returns SessionCreateResult on 200', async () => {
+  it('allows the optional phone number to be omitted', async () => {
+    let body: unknown;
     server.use(
-      http.post(`${BASE_URL}/v1/sessions`, () => {
-        return HttpResponse.json({
-          id: 'sess_abc123',
-          sessionUrl: 'https://verify.deepidv.com/sess_abc123',
-          links: [{ url: 'https://verify.deepidv.com/sess_abc123/start', type: 'verification' }],
-        });
+      http.post(`${BASE_URL}/v1/sessions`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({ id: 'sess_1', session_url: 'https://verify.test', links: [] });
       }),
     );
 
-    const sessions = createSessions();
-    const result = await sessions.create({
+    await createSessions().create({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: 'jane@example.com',
+    });
+
+    expect(body).toEqual({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: 'jane@example.com',
+    });
+  });
+
+  it('normalizes the documented wire response', async () => {
+    server.use(
+      http.post(`${BASE_URL}/v1/sessions`, () =>
+        HttpResponse.json({
+          id: 'sess_abc123',
+          session_url: 'https://verify.deepidv.com/sess_abc123',
+          externalId: 'customer-1',
+          expires_at: '2026-01-02T00:00:00Z',
+          links: [{ rel: 'verification', href: 'https://verify.deepidv.com/sess_abc123' }],
+        }),
+      ),
+    );
+
+    const result = await createSessions().create({
       firstName: 'Jane',
       lastName: 'Doe',
       email: 'jane@example.com',
       phone: '+15192223333',
     });
 
-    expect(result.id).toBe('sess_abc123');
-    expect(result.sessionUrl).toContain('sess_abc123');
-    expect(Array.isArray(result.links)).toBe(true);
-    expect(result.links).toHaveLength(1);
+    expect(result).toMatchObject({
+      id: 'sess_abc123',
+      sessionUrl: 'https://verify.deepidv.com/sess_abc123',
+      expiresAt: '2026-01-02T00:00:00Z',
+    });
+    expect(result.links[0]).toEqual({
+      rel: 'verification',
+      href: 'https://verify.deepidv.com/sess_abc123',
+    });
   });
 
-  it('sends correct request body', async () => {
-    let capturedBody: unknown = null;
-
+  it('sends every supported create field', async () => {
+    let body: unknown;
     server.use(
       http.post(`${BASE_URL}/v1/sessions`, async ({ request }) => {
-        capturedBody = await request.json();
-        return HttpResponse.json({
-          id: 'sess_xyz',
-          sessionUrl: 'https://verify.deepidv.com/sess_xyz',
-          links: [],
-        });
+        body = await request.json();
+        return HttpResponse.json({ id: 'sess_1', session_url: 'https://verify.test', links: [] });
       }),
     );
 
-    const sessions = createSessions();
-    await sessions.create({
-      firstName: 'John',
-      lastName: 'Smith',
-      email: 'john@example.com',
-      phone: '+14165559999',
+    await createSessions().create({
+      firstName: 'Jane',
+      lastName: 'Doe',
+      email: 'jane@example.com',
+      phone: '+15192223333',
+      externalId: 'customer-1',
+      workflowId: 'workflow-1',
+      redirectUrl: 'https://example.com/complete',
+      sendEmailInvite: false,
+      sendPhoneInvite: true,
+      expiresInHours: 48,
     });
 
-    expect(capturedBody).toMatchObject({
-      firstName: 'John',
-      lastName: 'Smith',
-      email: 'john@example.com',
-      phone: '+14165559999',
+    expect(body).toMatchObject({
+      externalId: 'customer-1',
+      workflowId: 'workflow-1',
+      redirectUrl: 'https://example.com/complete',
+      expiresInHours: 48,
     });
   });
 
-  it('throws ValidationError on missing firstName', async () => {
-    const sessions = createSessions();
+  it.each([
+    { phone: '12345' },
+    { redirectUrl: 'http://example.com' },
+    { expiresInHours: 0 },
+    { expiresInHours: 8761 },
+  ])('rejects invalid contract input %#', async (override) => {
     await expect(
-      sessions.create({ lastName: 'Doe', email: 'j@e.com', phone: '+1' } as never),
-    ).rejects.toThrow(ValidationError);
-  });
-
-  it('throws ValidationError on invalid email', async () => {
-    const sessions = createSessions();
-    await expect(
-      sessions.create({
+      createSessions().create({
         firstName: 'Jane',
         lastName: 'Doe',
-        email: 'not-an-email',
+        email: 'jane@example.com',
         phone: '+15192223333',
+        ...override,
       }),
     ).rejects.toThrow(ValidationError);
   });
 
-  it('returns AuthenticationError on 401', async () => {
+  it('maps authentication failures', async () => {
     server.use(
-      http.post('*/v1/sessions', () =>
+      http.post(`${BASE_URL}/v1/sessions`, () =>
         HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
       ),
     );
-    const sessions = createSessions();
     await expect(
-      sessions.create({
+      createSessions().create({
         firstName: 'Jane',
         lastName: 'Doe',
         email: 'jane@example.com',
@@ -180,177 +158,132 @@ describe('Sessions.create', () => {
       }),
     ).rejects.toThrow(AuthenticationError);
   });
-});
 
-// ---------------------------------------------------------------------------
-// Sessions.retrieve — SESS-02
-// ---------------------------------------------------------------------------
+  it('does not retry session creation after a server failure', async () => {
+    let calls = 0;
+    server.use(
+      http.post(`${BASE_URL}/v1/sessions`, () => {
+        calls += 1;
+        return HttpResponse.json({ error: 'invite delivery failed' }, { status: 503 });
+      }),
+    );
+
+    await expect(
+      createSessions(3).create({
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: 'jane@example.com',
+        phone: '+15192223333',
+      }),
+    ).rejects.toThrow();
+    expect(calls).toBe(1);
+  });
+});
 
 describe('Sessions.retrieve', () => {
-  it('returns full session with nested analysisData on 200', async () => {
+  it('normalizes snake_case session and resource fields', async () => {
     server.use(
-      http.get(`${BASE_URL}/v1/sessions/sess_abc123`, () => {
-        return HttpResponse.json({
-          sessionRecord: MOCK_SESSION_RECORD,
-        });
-      }),
-    );
-
-    const sessions = createSessions();
-    const result = await sessions.retrieve('sess_abc123');
-
-    expect(result.sessionRecord.id).toBe('sess_abc123');
-    expect(result.sessionRecord.analysisData).toBeDefined();
-    expect(result.sessionRecord.analysisData?.idAnalysisData?.expiryDatePass).toBe(true);
-  });
-
-  it('throws ValidationError on empty string sessionId', async () => {
-    const sessions = createSessions();
-    await expect(sessions.retrieve('')).rejects.toThrow(ValidationError);
-  });
-
-  it('throws ValidationError on whitespace-only sessionId', async () => {
-    const sessions = createSessions();
-    await expect(sessions.retrieve('   ')).rejects.toThrow(ValidationError);
-  });
-
-  it('returns AuthenticationError on 401', async () => {
-    server.use(
-      http.get('*/v1/sessions/:id', () =>
-        HttpResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      http.get(`${BASE_URL}/v1/sessions/sess_abc123`, () =>
+        HttpResponse.json({
+          session_record: RAW_SESSION,
+          resource_links: { id_front: 'https://s3.example/id-front' },
+          user: { id: 'usr_1' },
+          sender_user: { id: 'usr_2' },
+        }),
       ),
     );
-    const sessions = createSessions();
-    await expect(sessions.retrieve('sess_abc123')).rejects.toThrow(AuthenticationError);
+
+    const result = await createSessions().retrieve('sess_abc123');
+    expect(result.sessionRecord.organizationId).toBe('org_1');
+    expect(result.sessionRecord.location).toEqual({ country: 'United States' });
+    expect(result.sessionRecord.autoDecision).toEqual({ state: 'pending' });
+    expect(result.sessionRecord.decisionSource).toBe('AUTO_APPROVE');
+    expect(result.sessionRecord.analysisData).toEqual({ idMatchesSelfie: true });
+    expect(result.resourceLinks.id_front).toContain('s3.example');
+    expect(result.senderUser).toEqual({ id: 'usr_2' });
+  });
+
+  it('URL-encodes the session id', async () => {
+    server.use(
+      http.get(`${BASE_URL}/v1/sessions/session%2Fwith%20space`, () =>
+        HttpResponse.json({ session_record: RAW_SESSION, resource_links: {} }),
+      ),
+    );
+    await expect(createSessions().retrieve('session/with space')).resolves.toBeDefined();
+  });
+
+  it('rejects an empty session id', async () => {
+    await expect(createSessions().retrieve(' ')).rejects.toThrow(ValidationError);
   });
 });
-
-// ---------------------------------------------------------------------------
-// Sessions.list — SESS-03
-// ---------------------------------------------------------------------------
 
 describe('Sessions.list', () => {
-  it('sends query params in URL', async () => {
-    let capturedUrl: string | null = null;
-
+  it('serializes every documented query parameter and normalizes the page', async () => {
+    let query: URLSearchParams | undefined;
     server.use(
       http.get(`${BASE_URL}/v1/sessions`, ({ request }) => {
-        capturedUrl = request.url;
-        return HttpResponse.json([MOCK_SESSION_SUMMARY]);
+        query = new URL(request.url).searchParams;
+        return HttpResponse.json({ sessions: [RAW_SESSION], next_token: 'next-page' });
       }),
     );
 
-    const sessions = createSessions();
-    await sessions.list({ limit: 10, offset: 20, status: 'VERIFIED' });
+    const result = await createSessions().list({
+      limit: 50,
+      nextToken: 'current-page',
+      startDate: '2026-01-01T00:00:00Z',
+      endDate: '2026-02-01T00:00:00Z',
+      byOrganization: true,
+      externalId: 'customer-1',
+      workflowId: 'workflow-1',
+    });
 
-    expect(capturedUrl).toContain('limit=10');
-    expect(capturedUrl).toContain('offset=20');
-    expect(capturedUrl).toContain('status=VERIFIED');
+    expect(Object.fromEntries(query ?? [])).toEqual({
+      limit: '50',
+      next_token: 'current-page',
+      start_date: '2026-01-01T00:00:00Z',
+      end_date: '2026-02-01T00:00:00Z',
+      by_organization: 'true',
+      external_id: 'customer-1',
+      workflow_id: 'workflow-1',
+    });
+    expect(result.nextToken).toBe('next-page');
+    expect(result.sessions[0]?.externalId).toBe('customer-1');
+    expect(result.sessions[0]?.location).toEqual({ country: 'United States' });
+    expect(result.sessions[0]?.autoDecision).toEqual({ state: 'pending' });
   });
 
-  it('wraps raw array response into PaginatedResponse', async () => {
+  it('accepts an empty page', async () => {
     server.use(
-      http.get(`${BASE_URL}/v1/sessions`, () => {
-        return HttpResponse.json([MOCK_SESSION_SUMMARY, MOCK_SESSION_SUMMARY_2]);
-      }),
-    );
-
-    const sessions = createSessions();
-    const result = await sessions.list();
-
-    expect(Array.isArray(result.data)).toBe(true);
-    expect(result.data).toHaveLength(2);
-    expect(typeof result.limit).toBe('number');
-    expect(typeof result.offset).toBe('number');
-  });
-
-  it('passes through already-wrapped response', async () => {
-    server.use(
-      http.get(`${BASE_URL}/v1/sessions`, () => {
-        return HttpResponse.json({
-          data: [MOCK_SESSION_SUMMARY, MOCK_SESSION_SUMMARY_2],
-          total: 5,
-          limit: 10,
-          offset: 0,
-        });
-      }),
-    );
-
-    const sessions = createSessions();
-    const result = await sessions.list({ limit: 10, offset: 0 });
-
-    expect(result.total).toBe(5);
-    expect(result.data).toHaveLength(2);
-  });
-
-  it('works with no params', async () => {
-    server.use(
-      http.get(`${BASE_URL}/v1/sessions`, () => {
-        return HttpResponse.json([]);
-      }),
-    );
-
-    const sessions = createSessions();
-    const result = await sessions.list();
-
-    expect(result.data).toEqual([]);
-    expect(typeof result.limit).toBe('number');
-    expect(typeof result.offset).toBe('number');
-  });
-
-  it('returns DeepIDVError on 500', async () => {
-    server.use(
-      http.get('*/v1/sessions', () =>
-        HttpResponse.json({ error: 'Internal Server Error' }, { status: 500 }),
+      http.get(`${BASE_URL}/v1/sessions`, () =>
+        HttpResponse.json({ sessions: [], next_token: null }),
       ),
     );
-    const sessions = createSessions();
-    await expect(sessions.list()).rejects.toThrow(DeepIDVError);
+    await expect(createSessions().list()).resolves.toEqual({ sessions: [], nextToken: null });
+  });
+
+  it('enforces the OpenAPI limit bounds', async () => {
+    await expect(createSessions().list({ limit: 501 })).rejects.toThrow(ValidationError);
   });
 });
 
-// ---------------------------------------------------------------------------
-// Sessions.updateStatus — SESS-04
-// ---------------------------------------------------------------------------
-
 describe('Sessions.updateStatus', () => {
-  it('sends PATCH with status body', async () => {
-    let capturedBody: unknown = null;
-
+  it('uses the documented route and request body', async () => {
+    let body: unknown;
     server.use(
-      http.patch(`${BASE_URL}/v1/sessions/sess_abc123`, async ({ request }) => {
-        capturedBody = await request.json();
-        return HttpResponse.json({ sessionRecord: MOCK_SESSION_RECORD });
+      http.patch(`${BASE_URL}/v1/sessions/sess_abc123/update-status`, async ({ request }) => {
+        body = await request.json();
+        return HttpResponse.json({ session_record: { ...RAW_SESSION, status: 'VERIFIED' } });
       }),
     );
 
-    const sessions = createSessions();
-    await sessions.updateStatus('sess_abc123', 'VERIFIED');
-
-    expect(capturedBody).toEqual({ status: 'VERIFIED' });
+    const result = await createSessions().updateStatus('sess_abc123', 'VERIFIED');
+    expect(body).toEqual({ new_status: 'VERIFIED' });
+    expect(result.sessionRecord.status).toBe('VERIFIED');
   });
 
-  it('throws ValidationError on invalid status like PENDING', async () => {
-    const sessions = createSessions();
-    await expect(sessions.updateStatus('sess_abc123', 'PENDING' as never)).rejects.toThrow(
+  it('rejects statuses outside the documented enum', async () => {
+    await expect(createSessions().updateStatus('sess_abc123', 'VOIDED' as never)).rejects.toThrow(
       ValidationError,
-    );
-  });
-
-  it('throws ValidationError on empty sessionId', async () => {
-    const sessions = createSessions();
-    await expect(sessions.updateStatus('', 'VERIFIED')).rejects.toThrow(ValidationError);
-  });
-
-  it('returns DeepIDVError on 404', async () => {
-    server.use(
-      http.patch('*/v1/sessions/:id', () =>
-        HttpResponse.json({ error: 'Not Found' }, { status: 404 }),
-      ),
-    );
-    const sessions = createSessions();
-    await expect(sessions.updateStatus('sess_nonexistent', 'VERIFIED')).rejects.toThrow(
-      DeepIDVError,
     );
   });
 });

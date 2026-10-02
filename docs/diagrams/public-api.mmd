@@ -7,6 +7,8 @@ classDiagram
         +document: Document
         +face: Face
         +identity: Identity
+        +screening: Screening
+        +asyncJobs: AsyncJobs
         +on(event, listener) () => void
         +constructor(config: DeepIDVConfig)
     }
@@ -14,8 +16,8 @@ classDiagram
     class Sessions {
         +create(input) SessionCreateResult
         +retrieve(sessionId) SessionRetrieveResult
-        +list(params?) PaginatedResponse~Session~
-        +updateStatus(sessionId, status) SessionRetrieveResult
+        +list(params?) SessionListResult
+        +updateStatus(sessionId, status) SessionStatusUpdateResult
     }
 
     class Document {
@@ -32,7 +34,19 @@ classDiagram
         +verify(input) IdentityVerificationResult
     }
 
+    class Screening {
+        +pepSanctions(input) PepSanctionsResult
+        +adverseMedia(input) AdverseMediaHandle
+        +titleCheck(input) TitleCheckResult
+    }
+
+    class AsyncJobs {
+        +get(jobId) AsyncJobSnapshot
+    }
+
     DeepIDV *-- Sessions : sessions
     DeepIDV *-- Document : document
     DeepIDV *-- Face : face
     DeepIDV *-- Identity : identity
+    DeepIDV *-- Screening : screening
+    DeepIDV *-- AsyncJobs : asyncJobs

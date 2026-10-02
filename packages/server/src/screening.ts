@@ -1,14 +1,13 @@
 /**
  * Screening service module.
  *
- * Provides PEP & Sanctions, Adverse Media, Title Check, and session-history
+ * Provides PEP & Sanctions, Adverse Media, and Title Check
  * operations. All methods validate developer inputs with Zod before making
  * network calls. HTTP orchestration (auth, retry, error mapping) is
  * delegated to `HttpClient`.
  *
- * Adverse Media is async-from-day-one: `adverseMedia()` returns an
- * `AdverseMediaHandle` immediately; the result is delivered via the
- * handle's `.wait()` (auto-polling) or `.refresh()` (single poll) methods.
+ * Adverse Media returns an async-job handle. Title Check and the remaining
+ * operations return their typed results synchronously.
  *
  * @module screening
  */
@@ -21,11 +20,9 @@ import {
   AdverseMediaQueuedResponseSchema,
   PepSanctionsInputSchema,
   PepSanctionsResultSchema,
-  ScreeningListInputSchema,
   TitleCheckInputSchema,
   TitleCheckResultSchema,
   type PepSanctionsResult,
-  type ScreeningListResult,
   type TitleCheckResult,
 } from './screening.types.js';
 import type { AsyncJobs } from './asyncJobs.js';
@@ -151,20 +148,13 @@ export class Screening {
    * title-search backend. Response is a discriminated union on `status`:
    * `'found' | 'multiple_properties' | 'unsupported_region' | 'not_found'`.
    *
-   * `'unsupported_region'` is a typed result variant, not an error — the
-   * server returns HTTP 200 with that status when the address falls
-   * outside the supported region (currently US only).
-   *
-   * This call is **not retried**: the server bounds an un-cancellable title
-   * vendor and returns 503 on breach without billing a session. An immediate
-   * retry usually hits the same slow path, so the SDK fails fast instead of
-   * blocking through 5xx backoff.
+   * The POST returns the typed result directly. This billable synchronous
+   * call is not automatically retried.
    *
    * @throws {ValidationError} If input fails schema validation (400).
    * @throws {AuthenticationError} If the API key is invalid (401).
    * @throws {InsufficientFundsError} If the funds/subscription gate fails (402).
    * @throws {RateLimitError} If the rate limit is exceeded (429).
-   * @throws {ServiceUnavailableError} If the upstream exceeded the server deadline (503, transient).
    * @throws {DeepIDVError} For other API errors.
    */
   async titleCheck(input: z.input<typeof TitleCheckInputSchema>): Promise<TitleCheckResult> {
@@ -177,21 +167,6 @@ export class Screening {
     });
     return TitleCheckResultSchema.parse(raw);
   }
-
-  /**
-   * List historical screening sessions for the authenticated organization.
-   *
-   * Not yet implemented — the backing endpoint `GET /v1/screening/sessions`
-   * does not exist on the server. The schema and method signature are
-   * stable so consumer code can be written today; the method body will
-   * land when the endpoint ships.
-   */
-  list(_params?: z.input<typeof ScreeningListInputSchema>): Promise<ScreeningListResult> {
-    void _params;
-    throw new Error(
-      'screening.list() is not yet implemented — pending GET /v1/screening/sessions on the server.',
-    );
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -201,7 +176,7 @@ export class Screening {
 /**
  * Generates a UUID v4 via the Web Crypto API.
  *
- * `globalThis.crypto.randomUUID()` is available on Node 18+, Bun, Deno,
+ * `globalThis.crypto.randomUUID()` is available on Node 20+, Bun, Deno,
  * and Cloudflare Workers — matches the SDK's runtime-compatibility constraints.
  */
 function generateIdempotencyKey(): string {
