@@ -9,12 +9,25 @@ If you're currently calling `api.deepidv.com` directly with `fetch` or `curl`, t
 | `POST /v1/sessions`                                                                | `client.sessions.create(input)`                        |
 | `GET /v1/sessions/:id`                                                             | `client.sessions.retrieve(id)`                         |
 | `GET /v1/sessions`                                                                 | `client.sessions.list(params)`                         |
-| `PATCH /v1/sessions/:id`                                                           | `client.sessions.updateStatus(id, status)`             |
+| `PATCH /v1/sessions/:id/update-status`                                             | `client.sessions.updateStatus(id, status)`             |
 | `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/document/scan`                | `client.document.scan({ image })`                      |
 | `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/face/detect`                  | `client.face.detect({ image })`                        |
 | `POST /v1/uploads/presign` (count:2) → 2x `PUT` to S3 → `POST /v1/face/compare`    | `client.face.compare({ source, target })`              |
 | `POST /v1/uploads/presign` → `PUT` to S3 → `POST /v1/face/estimate-age`            | `client.face.estimateAge({ image })`                   |
 | `POST /v1/uploads/presign` (count:2) → 2x `PUT` to S3 → `POST /v1/identity/verify` | `client.identity.verify({ documentImage, faceImage })` |
+
+## Upgrading from an earlier SDK version
+
+This parity release intentionally removes or changes SDK shapes that did not match the public API:
+
+- `sessions.list()` now returns `{ sessions, nextToken }`. Replace the previous `{ data, limit, offset }` pagination shape and pass `nextToken` to retrieve the next page.
+- Session list filters now use `startDate`, `endDate`, `byOrganization`, `externalId`, and `workflowId`. The unsupported `offset` and `status` parameters were removed.
+- `sessions.updateStatus()` calls `PATCH /v1/sessions/:id/update-status` with `{ new_status }`. Only `VERIFIED` and `REJECTED` can be set; `VOIDED` is no longer an accepted update target.
+- `screening.titleCheck()` returns `Promise<TitleCheckResult>` synchronously. Do not call `.wait()` or `.refresh()` on its result.
+- The non-functional `screening.list()` method was removed because the public API does not define a screening-history route.
+- `DocumentScanResult` no longer contains `faceImage`, which is not returned by the public document-scan response. Keep the original image when it is needed by `face.compare()` or use `identity.verify()` for the combined document-and-face flow.
+
+Session records normalize `auto_decision` to `autoDecision` and `decision_source` to `decisionSource`. A `pending` auto-decision means you should continue polling; `AUTO_APPROVE` and `DECLINED` distinguish AI decisions from operator-set statuses.
 
 ## Before / After Examples
 
@@ -168,9 +181,11 @@ const result = await client.face.compare({
 | Presigned URL flow     | 3+ API calls per file operation  | One method call                 |
 | Parallel uploads       | Manual `Promise.all`             | Automatic                       |
 | Content-type detection | Read magic bytes yourself        | Automatic                       |
-| Retry on 429/5xx       | Write retry loop with backoff    | Automatic (configurable)        |
+| Retry on 429/5xx       | Write retry loop with backoff    | Automatic for retry-safe calls  |
 | Timeout handling       | Manual `AbortController`         | Automatic (per-attempt)         |
 | Error classification   | Parse status codes               | Typed error classes             |
 | Input validation       | Manual checks                    | Zod schemas (compile + runtime) |
 | TypeScript types       | Write your own interfaces        | Inferred from schemas           |
 | API key redaction      | Implement yourself               | Built into error classes        |
+
+Session creation and billable synchronous screening calls disable automatic retries because replaying them could create duplicate sessions, invitations, or charges.

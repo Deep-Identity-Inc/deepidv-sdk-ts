@@ -360,9 +360,9 @@ interface IdentityFaceMatchResult {
 
 ## Screening and Async-Job Types
 
-`PepSanctionsInput` and `PepSanctionsResult` describe the synchronous PEP and sanctions operation. `AdverseMediaInput` and `TitleCheckInput` accept an optional `idempotencyKey`, which is sent as the `Idempotency-Key` header rather than in the request body.
+`PepSanctionsInput` and `PepSanctionsResult` describe the synchronous PEP and sanctions operation. `TitleCheckInput` and `TitleCheckResult` describe the synchronous title/property search. `AdverseMediaInput` accepts an optional `idempotencyKey`, which is sent as the `Idempotency-Key` header rather than in the request body.
 
-`AdverseMediaHandle` and `TitleCheckHandle` expose:
+`AdverseMediaHandle` exposes:
 
 ```typescript
 interface AsyncResultHandle<TResult, TSnapshot> {

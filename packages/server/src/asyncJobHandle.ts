@@ -13,15 +13,12 @@
  * @module asyncJobHandle
  */
 
-import { AdverseMediaFailedError, PollTimeoutError, TitleCheckFailedError } from '@deepidv/core';
+import { AdverseMediaFailedError, PollTimeoutError } from '@deepidv/core';
 import type { AsyncJobs } from './asyncJobs.js';
 import {
   AdverseMediaJobSnapshotSchema,
-  TitleCheckJobSnapshotSchema,
   type AdverseMediaJobSnapshot,
   type AdverseMediaResult,
-  type TitleCheckJobSnapshot,
-  type TitleCheckResult,
 } from './screening.types.js';
 
 const DEFAULT_POLL_INTERVAL_MS = 2_000;
@@ -124,60 +121,6 @@ export function createAdverseMediaHandle(jobId: string, asyncJobs: AsyncJobs): A
 
       const sleepFor = Math.min(pollIntervalMs, remaining);
       await new Promise<void>((resolve) => setTimeout(resolve, sleepFor));
-    }
-  };
-
-  return { jobId, refresh, wait };
-}
-
-/** Options for `TitleCheckHandle.wait()`. */
-export interface TitleCheckWaitOptions {
-  pollIntervalMs?: number;
-  timeoutMs?: number;
-}
-
-/** Handle returned by `client.screening.titleCheck(input)`. */
-export interface TitleCheckHandle {
-  readonly jobId: string;
-  wait(options?: TitleCheckWaitOptions): Promise<TitleCheckResult>;
-  refresh(): Promise<TitleCheckJobSnapshot>;
-}
-
-/** Creates a title-check handle bound to an async job. */
-export function createTitleCheckHandle(jobId: string, asyncJobs: AsyncJobs): TitleCheckHandle {
-  const refresh = async (): Promise<TitleCheckJobSnapshot> => {
-    const generic = await asyncJobs.get(jobId);
-    if (generic.status === 'ready') {
-      return TitleCheckJobSnapshotSchema.parse({ status: 'ready', result: generic.result });
-    }
-    if (generic.status === 'failed') {
-      return { status: 'failed', error: generic.error };
-    }
-    return { status: generic.status };
-  };
-
-  const wait = async (options?: TitleCheckWaitOptions): Promise<TitleCheckResult> => {
-    const pollIntervalMs = options?.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
-    const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-    const deadline = Date.now() + timeoutMs;
-
-    for (;;) {
-      const snapshot = await refresh();
-      if (snapshot.status === 'ready') return snapshot.result;
-      if (snapshot.status === 'failed') {
-        throw new TitleCheckFailedError(snapshot.error, { jobId });
-      }
-
-      const remaining = deadline - Date.now();
-      if (remaining <= 0) {
-        throw new PollTimeoutError(
-          `Title-check job ${jobId} did not complete within ${String(timeoutMs)}ms`,
-          { timeoutMs, jobId },
-        );
-      }
-      await new Promise<void>((resolve) =>
-        setTimeout(resolve, Math.min(pollIntervalMs, remaining)),
-      );
     }
   };
 

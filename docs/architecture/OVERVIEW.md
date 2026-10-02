@@ -63,7 +63,7 @@ classDiagram
     class Screening {
         +pepSanctions(input) PepSanctionsResult
         +adverseMedia(input) AdverseMediaHandle
-        +titleCheck(input) TitleCheckHandle
+        +titleCheck(input) TitleCheckResult
     }
 
     class AsyncJobs {

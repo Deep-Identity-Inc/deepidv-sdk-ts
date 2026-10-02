@@ -48,6 +48,16 @@ export const SessionCreateResultSchema = z.object({
   links: z.array(SessionLinkSchema),
 });
 
+export const SessionLocationSchema = z
+  .union([z.string(), z.looseObject({ country: z.string().optional() })])
+  .nullable();
+
+export const SessionAutoDecisionStateSchema = z.enum(['pending', 'completed', 'skipped']);
+export const SessionAutoDecisionSchema = z.object({
+  state: SessionAutoDecisionStateSchema,
+});
+export const SessionDecisionSourceSchema = z.enum(['AUTO_APPROVE', 'DECLINED']);
+
 export const SessionSchema = z.object({
   id: z.string(),
   organizationId: z.string(),
@@ -60,7 +70,9 @@ export const SessionSchema = z.object({
   sessionProgress: SessionProgressSchema,
   externalId: z.string().optional(),
   permalinkId: z.string().optional(),
-  location: z.string().nullable().optional(),
+  location: SessionLocationSchema.optional(),
+  autoDecision: SessionAutoDecisionSchema.optional(),
+  decisionSource: SessionDecisionSourceSchema.optional(),
   submittedAt: z.string().optional(),
   deepSignId: z.string().optional(),
   faceLivenessSessionId: z.string().optional(),
@@ -102,7 +114,9 @@ const RawSessionRecordSchema = z.object({
   session_progress: z.string(),
   external_id: z.string().optional(),
   permalink_id: z.string().optional(),
-  location: z.string().nullable().optional(),
+  location: SessionLocationSchema.optional(),
+  auto_decision: SessionAutoDecisionSchema.optional(),
+  decision_source: SessionDecisionSourceSchema.optional(),
   submitted_at: z.string().optional(),
   deep_sign_id: z.string().optional(),
   face_liveness_session_id: z.string().optional(),
@@ -130,6 +144,8 @@ function normalizeSession(raw: z.infer<typeof RawSessionRecordSchema>): Session 
     externalId: raw.external_id,
     permalinkId: raw.permalink_id,
     location: raw.location,
+    autoDecision: raw.auto_decision,
+    decisionSource: raw.decision_source,
     submittedAt: raw.submitted_at,
     deepSignId: raw.deep_sign_id,
     faceLivenessSessionId: raw.face_liveness_session_id,
@@ -195,6 +211,10 @@ export const SessionStatusUpdateWireResultSchema = z
 
 export type SessionCreateInput = z.infer<typeof SessionCreateInputSchema>;
 export type SessionCreateResult = z.infer<typeof SessionCreateResultSchema>;
+export type SessionLocation = z.infer<typeof SessionLocationSchema>;
+export type SessionAutoDecisionState = z.infer<typeof SessionAutoDecisionStateSchema>;
+export type SessionAutoDecision = z.infer<typeof SessionAutoDecisionSchema>;
+export type SessionDecisionSource = z.infer<typeof SessionDecisionSourceSchema>;
 export type Session = z.infer<typeof SessionSchema>;
 export type SessionRetrieveResult = z.infer<typeof SessionRetrieveResultSchema>;
 export type SessionListParams = z.infer<typeof SessionListParamsSchema>;

@@ -18,6 +18,10 @@ import {
   PollTimeoutError,
   SessionCreateInputSchema,
   SessionCreateResultSchema,
+  SessionLocationSchema,
+  SessionAutoDecisionStateSchema,
+  SessionAutoDecisionSchema,
+  SessionDecisionSourceSchema,
   SessionListParamsSchema,
   SessionListResultSchema,
   SessionRetrieveResultSchema,
@@ -46,9 +50,7 @@ import {
   AdverseMediaResultSchema,
   AdverseMediaJobSnapshotSchema,
   TitleCheckInputSchema,
-  TitleCheckQueuedResponseSchema,
   TitleCheckResultSchema,
-  TitleCheckJobSnapshotSchema,
   AsyncJobStatusSchema,
   AsyncJobSnapshotSchema,
 } from '@deepidv/server';
@@ -59,6 +61,10 @@ import type {
   SDKEventMap,
   SessionCreateInput,
   SessionCreateResult,
+  SessionLocation,
+  SessionAutoDecisionState,
+  SessionAutoDecision,
+  SessionDecisionSource,
   Session,
   SessionRetrieveResult,
   SessionListParams,
@@ -89,11 +95,7 @@ import type {
   AdverseMediaHandle,
   AdverseMediaWaitOptions,
   TitleCheckInput,
-  TitleCheckQueuedResponse,
   TitleCheckResult,
-  TitleCheckJobSnapshot,
-  TitleCheckHandle,
-  TitleCheckWaitOptions,
   AsyncJobStatus,
   AsyncJobSnapshot,
 } from '@deepidv/server';
@@ -125,6 +127,10 @@ const values = [
   PollTimeoutError,
   SessionCreateInputSchema,
   SessionCreateResultSchema,
+  SessionLocationSchema,
+  SessionAutoDecisionStateSchema,
+  SessionAutoDecisionSchema,
+  SessionDecisionSourceSchema,
   SessionListParamsSchema,
   SessionListResultSchema,
   SessionRetrieveResultSchema,
@@ -153,9 +159,7 @@ const values = [
   AdverseMediaResultSchema,
   AdverseMediaJobSnapshotSchema,
   TitleCheckInputSchema,
-  TitleCheckQueuedResponseSchema,
   TitleCheckResultSchema,
-  TitleCheckJobSnapshotSchema,
   AsyncJobStatusSchema,
   AsyncJobSnapshotSchema,
 ];
@@ -167,6 +171,10 @@ type PublicTypes =
   | SDKEventMap
   | SessionCreateInput
   | SessionCreateResult
+  | SessionLocation
+  | SessionAutoDecisionState
+  | SessionAutoDecision
+  | SessionDecisionSource
   | Session
   | SessionRetrieveResult
   | SessionListParams
@@ -197,11 +205,7 @@ type PublicTypes =
   | AdverseMediaHandle
   | AdverseMediaWaitOptions
   | TitleCheckInput
-  | TitleCheckQueuedResponse
   | TitleCheckResult
-  | TitleCheckJobSnapshot
-  | TitleCheckHandle
-  | TitleCheckWaitOptions
   | AsyncJobStatus
   | AsyncJobSnapshot;
 

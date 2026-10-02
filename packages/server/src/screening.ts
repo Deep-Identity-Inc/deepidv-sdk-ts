@@ -6,8 +6,8 @@
  * network calls. HTTP orchestration (auth, retry, error mapping) is
  * delegated to `HttpClient`.
  *
- * Adverse Media and Title Check return async-job handles. Results are
- * delivered via `.wait()` (auto-polling) or `.refresh()` (single poll).
+ * Adverse Media returns an async-job handle. Title Check and the remaining
+ * operations return their typed results synchronously.
  *
  * @module screening
  */
@@ -21,16 +21,12 @@ import {
   PepSanctionsInputSchema,
   PepSanctionsResultSchema,
   TitleCheckInputSchema,
-  TitleCheckQueuedResponseSchema,
+  TitleCheckResultSchema,
   type PepSanctionsResult,
+  type TitleCheckResult,
 } from './screening.types.js';
 import type { AsyncJobs } from './asyncJobs.js';
-import {
-  createAdverseMediaHandle,
-  createTitleCheckHandle,
-  type AdverseMediaHandle,
-  type TitleCheckHandle,
-} from './asyncJobHandle.js';
+import { createAdverseMediaHandle, type AdverseMediaHandle } from './asyncJobHandle.js';
 
 // ---------------------------------------------------------------------------
 // Screening class
@@ -146,14 +142,14 @@ export class Screening {
   }
 
   /**
-   * Queue a title/property search by address.
+   * Run a title/property search by address (synchronous).
    *
    * The server geocodes the address via Google Places and queries the
    * title-search backend. Response is a discriminated union on `status`:
    * `'found' | 'multiple_properties' | 'unsupported_region' | 'not_found'`.
    *
-   * The POST returns a job ID. Use the returned handle's `wait()` or
-   * `refresh()` methods to retrieve the typed result.
+   * The POST returns the typed result directly. This billable synchronous
+   * call is not automatically retried.
    *
    * @throws {ValidationError} If input fails schema validation (400).
    * @throws {AuthenticationError} If the API key is invalid (401).
@@ -161,18 +157,15 @@ export class Screening {
    * @throws {RateLimitError} If the rate limit is exceeded (429).
    * @throws {DeepIDVError} For other API errors.
    */
-  async titleCheck(input: z.input<typeof TitleCheckInputSchema>): Promise<TitleCheckHandle> {
+  async titleCheck(input: z.input<typeof TitleCheckInputSchema>): Promise<TitleCheckResult> {
     const parsed = TitleCheckInputSchema.safeParse(input);
     if (!parsed.success) {
       throw mapZodError(parsed.error);
     }
-    const { idempotencyKey, ...body } = parsed.data;
-    const headerKey = idempotencyKey ?? generateIdempotencyKey();
-    const raw = await this.client.post<unknown>('/v1/screening/title-check', body, {
-      headers: { 'Idempotency-Key': headerKey },
+    const raw = await this.client.post<unknown>('/v1/screening/title-check', parsed.data, {
+      maxRetries: 0,
     });
-    const queued = TitleCheckQueuedResponseSchema.parse(raw);
-    return createTitleCheckHandle(queued.jobId, this.asyncJobs);
+    return TitleCheckResultSchema.parse(raw);
   }
 }
 

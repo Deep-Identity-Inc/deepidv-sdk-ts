@@ -45,7 +45,7 @@ export class Sessions {
   async create(input: z.input<typeof SessionCreateInputSchema>): Promise<SessionCreateResult> {
     const parsed = SessionCreateInputSchema.safeParse(input);
     if (!parsed.success) throw mapZodError(parsed.error);
-    const raw = await this.client.post<unknown>('/v1/sessions', parsed.data);
+    const raw = await this.client.post<unknown>('/v1/sessions', parsed.data, { maxRetries: 0 });
     return SessionCreateWireResultSchema.parse(raw);
   }
 

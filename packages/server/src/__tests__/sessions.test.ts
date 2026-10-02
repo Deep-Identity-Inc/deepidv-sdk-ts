@@ -12,12 +12,12 @@ import { server } from './setup.js';
 
 const BASE_URL = 'https://api.deepidv.com';
 
-function createSessions() {
+function createSessions(maxRetries = 0) {
   const config = resolveConfig({
     apiKey: 'sk_test_key_1234',
     baseUrl: BASE_URL,
     timeout: 5_000,
-    maxRetries: 0,
+    maxRetries,
   });
   return new Sessions(new HttpClient(config, new TypedEmitter()));
 }
@@ -33,7 +33,9 @@ const RAW_SESSION = {
   type: 'session',
   session_progress: 'STARTED',
   external_id: 'customer-1',
-  location: null,
+  location: { country: 'United States' },
+  auto_decision: { state: 'pending' },
+  decision_source: 'AUTO_APPROVE',
   workflow_id: 'workflow-1',
   meta_data: { applicantSubmissionIp: '203.0.113.1' },
   uploads: { id_front: true },
@@ -134,6 +136,26 @@ describe('Sessions.create', () => {
       }),
     ).rejects.toThrow(AuthenticationError);
   });
+
+  it('does not retry session creation after a server failure', async () => {
+    let calls = 0;
+    server.use(
+      http.post(`${BASE_URL}/v1/sessions`, () => {
+        calls += 1;
+        return HttpResponse.json({ error: 'invite delivery failed' }, { status: 503 });
+      }),
+    );
+
+    await expect(
+      createSessions(3).create({
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: 'jane@example.com',
+        phone: '+15192223333',
+      }),
+    ).rejects.toThrow();
+    expect(calls).toBe(1);
+  });
 });
 
 describe('Sessions.retrieve', () => {
@@ -151,6 +173,9 @@ describe('Sessions.retrieve', () => {
 
     const result = await createSessions().retrieve('sess_abc123');
     expect(result.sessionRecord.organizationId).toBe('org_1');
+    expect(result.sessionRecord.location).toEqual({ country: 'United States' });
+    expect(result.sessionRecord.autoDecision).toEqual({ state: 'pending' });
+    expect(result.sessionRecord.decisionSource).toBe('AUTO_APPROVE');
     expect(result.sessionRecord.analysisData).toEqual({ idMatchesSelfie: true });
     expect(result.resourceLinks.id_front).toContain('s3.example');
     expect(result.senderUser).toEqual({ id: 'usr_2' });
@@ -201,6 +226,8 @@ describe('Sessions.list', () => {
     });
     expect(result.nextToken).toBe('next-page');
     expect(result.sessions[0]?.externalId).toBe('customer-1');
+    expect(result.sessions[0]?.location).toEqual({ country: 'United States' });
+    expect(result.sessions[0]?.autoDecision).toEqual({ state: 'pending' });
   });
 
   it('accepts an empty page', async () => {

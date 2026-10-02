@@ -436,18 +436,17 @@ Access via `client.screening`.
 
 - `pepSanctions(input)` returns a `PepSanctionsResult` synchronously.
 - `adverseMedia(input)` returns an `AdverseMediaHandle`.
-- `titleCheck(input)` returns a `TitleCheckHandle`.
+- `titleCheck(input)` returns a `TitleCheckResult` synchronously.
 
-Both async handles expose `jobId`, `refresh()` for one poll, and `wait(options?)` for polling until a typed result is ready. The SDK sends an `Idempotency-Key` header from `input.idempotencyKey` or generates one automatically.
+The adverse-media handle exposes `jobId`, `refresh()` for one poll, and `wait(options?)` for polling until a typed result is ready. For adverse-media requests, the SDK sends an `Idempotency-Key` header from `input.idempotencyKey` or generates one automatically.
 
 ```typescript
-const titleJob = await client.screening.titleCheck({
+const titleResult = await client.screening.titleCheck({
   email: 'jane@example.com',
   firstName: 'Jane',
   lastName: 'Doe',
   address: '123 Main St, Austin, TX',
 });
-const titleResult = await titleJob.wait();
 ```
 
 ## Async jobs

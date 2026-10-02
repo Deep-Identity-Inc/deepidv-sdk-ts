@@ -15,7 +15,7 @@ Extend `@deepidv/server` so SDK consumers can call:
 ```ts
 client.screening.pepSanctions(input);
 client.screening.adverseMedia(input); // returns AdverseMediaHandle
-client.screening.titleCheck(input); // returns TitleCheckHandle
+client.screening.titleCheck(input); // returns Promise<TitleCheckResult>
 // No screening history method is exposed until the API defines one.
 
 client.asyncJobs.get(jobId); // also exposed top-level
@@ -32,10 +32,10 @@ The Jira ticket title (`@deepidv/sanctions`) is misleading — confirmed 2026-05
 - Split `firstName` / `lastName` — not a single `name` field.
 - `dateOfBirth` required for `pepSanctions` and `adverseMedia`.
 - `country` is ISO 3166-1 alpha-2, optional.
-- Adverse media and title check are async operations. The SDK returns typed handles with `.wait({ pollIntervalMs?, timeoutMs? })` and `.refresh()`. Defaults: poll 2s, timeout 180s. Overrideable per-call.
-- `Idempotency-Key` header: SDK auto-generates UUID v4 if caller omits `idempotencyKey`. Server-side TTL: 24h.
-- `titleCheck({ email, firstName, lastName, address })` — server geocodes via Google Places. SDK does not.
-- Error mapping: `400 → ValidationError`, `401 → AuthenticationError`, `403 → AuthorizationError`, `404 → NotFoundError`, terminal job `failed → AdverseMediaFailedError | TitleCheckFailedError`, wait timeout → `PollTimeoutError`.
+- Adverse media is asynchronous. The SDK returns a typed handle with `.wait({ pollIntervalMs?, timeoutMs? })` and `.refresh()`. Defaults: poll 2s, timeout 180s. Overrideable per-call.
+- For adverse media, the SDK auto-generates an `Idempotency-Key` UUID v4 if the caller omits `idempotencyKey`. Server-side TTL: 24h.
+- `titleCheck({ email, firstName, lastName, address })` is synchronous and non-retrying; the server geocodes via Google Places. The SDK does not.
+- Error mapping: `400 → ValidationError`, `401 → AuthenticationError`, `403 → AuthorizationError`, `404 → NotFoundError`, adverse-media terminal job `failed → AdverseMediaFailedError`, wait timeout → `PollTimeoutError`.
 - Confidence semantics inherit the DIDV-201 unified scale.
 
 ---

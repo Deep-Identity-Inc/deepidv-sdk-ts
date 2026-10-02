@@ -17,7 +17,6 @@ import {
   DeepIDVError,
   InsufficientFundsError,
   ServiceUnavailableError,
-  TitleCheckFailedError,
 } from '@deepidv/core';
 import { Screening } from '../screening.js';
 import { AsyncJobs } from '../asyncJobs.js';
@@ -74,8 +73,6 @@ const TITLE_INPUT = {
   lastName: 'Doe',
   address: '123 Main St',
 };
-const TITLE_JOB_ID = '550e8400-e29b-41d4-a716-446655440000';
-
 const MOCK_PEP_SANCTIONS_CLEAN = {
   totalMatches: 0,
   peps: [],
@@ -386,106 +383,52 @@ describe('Screening.adverseMedia', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Screening.titleCheck — async job handle
+// Screening.titleCheck — synchronous result
 // ---------------------------------------------------------------------------
 
 describe('Screening.titleCheck', () => {
-  it('returns a handle for the queued job', async () => {
+  it.each([
+    {
+      status: 'found',
+      subjectProperty: null,
+      ownerInformation: null,
+      locationInformation: null,
+      ownerTransferInformation: null,
+      lastMarketSaleInformation: null,
+    },
+    {
+      status: 'multiple_properties',
+      message: 'Choose a unit',
+      availableUnits: ['1'],
+      properties: [],
+    },
+    { status: 'unsupported_region', message: 'Unsupported' },
+    { status: 'not_found', message: 'Not found' },
+  ] as const)('returns the synchronous $status result', async (response) => {
     server.use(
-      http.post(`${BASE_URL}/v1/screening/title-check`, () =>
-        HttpResponse.json(
-          { jobId: TITLE_JOB_ID, status: 'pending', message: 'Queued' },
-          { status: 202 },
-        ),
-      ),
+      http.post(`${BASE_URL}/v1/screening/title-check`, () => HttpResponse.json(response)),
     );
-    const handle = await createScreening().titleCheck(TITLE_INPUT);
-    expect(handle.jobId).toBe(TITLE_JOB_ID);
-    expect(typeof handle.wait).toBe('function');
-    expect(typeof handle.refresh).toBe('function');
+    await expect(createScreening().titleCheck(TITLE_INPUT)).resolves.toEqual(response);
   });
 
-  it('sends the request body and idempotency header separately', async () => {
+  it('sends the request body without an async-job idempotency header', async () => {
     let capturedBody: Record<string, unknown> | null = null;
     let capturedKey: string | null = null;
     server.use(
       http.post(`${BASE_URL}/v1/screening/title-check`, async ({ request }) => {
         capturedBody = (await request.json()) as Record<string, unknown>;
         capturedKey = request.headers.get('Idempotency-Key');
-        return HttpResponse.json({ jobId: TITLE_JOB_ID, status: 'pending', message: 'Queued' });
+        return HttpResponse.json({ status: 'not_found', message: 'Not found' });
       }),
     );
-    await createScreening().titleCheck({ ...TITLE_INPUT, idempotencyKey: 'title-request-1' });
+    await createScreening().titleCheck(TITLE_INPUT);
     expect(capturedBody).toMatchObject({
       email: 'jane.doe@example.com',
       firstName: 'Jane',
       lastName: 'Doe',
       address: '123 Main St',
     });
-    expect(capturedBody).not.toHaveProperty('idempotencyKey');
-    expect(capturedKey).toBe('title-request-1');
-  });
-
-  it('auto-generates an idempotency key', async () => {
-    let capturedKey: string | null = null;
-    server.use(
-      http.post(`${BASE_URL}/v1/screening/title-check`, ({ request }) => {
-        capturedKey = request.headers.get('Idempotency-Key');
-        return HttpResponse.json({ jobId: TITLE_JOB_ID, status: 'pending', message: 'Queued' });
-      }),
-    );
-    await createScreening().titleCheck(TITLE_INPUT);
-    expect(capturedKey).toMatch(UUID_V4_REGEX);
-  });
-
-  it('narrows a ready async-job result', async () => {
-    server.use(
-      http.post(`${BASE_URL}/v1/screening/title-check`, () =>
-        HttpResponse.json({ jobId: TITLE_JOB_ID, status: 'pending', message: 'Queued' }),
-      ),
-      http.get(`${BASE_URL}/v1/async-jobs/${TITLE_JOB_ID}`, () =>
-        HttpResponse.json({
-          jobId: TITLE_JOB_ID,
-          createdAt: 1_716_897_600,
-          updatedAt: '2026-05-28T12:01:00Z',
-          status: 'ready',
-          result: {
-            status: 'found',
-            subjectProperty: null,
-            ownerInformation: null,
-            locationInformation: null,
-            ownerTransferInformation: null,
-            lastMarketSaleInformation: null,
-          },
-        }),
-      ),
-    );
-    const handle = await createScreening().titleCheck(TITLE_INPUT);
-    const result = await handle.refresh();
-    expect(result.status).toBe('ready');
-    if (result.status === 'ready') expect(result.result.status).toBe('found');
-  });
-
-  it('throws TitleCheckFailedError when the job fails', async () => {
-    server.use(
-      http.post(`${BASE_URL}/v1/screening/title-check`, () =>
-        HttpResponse.json({ jobId: TITLE_JOB_ID, status: 'pending', message: 'Queued' }),
-      ),
-      http.get(`${BASE_URL}/v1/async-jobs/${TITLE_JOB_ID}`, () =>
-        HttpResponse.json({
-          jobId: TITLE_JOB_ID,
-          createdAt: 1_716_897_600,
-          updatedAt: '2026-05-28T12:01:00Z',
-          status: 'failed',
-          error: 'No property provider available',
-        }),
-      ),
-    );
-    const handle = await createScreening().titleCheck(TITLE_INPUT);
-    await expect(handle.wait()).rejects.toMatchObject({
-      name: 'TitleCheckFailedError',
-      jobId: TITLE_JOB_ID,
-    } satisfies Partial<TitleCheckFailedError>);
+    expect(capturedKey).toBeNull();
   });
 
   it('throws ValidationError on empty address', async () => {
@@ -514,20 +457,16 @@ describe('Screening.titleCheck', () => {
     await expect(createScreening().titleCheck(TITLE_INPUT)).rejects.toThrow(InsufficientFundsError);
   });
 
-  it('reuses the same idempotency key across safe retries', async () => {
+  it('does not retry the synchronous billable request', async () => {
     let callCount = 0;
-    const keys: Array<string | null> = [];
     server.use(
-      http.post('*/v1/screening/title-check', ({ request }) => {
+      http.post('*/v1/screening/title-check', () => {
         callCount++;
-        keys.push(request.headers.get('Idempotency-Key'));
-        if (callCount < 3) return HttpResponse.json({ error: 'unavailable' }, { status: 503 });
-        return HttpResponse.json({ jobId: TITLE_JOB_ID, status: 'pending', message: 'Queued' });
+        return HttpResponse.json({ error: 'unavailable' }, { status: 503 });
       }),
     );
-    await expect(createRetryingScreening(3).titleCheck(TITLE_INPUT)).resolves.toBeDefined();
-    expect(callCount).toBe(3);
-    expect(new Set(keys).size).toBe(1);
+    await expect(createRetryingScreening(3).titleCheck(TITLE_INPUT)).rejects.toThrow();
+    expect(callCount).toBe(1);
   });
 });
 

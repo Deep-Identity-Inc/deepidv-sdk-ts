@@ -2,4 +2,4 @@
 '@deepidv/server': major
 ---
 
-Align the existing SDK surface with the pinned OpenAPI contract. Session responses now normalize the documented snake-case wire format, session listing uses cursor pagination and the supported filters, status updates use the correct route and payload, title checks return async-job handles, async-job IDs require UUIDs, and the non-functional screening list surface has been removed.
+Align the existing SDK surface with the public API. Session responses now normalize the wire format, preserve location and AI-decision state, use cursor pagination and supported filters, and update status through the correct route and payload. Title checks return synchronous results without automatic retries, session creation is not retried, async-job IDs require UUIDs, and the non-functional screening list surface has been removed.

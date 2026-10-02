@@ -58,6 +58,10 @@ export type { SDKEventMap } from '@deepidv/core';
 export type {
   SessionCreateInput,
   SessionCreateResult,
+  SessionLocation,
+  SessionAutoDecisionState,
+  SessionAutoDecision,
+  SessionDecisionSource,
   Session,
   SessionRetrieveResult,
   SessionListParams,
@@ -68,6 +72,10 @@ export type {
 export {
   SessionCreateInputSchema,
   SessionCreateResultSchema,
+  SessionLocationSchema,
+  SessionAutoDecisionStateSchema,
+  SessionAutoDecisionSchema,
+  SessionDecisionSourceSchema,
   SessionListParamsSchema,
   SessionListResultSchema,
   SessionRetrieveResultSchema,
@@ -137,9 +145,7 @@ export type {
   AdverseMediaResult,
   AdverseMediaJobSnapshot,
   TitleCheckInput,
-  TitleCheckQueuedResponse,
   TitleCheckResult,
-  TitleCheckJobSnapshot,
 } from './screening.types.js';
 export {
   PepSanctionsInputSchema,
@@ -149,16 +155,9 @@ export {
   AdverseMediaResultSchema,
   AdverseMediaJobSnapshotSchema,
   TitleCheckInputSchema,
-  TitleCheckQueuedResponseSchema,
   TitleCheckResultSchema,
-  TitleCheckJobSnapshotSchema,
 } from './screening.types.js';
-export type {
-  AdverseMediaHandle,
-  AdverseMediaWaitOptions,
-  TitleCheckHandle,
-  TitleCheckWaitOptions,
-} from './asyncJobHandle.js';
+export type { AdverseMediaHandle, AdverseMediaWaitOptions } from './asyncJobHandle.js';
 
 // ---------------------------------------------------------------------------
 // 10. Async-jobs types and schemas
