@@ -53,12 +53,18 @@ export const SessionStatusUpdateSchema = z.enum(['VERIFIED', 'REJECTED', 'VOIDED
 /**
  * Input schema for `sessions.create()`. All required fields must be
  * non-empty strings. Optional invite flags default to true on the API.
+ *
+ * `firstName` and `lastName` are each optional. Sending only one (a mononym)
+ * creates a normal session. When both are omitted the applicant's name is
+ * read from their ID document, the name-matches-ID check is skipped, and the
+ * workflow must include an ID verification step (the API returns 400
+ * otherwise).
  */
 export const SessionCreateInputSchema = z.object({
-  /** Applicant first name (required). */
-  firstName: z.string().min(1),
-  /** Applicant last name (required). */
-  lastName: z.string().min(1),
+  /** Applicant first name (optional). */
+  firstName: z.string().min(1).optional(),
+  /** Applicant last name (optional). */
+  lastName: z.string().min(1).optional(),
   /** Applicant email address (required, must be valid email format). */
   email: z.email(),
   /** Applicant phone number in E.164 format, e.g. "+15192223333" (required). */
@@ -226,8 +232,13 @@ const UserSchema = z
   .object({
     id: z.string(),
     email: z.string(),
-    firstName: z.string(),
-    lastName: z.string(),
+    /**
+     * null (or absent) when the applicant has no first name yet: a session
+     * created without names before the ID is read, or a mononym.
+     */
+    firstName: z.string().nullish(),
+    /** null (or absent) when the applicant has no last name yet; see `firstName`. */
+    lastName: z.string().nullish(),
     phone: z.string(),
     createdAt: z.string(),
     updatedAt: z.string(),
@@ -248,6 +259,12 @@ export const SessionSchema = z.object({
   userId: z.string(),
   senderUserId: z.string(),
   externalId: z.string().optional(),
+  /**
+   * `false` when the session was created with neither name: the applicant's
+   * name is read from their ID and the name-matches-ID check is skipped.
+   * Omitted otherwise (including a session created with one name).
+   */
+  namesProvided: z.literal(false).optional(),
   status: SessionStatusSchema,
   type: SessionTypeSchema,
   sessionProgress: SessionProgressSchema,
