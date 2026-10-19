@@ -145,13 +145,6 @@ describe('Sessions.create', () => {
     });
   });
 
-  it('throws ValidationError on missing firstName', async () => {
-    const sessions = createSessions();
-    await expect(
-      sessions.create({ lastName: 'Doe', email: 'j@e.com', phone: '+1' } as never),
-    ).rejects.toThrow(ValidationError);
-  });
-
   it('creates a session without names: they are read from the ID (DIDV-961)', async () => {
     let capturedBody: Record<string, unknown> | null = null;
     server.use(
@@ -167,10 +160,25 @@ describe('Sessions.create', () => {
     expect(capturedBody).toEqual({ email: 'j@e.com', phone: '+14165559999' });
   });
 
-  it('throws ValidationError when only one name is sent', async () => {
+  it('accepts a single name (mononym) as a normal session (DIDV-961)', async () => {
+    let capturedBody: Record<string, unknown> | null = null;
+    server.use(
+      http.post(`${BASE_URL}/v1/sessions`, async ({ request }) => {
+        capturedBody = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({ id: 'sess_xyz', sessionUrl: 'https://v/sess_xyz', links: [] });
+      }),
+    );
+
+    const sessions = createSessions();
+    await sessions.create({ firstName: 'Madonna', email: 'j@e.com', phone: '+14165559999' });
+
+    expect(capturedBody).toEqual({ firstName: 'Madonna', email: 'j@e.com', phone: '+14165559999' });
+  });
+
+  it('throws ValidationError on an empty-string name', async () => {
     const sessions = createSessions();
     await expect(
-      sessions.create({ firstName: 'Jane', email: 'j@e.com', phone: '+14165559999' }),
+      sessions.create({ firstName: '', email: 'j@e.com', phone: '+14165559999' }),
     ).rejects.toThrow(ValidationError);
   });
 

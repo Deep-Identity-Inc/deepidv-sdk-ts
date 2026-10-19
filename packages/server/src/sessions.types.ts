@@ -54,36 +54,32 @@ export const SessionStatusUpdateSchema = z.enum(['VERIFIED', 'REJECTED', 'VOIDED
  * Input schema for `sessions.create()`. All required fields must be
  * non-empty strings. Optional invite flags default to true on the API.
  *
- * `firstName` and `lastName` are optional, but must be sent together. When
- * both are omitted the applicant's name is read from their ID document, the
- * name-matches-ID check is skipped, and the workflow must include an ID
- * verification step (the API returns 400 otherwise).
+ * `firstName` and `lastName` are each optional. Sending only one (a mononym)
+ * creates a normal session. When both are omitted the applicant's name is
+ * read from their ID document, the name-matches-ID check is skipped, and the
+ * workflow must include an ID verification step (the API returns 400
+ * otherwise).
  */
-export const SessionCreateInputSchema = z
-  .object({
-    /** Applicant first name. Send with `lastName`, or omit both. */
-    firstName: z.string().min(1).optional(),
-    /** Applicant last name. Send with `firstName`, or omit both. */
-    lastName: z.string().min(1).optional(),
-    /** Applicant email address (required, must be valid email format). */
-    email: z.email(),
-    /** Applicant phone number in E.164 format, e.g. "+15192223333" (required). */
-    phone: z.string().min(1),
-    /** Your internal reference ID echoed back in responses. */
-    externalId: z.string().optional(),
-    /** Workflow to use for this session (omit for standalone session). */
-    workflowId: z.string().optional(),
-    /** HTTPS URL to redirect the applicant after completing the session. */
-    redirectUrl: z.url().optional(),
-    /** Send email invitation to applicant. Defaults to true on the API. */
-    sendEmailInvite: z.boolean().optional(),
-    /** Send SMS invitation to applicant. Defaults to true on the API. */
-    sendPhoneInvite: z.boolean().optional(),
-  })
-  .refine((input) => Boolean(input.firstName) === Boolean(input.lastName), {
-    message: 'firstName and lastName must be sent together, or both omitted',
-    path: ['lastName'],
-  });
+export const SessionCreateInputSchema = z.object({
+  /** Applicant first name (optional). */
+  firstName: z.string().min(1).optional(),
+  /** Applicant last name (optional). */
+  lastName: z.string().min(1).optional(),
+  /** Applicant email address (required, must be valid email format). */
+  email: z.email(),
+  /** Applicant phone number in E.164 format, e.g. "+15192223333" (required). */
+  phone: z.string().min(1),
+  /** Your internal reference ID echoed back in responses. */
+  externalId: z.string().optional(),
+  /** Workflow to use for this session (omit for standalone session). */
+  workflowId: z.string().optional(),
+  /** HTTPS URL to redirect the applicant after completing the session. */
+  redirectUrl: z.url().optional(),
+  /** Send email invitation to applicant. Defaults to true on the API. */
+  sendEmailInvite: z.boolean().optional(),
+  /** Send SMS invitation to applicant. Defaults to true on the API. */
+  sendPhoneInvite: z.boolean().optional(),
+});
 
 /**
  * Query parameters for `sessions.list()`.
@@ -236,10 +232,13 @@ const UserSchema = z
   .object({
     id: z.string(),
     email: z.string(),
-    /** null until the ID is read, for a session created without names. */
-    firstName: z.string().nullable(),
-    /** null until the ID is read, for a session created without names. */
-    lastName: z.string().nullable(),
+    /**
+     * null (or absent) when the applicant has no first name yet: a session
+     * created without names before the ID is read, or a mononym.
+     */
+    firstName: z.string().nullish(),
+    /** null (or absent) when the applicant has no last name yet; see `firstName`. */
+    lastName: z.string().nullish(),
     phone: z.string(),
     createdAt: z.string(),
     updatedAt: z.string(),
@@ -261,9 +260,9 @@ export const SessionSchema = z.object({
   senderUserId: z.string(),
   externalId: z.string().optional(),
   /**
-   * `false` when the session was created without names: the applicant's name
-   * is read from their ID and the name-matches-ID check is skipped. Omitted
-   * otherwise.
+   * `false` when the session was created with neither name: the applicant's
+   * name is read from their ID and the name-matches-ID check is skipped.
+   * Omitted otherwise (including a session created with one name).
    */
   namesProvided: z.literal(false).optional(),
   status: SessionStatusSchema,
