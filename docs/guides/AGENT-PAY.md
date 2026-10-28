@@ -120,6 +120,7 @@ class DPoPAuth(httpx.Auth):
         return jwt.encode(claims, self.private_key_pem, algorithm=self.alg, headers=headers)
 
     def _sign(self, request: httpx.Request) -> None:
+        request.headers.pop("dpop", None)  # a re-yielded request never keeps a stale proof
         scheme, _, token = request.headers.get("authorization", "").partition(" ")
         if token and (scheme.lower() == "dpop" or _is_bound(token)):
             request.headers["authorization"] = f"DPoP {token}"
@@ -139,8 +140,23 @@ class DPoPAuth(httpx.Auth):
             return
 ```
 
-Pass `DPoPAuth(provider, pem, public_jwk)` as the `auth` of the MCP client's
-HTTP transport, with `provider` the SDK's `PrivateKeyJWTOAuthProvider`.
+In mcp 2.x, `PrivateKeyJWTOAuthProvider` takes an `assertion_provider`
+(`Callable[[str], Awaitable[str]]`: the audience in, a signed assertion out)
+rather than a PEM. One that signs with the AI agent key:
+
+```python
+def assertion_provider(asid: str, private_key_pem: str, alg: str = "ES256"):
+    async def provider(audience: str) -> str:
+        now = int(time.time())
+        claims = {"iss": asid, "sub": asid, "aud": audience, "iat": now, "exp": now + 300, "jti": str(uuid.uuid4())}
+        return jwt.encode(claims, private_key_pem, algorithm=alg)
+
+    return provider
+```
+
+Construct the provider with it, `client_id=asid`, `scope="agentpay"` and
+`issuer=f"{endpoint}/oauth"`, then pass `DPoPAuth(provider, pem, public_jwk)`
+as the `auth` of the MCP client's HTTP transport.
 
 ## Claude Code and hosted connectors
 
@@ -165,9 +181,14 @@ import { readFileSync } from 'node:fs';
 import { SignJWT, importPKCS8 } from 'jose';
 
 const asid = process.env.GETAI_ASID;
+const pemPath = process.env.GETAI_PEM_PATH;
+if (!asid || !pemPath) {
+  process.stderr.write('getai-headers: set GETAI_ASID and GETAI_PEM_PATH in the server env\n');
+  process.exit(1);
+}
 const alg = process.env.GETAI_ALG ?? 'ES256';
 const issuer = 'https://mcp.deepidv.com/v1/agent-mcp/oauth';
-const key = await importPKCS8(readFileSync(process.env.GETAI_PEM_PATH, 'utf8'), alg);
+const key = await importPKCS8(readFileSync(pemPath, 'utf8'), alg);
 
 const assertion = await new SignJWT({})
   .setProtectedHeader({ alg, typ: 'JWT' })
@@ -207,7 +228,7 @@ process.stdout.write(JSON.stringify({ Authorization: `Bearer ${access_token}` })
 | Token endpoint | `400 invalid_client`                    | Unknown or inactive AI agent, operator not active or not entitled, or no active key verifies the assertion |
 | Token endpoint | `400 invalid_grant`                     | The assertion `jti` was already used                                                                       |
 | Token endpoint | `400 invalid_request` (`dpop_required`) | The AI agent requires DPoP and no proof was sent                                                           |
-| Token endpoint | `400 invalid_dpop_proof`                | The proof is malformed or not signed by a registered key                                                   |
+| Token endpoint | `400 invalid_dpop_proof`                | The proof is malformed or not signed by the key that signed the assertion                                  |
 | Token endpoint | `400 unsupported_grant_type`            | The grant is not `client_credentials`                                                                      |
 | Token endpoint | `400 invalid_target`                    | `resource` is not the MCP endpoint                                                                         |
 | Token endpoint | `400 invalid_scope`                     | `scope` asks for anything other than `agentpay`                                                            |

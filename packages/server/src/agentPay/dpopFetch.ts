@@ -127,6 +127,29 @@ function assertKeyType(jwk: Jwk, alg: AgentKeyAlgorithm, name: string): void {
   }
 }
 
+/** The public members only, in the order RFC 7638 lists them. */
+function publicMembers(jwk: Jwk): Jwk {
+  return jwk.kty === 'EC'
+    ? { kty: 'EC', crv: jwk.crv, x: jwk.x, y: jwk.y }
+    : { kty: jwk.kty, crv: jwk.crv, x: jwk.x };
+}
+
+/**
+ * The key members of a caller's private JWK (`kty`, `crv`, `x`, `y`, `d`),
+ * checked against `alg`. Anything else (`ext`, `key_ops`, `alg`, `kid`) is
+ * dropped: the key is imported for signing only, and a JWK with `ext: false`
+ * must not be refused.
+ */
+function privateMembers(jwk: Jwk, alg: AgentKeyAlgorithm): Jwk {
+  assertKeyType(jwk, alg, 'privateKey');
+  for (const member of alg === 'ES256' ? ['x', 'y', 'd'] : ['x', 'd']) {
+    if (typeof jwk[member] !== 'string' || jwk[member] === '') {
+      throw new TypeError(`privateKey JWK is missing ${member}`);
+    }
+  }
+  return { ...publicMembers(jwk), d: jwk.d };
+}
+
 /** Imports the private key for signing; a PEM must be PKCS#8 (`BEGIN PRIVATE KEY`). */
 export async function importAgentPrivateKey(
   privateKey: string | Jwk,
@@ -134,22 +157,24 @@ export async function importAgentPrivateKey(
   extractable = false,
 ): Promise<CryptoKey> {
   if (typeof privateKey === 'string') {
-    return crypto.subtle.importKey('pkcs8', pemToDer(privateKey), importParams(alg), extractable, [
-      'sign',
-    ]);
+    const der = pemToDer(privateKey);
+    try {
+      return await crypto.subtle.importKey('pkcs8', der, importParams(alg), extractable, ['sign']);
+    } catch {
+      // WebCrypto's DataError names the mismatch but not the key; keep it that way.
+      throw new TypeError(`privateKey is not an ${alg} key`);
+    }
   }
 
-  assertKeyType(privateKey, alg, 'privateKey');
-  return crypto.subtle.importKey('jwk', privateKey as JsonWebKey, importParams(alg), extractable, [
-    'sign',
-  ]);
-}
-
-/** The public members only, in the order RFC 7638 lists them. */
-function publicMembers(jwk: Jwk): Jwk {
-  return jwk.kty === 'EC'
-    ? { kty: 'EC', crv: jwk.crv, x: jwk.x, y: jwk.y }
-    : { kty: jwk.kty, crv: jwk.crv, x: jwk.x };
+  const jwk = privateMembers(privateKey, alg);
+  try {
+    return await crypto.subtle.importKey('jwk', jwk as JsonWebKey, importParams(alg), extractable, [
+      'sign',
+    ]);
+  } catch {
+    // WebCrypto refuses a `d` that does not belong to `x` (and `y`).
+    throw new TypeError(`privateKey JWK is not a valid ${alg} key`);
+  }
 }
 
 /** The checks on a caller's public JWK that need no key import. */
@@ -178,25 +203,26 @@ export async function resolveAgentKey(
 ): Promise<ResolvedAgentKey> {
   if (publicJwk) checkPublicJwk(publicJwk, alg);
 
-  const exported = (await crypto.subtle.exportKey(
-    'jwk',
-    await importAgentPrivateKey(privateKey, alg, true),
-  )) as Jwk;
-  assertKeyType(exported, alg, 'privateKey');
-  const derived = publicMembers(exported);
-  const privateJwk: Jwk = { ...derived, d: exported.d };
+  let privateJwk: Jwk;
+  if (typeof privateKey === 'string') {
+    // A PEM has to go through WebCrypto to get at its JWK members.
+    const exported = (await crypto.subtle.exportKey(
+      'jwk',
+      await importAgentPrivateKey(privateKey, alg, true),
+    )) as Jwk;
+    privateJwk = privateMembers(exported, alg);
+  } else {
+    // A JWK is taken as given: importing it extractable would refuse `ext: false`.
+    privateJwk = privateMembers(privateKey, alg);
+  }
+  const derived = publicMembers(privateJwk);
 
   if (publicJwk && (publicJwk.x !== derived.x || publicJwk.y !== derived.y)) {
     throw new TypeError('publicJwk does not match privateKey');
   }
 
-  const key = await crypto.subtle.importKey(
-    'jwk',
-    privateJwk as JsonWebKey,
-    importParams(alg),
-    false,
-    ['sign'],
-  );
+  // Also checks that `d` belongs to `x` (and `y`) for a caller's JWK.
+  const key = await importAgentPrivateKey(privateJwk, alg);
   return { key, privateJwk, publicJwk: derived };
 }
 
