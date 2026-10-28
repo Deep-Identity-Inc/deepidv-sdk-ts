@@ -1,0 +1,332 @@
+import { http, HttpResponse } from 'msw';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { server } from '../../__tests__/setup.js';
+import { createAgentPayMcpClient } from '../client.js';
+import {
+  decodeJwt,
+  fakeAccessToken,
+  newAgentKey,
+  sha256b64url,
+  verifyJws,
+  type TestAgentKey,
+} from './helpers.js';
+
+const ORIGIN = 'https://mcp.test.deepidv.com';
+const ENDPOINT = `${ORIGIN}/v1/agent-mcp`;
+const ISSUER = `${ENDPOINT}/oauth`;
+const ASID = 'ASID-AGT-0123456789AB';
+
+type Seen = {
+  assertion?: Record<string, unknown>;
+  tokenProof?: Record<string, unknown>;
+  mcpSchemes: string[];
+  mcpProofs: Array<Record<string, unknown>>;
+  tokenRequests: number;
+  /** Tokens the mock now treats as expired. */
+  expired: Set<string>;
+  lastToken?: string;
+  /** Authenticated DELETEs (session ends) the mock accepted. */
+  deletes: number;
+  /** The proof claims of the DELETEs made with a bound token. */
+  deleteProofs: Array<Record<string, unknown>>;
+};
+
+const UNAUTHORIZED = {
+  'www-authenticate': `Bearer resource_metadata="${ORIGIN}/.well-known/oauth-protected-resource/v1/agent-mcp", scope="agentpay"`,
+};
+
+/** Rejects a proof as the server does: signature, htm, htu and iat freshness. */
+async function proofOk(
+  proof: string | null,
+  key: TestAgentKey,
+  htm: string,
+  htu: string,
+): Promise<boolean> {
+  if (!proof || !(await verifyJws(proof, key.publicJwk, key.alg))) return false;
+  const claims = decodeJwt(proof).payload;
+  const age = Date.now() / 1000 - Number(claims.iat);
+  return claims.htm === htm && claims.htu === htu && age >= -5 && age <= 60;
+}
+
+/**
+ * The MCP endpoint's authentication for any method: a bound token needs
+ * the DPoP scheme and a fresh proof carrying its `ath`; an unbound token
+ * needs Bearer and no proof. Returns the error response, or the proof
+ * claims (undefined for a bearer request) when the request is accepted.
+ */
+async function authenticate(
+  request: Request,
+  key: TestAgentKey,
+  seen: Seen,
+): Promise<Response | { proof: Record<string, unknown> | undefined }> {
+  const authorization = request.headers.get('authorization');
+  if (!authorization) {
+    return new HttpResponse(null, { status: 401, headers: UNAUTHORIZED });
+  }
+
+  const [scheme = '', token = ''] = authorization.split(' ');
+  seen.mcpSchemes.push(scheme);
+  if (seen.expired.has(token)) {
+    return HttpResponse.json({ error: 'invalid_token' }, { status: 401, headers: UNAUTHORIZED });
+  }
+  const proof = request.headers.get('dpop');
+  if (decodeJwt(token).payload.cnf !== undefined) {
+    // Bound: the DPoP scheme and a fresh proof for this token and method.
+    if (scheme !== 'DPoP' || !(await proofOk(proof, key, request.method, ENDPOINT))) {
+      return HttpResponse.json({ error: 'invalid_token' }, { status: 401 });
+    }
+    const claims = decodeJwt(proof ?? '').payload;
+    if (claims.ath !== (await sha256b64url(token))) {
+      return HttpResponse.json({ error: 'invalid_token' }, { status: 401 });
+    }
+    return { proof: claims };
+  }
+  if (scheme !== 'Bearer' || proof) {
+    // Unbound: Bearer only, as the server refuses the DPoP scheme.
+    return HttpResponse.json({ error: 'invalid_token' }, { status: 401 });
+  }
+  return { proof: undefined };
+}
+
+/** A mock of the endpoint following Agent Pay 08 §5: discovery, token, MCP. */
+function mockEndpoint(key: TestAgentKey, seen: Seen) {
+  server.use(
+    http.get(`${ORIGIN}/.well-known/oauth-protected-resource/v1/agent-mcp`, () =>
+      HttpResponse.json({
+        resource: ENDPOINT,
+        authorization_servers: [ISSUER],
+        scopes_supported: ['agentpay'],
+        bearer_methods_supported: ['header'],
+      }),
+    ),
+    http.get(`${ORIGIN}/.well-known/oauth-authorization-server/v1/agent-mcp/oauth`, () =>
+      HttpResponse.json({
+        issuer: ISSUER,
+        token_endpoint: `${ISSUER}/token`,
+        authorization_endpoint: `${ISSUER}/authorize`,
+        grant_types_supported: ['client_credentials'],
+        token_endpoint_auth_methods_supported: ['private_key_jwt'],
+        token_endpoint_auth_signing_alg_values_supported: ['ES256', 'EdDSA'],
+        scopes_supported: ['agentpay'],
+        response_types_supported: [],
+      }),
+    ),
+    http.get(`${ORIGIN}/.well-known/*`, () => new HttpResponse(null, { status: 404 })),
+    http.post(`${ISSUER}/token`, async ({ request }) => {
+      const form = new URLSearchParams(await request.text());
+      const assertion = form.get('client_assertion') ?? '';
+      if (!(await verifyJws(assertion, key.publicJwk, key.alg))) {
+        return HttpResponse.json({ error: 'invalid_client' }, { status: 400 });
+      }
+      seen.assertion = { ...decodeJwt(assertion).payload, form: Object.fromEntries(form) };
+
+      seen.tokenRequests++;
+      const proof = request.headers.get('dpop');
+      if (proof) {
+        if (!(await proofOk(proof, key, 'POST', `${ISSUER}/token`))) {
+          return HttpResponse.json({ error: 'invalid_dpop_proof' }, { status: 400 });
+        }
+        seen.tokenProof = decodeJwt(proof).payload;
+      }
+
+      const accessToken = fakeAccessToken({
+        sub: ASID,
+        jti: crypto.randomUUID(),
+        ...(proof ? { cnf: { jkt: 'thumbprint' } } : {}),
+      });
+      seen.lastToken = accessToken;
+      return HttpResponse.json({
+        access_token: accessToken,
+        token_type: 'Bearer',
+        expires_in: proof ? 3600 : 600,
+        scope: 'agentpay',
+      });
+    }),
+    http.get(ENDPOINT, () => new HttpResponse(null, { status: 405 })),
+    http.delete(ENDPOINT, async ({ request }) => {
+      const auth = await authenticate(request, key, seen);
+      if (auth instanceof Response) return auth;
+      seen.deletes++;
+      if (auth.proof) seen.deleteProofs.push(auth.proof);
+      return new HttpResponse(null, { status: 200 });
+    }),
+    http.post(ENDPOINT, async ({ request }) => {
+      const auth = await authenticate(request, key, seen);
+      if (auth instanceof Response) return auth;
+      if (auth.proof) seen.mcpProofs.push(auth.proof);
+
+      const message = (await request.json()) as { id?: number; method: string };
+      if (message.id === undefined) return new HttpResponse(null, { status: 202 });
+
+      const results: Record<string, unknown> = {
+        initialize: {
+          protocolVersion: '2025-06-18',
+          capabilities: { tools: {} },
+          serverInfo: { name: 'getai-agent-pay', version: '1.0.0' },
+        },
+        'tools/list': {
+          tools: [{ name: 'list_mandates', inputSchema: { type: 'object', properties: {} } }],
+        },
+        'tools/call': {
+          content: [{ type: 'text', text: 'ok' }],
+          structuredContent: { mandates: [] },
+        },
+      };
+      return HttpResponse.json(
+        { jsonrpc: '2.0', id: message.id, result: results[message.method] },
+        message.method === 'initialize' ? { headers: { 'mcp-session-id': 'session-1' } } : {},
+      );
+    }),
+  );
+}
+
+let seen: Seen;
+
+beforeEach(() => {
+  seen = {
+    mcpSchemes: [],
+    mcpProofs: [],
+    tokenRequests: 0,
+    expired: new Set(),
+    deletes: 0,
+    deleteProofs: [],
+  };
+});
+
+describe('createAgentPayMcpClient', () => {
+  it('authenticates with private_key_jwt and DPoP, then calls list_mandates', async () => {
+    const key = await newAgentKey('ES256');
+    mockEndpoint(key, seen);
+
+    const { client, close } = await createAgentPayMcpClient({
+      asid: ASID,
+      privateKey: key.pkcs8Pem,
+      publicJwk: key.publicJwk,
+      alg: 'ES256',
+      endpoint: ENDPOINT,
+    });
+    const result = await client.callTool({ name: 'list_mandates', arguments: {} });
+    await close();
+
+    expect(result.structuredContent).toEqual({ mandates: [] });
+    expect(seen.assertion).toMatchObject({ iss: ASID, sub: ASID, aud: ISSUER });
+    expect(seen.assertion?.form).toMatchObject({
+      grant_type: 'client_credentials',
+      client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+      scope: 'agentpay',
+      resource: ENDPOINT,
+    });
+    expect(seen.tokenProof).toMatchObject({ htm: 'POST', htu: `${ISSUER}/token` });
+    expect(seen.tokenProof?.ath).toBeUndefined();
+    expect(new Set(seen.mcpSchemes)).toEqual(new Set(['DPoP']));
+    expect(seen.mcpProofs.length).toBeGreaterThanOrEqual(2);
+    // close() ended the session with one DELETE, authenticated like any request.
+    expect(seen.deletes).toBe(1);
+    expect(seen.deleteProofs).toHaveLength(1);
+    expect(seen.deleteProofs[0]).toMatchObject({
+      htm: 'DELETE',
+      htu: ENDPOINT,
+      ath: await sha256b64url(seen.lastToken ?? ''),
+    });
+  });
+
+  it('uses a bearer token without DPoP when no public JWK is given', async () => {
+    const key = await newAgentKey('EdDSA');
+    mockEndpoint(key, seen);
+
+    const { client, transport } = await createAgentPayMcpClient({
+      asid: ASID,
+      privateKey: key.privateJwk,
+      alg: 'EdDSA',
+      endpoint: `${ENDPOINT}/`,
+    });
+    const tools = await client.listTools();
+    await transport.close();
+
+    expect(tools.tools.map((t) => t.name)).toEqual(['list_mandates']);
+    expect(seen.tokenProof).toBeUndefined();
+    expect(new Set(seen.mcpSchemes)).toEqual(new Set(['Bearer']));
+  });
+
+  it('signs the assertion and proofs with an EdDSA PKCS#8 PEM', async () => {
+    const key = await newAgentKey('EdDSA');
+    mockEndpoint(key, seen);
+
+    const { client, close } = await createAgentPayMcpClient({
+      asid: ASID,
+      privateKey: key.pkcs8Pem,
+      publicJwk: key.publicJwk,
+      alg: 'EdDSA',
+      endpoint: ENDPOINT,
+    });
+    const result = await client.callTool({ name: 'list_mandates', arguments: {} });
+    await close();
+
+    expect(result.structuredContent).toEqual({ mandates: [] });
+    expect(seen.assertion).toMatchObject({ iss: ASID, sub: ASID, aud: ISSUER });
+    expect(seen.tokenProof).toMatchObject({ htm: 'POST', htu: `${ISSUER}/token` });
+    expect(new Set(seen.mcpSchemes)).toEqual(new Set(['DPoP']));
+  });
+
+  it('fetches a fresh token and retries after a 401 for an expired token', async () => {
+    const key = await newAgentKey('ES256');
+    mockEndpoint(key, seen);
+
+    const { client, close } = await createAgentPayMcpClient({
+      asid: ASID,
+      privateKey: key.pkcs8Pem,
+      publicJwk: key.publicJwk,
+      alg: 'ES256',
+      endpoint: ENDPOINT,
+    });
+    expect(seen.tokenRequests).toBe(1);
+    const first = seen.lastToken ?? '';
+    seen.expired.add(first);
+
+    const result = await client.callTool({ name: 'list_mandates', arguments: {} });
+    await close();
+
+    expect(result.structuredContent).toEqual({ mandates: [] });
+    expect(seen.tokenRequests).toBe(2);
+    expect(seen.lastToken).not.toBe(first);
+  });
+
+  it('ends the MCP session on close', async () => {
+    const key = await newAgentKey('ES256');
+    mockEndpoint(key, seen);
+
+    const { close } = await createAgentPayMcpClient({
+      asid: ASID,
+      privateKey: key.pkcs8Pem,
+      alg: 'ES256',
+      endpoint: ENDPOINT,
+    });
+    await close();
+
+    expect(seen.deletes).toBe(1);
+  });
+
+  it('refuses a public JWK that does not match the private key', async () => {
+    const key = await newAgentKey('ES256');
+    const other = await newAgentKey('ES256');
+
+    await expect(
+      createAgentPayMcpClient({
+        asid: ASID,
+        privateKey: key.pkcs8Pem,
+        publicJwk: other.publicJwk,
+        alg: 'ES256',
+        endpoint: ENDPOINT,
+      }),
+    ).rejects.toThrow('does not match');
+  });
+
+  it('requires publicJwk when dpop is asked for', async () => {
+    const key = await newAgentKey();
+
+    await expect(
+      createAgentPayMcpClient({ asid: ASID, privateKey: key.pkcs8Pem, alg: 'ES256', dpop: true }),
+    ).rejects.toThrow('publicJwk');
+  });
+});
