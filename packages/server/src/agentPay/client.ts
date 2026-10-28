@@ -78,6 +78,13 @@ export interface AgentPayMcpClient {
   close: () => Promise<void>;
 }
 
+/** Without a regex: the endpoint is caller input and CodeQL flags `/\/+$/` as polynomial. */
+function stripTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value[end - 1] === '/') end--;
+  return value.slice(0, end);
+}
+
 /**
  * Connects an MCP client to the AI agent endpoint as `asid`.
  *
@@ -98,7 +105,7 @@ export interface AgentPayMcpClient {
 export async function createAgentPayMcpClient(
   options: AgentPayMcpClientOptions,
 ): Promise<AgentPayMcpClient> {
-  const endpoint = (options.endpoint ?? AGENT_PAY_MCP_ENDPOINT).replace(/\/+$/, '');
+  const endpoint = stripTrailingSlashes(options.endpoint ?? AGENT_PAY_MCP_ENDPOINT);
   const dpop = options.dpop ?? options.publicJwk !== undefined;
 
   if (dpop && !options.publicJwk) {
