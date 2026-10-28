@@ -8,10 +8,24 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "agentPay": [
+        "./dist/agentPay/index.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "import": {
         "types": "./dist/index.d.ts",
+        "typesVersions": {
+          "*": {
+            "agentPay": [
+              "./dist/agentPay/index.d.ts"
+            ]
+          }
+        },
         "default": "./dist/index.js"
       },
       "require": {
@@ -39,7 +53,7 @@
     "zod": "^4.3.6"
   },
   "peerDependencies": {
-    "@modelcontextprotocol/sdk": ">=1.32.0"
+    "@modelcontextprotocol/sdk": "^1.32.0"
   },
   "peerDependenciesMeta": {
     "@modelcontextprotocol/sdk": {

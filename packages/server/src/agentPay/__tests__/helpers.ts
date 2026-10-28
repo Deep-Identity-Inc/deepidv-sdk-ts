@@ -97,3 +97,9 @@ export function proofOf(headers: Headers | undefined): string {
   if (!proof) throw new Error('no DPoP header');
   return proof;
 }
+
+/** An unsigned JWT-shaped access token with `claims`, as the mock servers issue. */
+export function fakeAccessToken(claims: Record<string, unknown>): string {
+  const segment = (value: unknown) => toBase64url(encoder.encode(JSON.stringify(value)));
+  return `${segment({ alg: 'ES256', typ: 'at+jwt' })}.${segment(claims)}.c2ln`;
+}
