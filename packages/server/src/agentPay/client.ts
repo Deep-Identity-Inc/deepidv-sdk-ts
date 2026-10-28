@@ -53,7 +53,11 @@ export interface AgentPayMcpClientOptions {
   alg: AgentKeyAlgorithm;
   /** The MCP endpoint. Defaults to {@link AGENT_PAY_MCP_ENDPOINT}. */
   endpoint?: string;
-  /** Bind tokens to the key with DPoP. Defaults to true when `publicJwk` is given. */
+  /**
+   * Bind tokens to the key with DPoP. Defaults to true when `publicJwk` is
+   * given, and requires it: the caller names the registered key the server
+   * checks the proofs against, rather than this client deriving one.
+   */
   dpop?: boolean;
   /**
    * Reported to the server on `initialize`. Defaults to

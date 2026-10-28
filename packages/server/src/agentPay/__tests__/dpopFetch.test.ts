@@ -200,6 +200,67 @@ describe('createDpopFetch', () => {
     }
   });
 
+  it('accepts a private JWK with ext: false and key_ops, without round-tripping it', async () => {
+    for (const alg of ['ES256', 'EdDSA'] as const) {
+      const key = await newAgentKey(alg);
+      const { calls, fetch } = capture();
+      const dpopFetch = createDpopFetch({
+        privateKey: { ...key.privateJwk, ext: false, key_ops: ['sign'], kid: 'agent-1' },
+        publicJwk: key.publicJwk,
+        alg,
+        fetch,
+      });
+
+      await dpopFetch('https://mcp.deepidv.com/v1/agent-mcp/oauth/token', { method: 'POST' });
+
+      const proof = proofOf(calls[0]?.headers);
+      expect(decodeJwt(proof).header.jwk).toEqual(key.publicJwk);
+      expect(await verifyJws(proof, key.publicJwk, alg)).toBe(true);
+    }
+  });
+
+  it('refuses a private JWK missing key members or with a d that is not the key', async () => {
+    const key = await newAgentKey();
+    const other = await newAgentKey();
+    const withoutD = { ...key.privateJwk, d: undefined };
+
+    const missing = createDpopFetch({ privateKey: withoutD, alg: 'ES256', fetch: capture().fetch });
+    await expect(missing('https://x.test', { method: 'POST' })).rejects.toThrow(TypeError);
+    await expect(missing('https://x.test', { method: 'POST' })).rejects.toThrow('missing d');
+
+    const forged = createDpopFetch({
+      privateKey: { ...key.privateJwk, d: other.privateJwk.d },
+      alg: 'ES256',
+      fetch: capture().fetch,
+    });
+    await expect(forged('https://x.test', { method: 'POST' })).rejects.toThrow(TypeError);
+    await expect(forged('https://x.test', { method: 'POST' })).rejects.toThrow(
+      'not a valid ES256 key',
+    );
+  });
+
+  it('refuses a PEM of another curve with a TypeError that does not leak the PEM', async () => {
+    const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-384' }, true, [
+      'sign',
+      'verify',
+    ]);
+    const der = new Uint8Array(await crypto.subtle.exportKey('pkcs8', pair.privateKey));
+    let binary = '';
+    for (const byte of der) binary += String.fromCharCode(byte);
+    const body = btoa(binary);
+    const pem = `-----BEGIN PRIVATE KEY-----\n${body}\n-----END PRIVATE KEY-----\n`;
+    const dpopFetch = createDpopFetch({ privateKey: pem, alg: 'ES256', fetch: capture().fetch });
+
+    const failure = await dpopFetch('https://x.test', { method: 'POST' }).then(
+      () => undefined,
+      (error: unknown) => error,
+    );
+
+    expect(failure).toBeInstanceOf(TypeError);
+    expect((failure as Error).message).toBe('privateKey is not an ES256 key');
+    expect((failure as Error).message).not.toContain(body.slice(0, 16));
+  });
+
   it('refuses a public JWK with private material or the wrong key type', async () => {
     const key = await newAgentKey();
     const ed = await newAgentKey('EdDSA');

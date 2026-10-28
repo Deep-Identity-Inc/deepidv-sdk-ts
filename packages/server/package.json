@@ -19,13 +19,6 @@
     ".": {
       "import": {
         "types": "./dist/index.d.ts",
-        "typesVersions": {
-          "*": {
-            "agentPay": [
-              "./dist/agentPay/index.d.ts"
-            ]
-          }
-        },
         "default": "./dist/index.js"
       },
       "require": {
