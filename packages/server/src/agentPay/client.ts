@@ -7,8 +7,9 @@
  * `PrivateKeyJwtProvider`); with DPoP on, every request also carries a
  * proof from the same key, so a leaked token is useless on its own.
  *
- * `@modelcontextprotocol/sdk` (>= 1.32) is a peer dependency of this entry
- * point only.
+ * `@modelcontextprotocol/sdk` (^1.32) is a peer dependency of this entry
+ * point only. Needs a runtime with global WebCrypto (`globalThis.crypto`):
+ * Node 20+, Deno, Bun and edge runtimes.
  *
  * @module agentPay/client
  */
@@ -17,7 +18,19 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { PrivateKeyJwtProvider } from '@modelcontextprotocol/sdk/client/auth-extensions.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
-import { createDpopFetch, type AgentKeyAlgorithm, type FetchLike, type Jwk } from './dpopFetch.js';
+import {
+  createDpopFetch,
+  resolveAgentKey,
+  type AgentKeyAlgorithm,
+  type FetchLike,
+  type Jwk,
+} from './dpopFetch.js';
+
+// Replaced with the package version by tsup (`define`); unset in tests.
+declare const __DEEPIDV_SERVER_VERSION__: string | undefined;
+
+const PACKAGE_VERSION =
+  typeof __DEEPIDV_SERVER_VERSION__ === 'string' ? __DEEPIDV_SERVER_VERSION__ : '0.0.0-dev';
 
 /** The production endpoint. */
 export const AGENT_PAY_MCP_ENDPOINT = 'https://mcp.deepidv.com/v1/agent-mcp';
@@ -31,7 +44,10 @@ export interface AgentPayMcpClientOptions {
   asid: string;
   /** The AI agent's private key: a PKCS#8 PEM string or a private JWK. */
   privateKey: string | Jwk;
-  /** The registered public JWK. Required for DPoP. */
+  /**
+   * The registered public JWK. Required for DPoP, and checked against
+   * `privateKey`.
+   */
   publicJwk?: Jwk;
   /** `ES256` (P-256) or `EdDSA` (Ed25519). */
   alg: AgentKeyAlgorithm;
@@ -39,7 +55,10 @@ export interface AgentPayMcpClientOptions {
   endpoint?: string;
   /** Bind tokens to the key with DPoP. Defaults to true when `publicJwk` is given. */
   dpop?: boolean;
-  /** Reported to the server on `initialize`. */
+  /**
+   * Reported to the server on `initialize`. Defaults to
+   * `deepidv-agent-pay` with this package's version.
+   */
   clientInfo?: { name: string; version: string };
   /** The `fetch` to use. Defaults to the global `fetch`. */
   fetch?: FetchLike;
@@ -47,9 +66,12 @@ export interface AgentPayMcpClientOptions {
 
 /** What {@link createAgentPayMcpClient} returns. */
 export interface AgentPayMcpClient {
+  /** The connected MCP client: `callTool`, `listTools` and the rest. */
   client: Client;
+  /** The underlying Streamable HTTP transport. */
   transport: StreamableHTTPClientTransport;
-  close(): Promise<void>;
+  /** Ends the MCP session on the server (best effort), then closes the client. */
+  close: () => Promise<void>;
 }
 
 /**
@@ -79,9 +101,14 @@ export async function createAgentPayMcpClient(
     throw new TypeError('publicJwk is required when dpop is true');
   }
 
+  // Validates the key (and publicJwk against it) before any request. The
+  // assertion is signed from the private JWK: the MCP SDK takes PEM strings
+  // only for RS, ES and PS algorithms, not EdDSA.
+  const { privateJwk } = await resolveAgentKey(options.privateKey, options.alg, options.publicJwk);
+
   const authProvider = new PrivateKeyJwtProvider({
     clientId: options.asid,
-    privateKey: options.privateKey as string | Record<string, unknown>,
+    privateKey: privateJwk,
     algorithm: options.alg,
     scope: AGENT_PAY_SCOPE,
     expectedIssuer: `${endpoint}/oauth`,
@@ -90,7 +117,7 @@ export async function createAgentPayMcpClient(
   const fetchFn =
     dpop && options.publicJwk
       ? createDpopFetch({
-          privateKey: options.privateKey,
+          privateKey: privateJwk,
           publicJwk: options.publicJwk,
           alg: options.alg,
           ...(options.fetch ? { fetch: options.fetch } : {}),
@@ -102,12 +129,17 @@ export async function createAgentPayMcpClient(
     ...(fetchFn ? { fetch: fetchFn } : {}),
   });
 
-  const client = new Client(options.clientInfo ?? { name: 'deepidv-agent-pay', version: '1.0.0' });
+  const client = new Client(
+    options.clientInfo ?? { name: 'deepidv-agent-pay', version: PACKAGE_VERSION },
+  );
   await client.connect(transport);
 
   return {
     client,
     transport,
-    close: () => client.close(),
+    close: async () => {
+      await transport.terminateSession().catch(() => undefined);
+      await client.close();
+    },
   };
 }

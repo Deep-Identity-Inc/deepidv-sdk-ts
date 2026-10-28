@@ -6,7 +6,8 @@
     "target": "es2022",
     "noEmit": true,
     "paths": {
-      "@deepidv/server": ["../../packages/server/dist/index.d.ts"]
+      "@deepidv/server": ["../../packages/server/dist/index.d.ts"],
+      "@deepidv/server/agentPay": ["../../packages/server/dist/agentPay/index.d.ts"]
     }
   },
   "include": ["index.ts"]
