@@ -18,6 +18,16 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./agentPay": {
+      "import": {
+        "types": "./dist/agentPay/index.d.ts",
+        "default": "./dist/agentPay/index.js"
+      },
+      "require": {
+        "types": "./dist/agentPay/index.d.cts",
+        "default": "./dist/agentPay/index.cjs"
+      }
     }
   },
   "scripts": {
@@ -28,10 +38,19 @@
   "dependencies": {
     "zod": "^4.3.6"
   },
+  "peerDependencies": {
+    "@modelcontextprotocol/sdk": ">=1.32.0"
+  },
+  "peerDependenciesMeta": {
+    "@modelcontextprotocol/sdk": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@deepidv/core": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "msw": "^2.12.14",
-    "vitest": "^4.1.2",
-    "@deepidv/core": "workspace:*"
+    "vitest": "^4.1.2"
   },
   "publishConfig": {
     "access": "public"
