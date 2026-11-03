@@ -6,15 +6,16 @@ Backend-first TypeScript SDK for the [deepidv](https://api.deepidv.com) identity
 
 Start here if you're new to the SDK.
 
-| Document                                                       | Description                                                               |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| [Quickstart](./guides/QUICKSTART.md)                           | Install, initialize, make your first call in 2 minutes                    |
-| [Authentication](./guides/AUTHENTICATION.md)                   | API key setup, security best practices, custom fetch                      |
-| [Session-Based Verification](./guides/SESSION-VERIFICATION.md) | Hosted verification flow: create session, user verifies, retrieve results |
-| [Server-to-Server Verification](./guides/SERVER-TO-SERVER.md)  | Use primitives to build custom verification pipelines                     |
-| [Migration from REST API](./guides/MIGRATION.md)               | Endpoint mapping and before/after code examples                           |
-| [Supported Runtimes](./guides/RUNTIMES.md)                     | Node.js, Deno, Bun, Cloudflare Workers compatibility                      |
-| [Troubleshooting](./guides/TROUBLESHOOTING.md)                 | Common errors and how to fix them                                         |
+| Document                                                       | Description                                                                |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [Quickstart](./guides/QUICKSTART.md)                           | Install, initialize, make your first call in 2 minutes                     |
+| [Authentication](./guides/AUTHENTICATION.md)                   | API key setup, security best practices, custom fetch                       |
+| [Session-Based Verification](./guides/SESSION-VERIFICATION.md) | Hosted verification flow: create session, user verifies, retrieve results  |
+| [Server-to-Server Verification](./guides/SERVER-TO-SERVER.md)  | Use primitives to build custom verification pipelines                      |
+| [Migration from REST API](./guides/MIGRATION.md)               | Endpoint mapping and before/after code examples                            |
+| [Supported Runtimes](./guides/RUNTIMES.md)                     | Node.js, Deno, Bun, Cloudflare Workers compatibility                       |
+| [Troubleshooting](./guides/TROUBLESHOOTING.md)                 | Common errors and how to fix them                                          |
+| [Agent Pay: AI agent MCP client](./guides/AGENT-PAY.md)        | getai.id AI agents: `private_key_jwt` tokens, DPoP, Python and Claude Code |
 
 ## Architecture
 
