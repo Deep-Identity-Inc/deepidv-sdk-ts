@@ -199,3 +199,49 @@ void _idvResSchema;
 void _idvDocSchema;
 void _idvFaceDetSchema;
 void _idvFaceMatchSchema;
+
+// --- agentPay entry point (@deepidv/server/agentPay) ---
+import {
+  AGENT_PAY_MCP_ENDPOINT,
+  AGENT_PAY_SCOPE,
+  createAgentPayMcpClient,
+  createDpopFetch,
+  importAgentPrivateKey,
+  proofUrl,
+  signDpopProof,
+} from '@deepidv/server/agentPay';
+import type {
+  AgentKeyAlgorithm,
+  AgentPayMcpClient,
+  AgentPayMcpClientOptions,
+  DpopFetchOptions,
+  DpopProofInput,
+  FetchLike,
+  Jwk,
+} from '@deepidv/server/agentPay';
+
+const _alg: AgentKeyAlgorithm = 'EdDSA';
+const _jwk: Jwk = { kty: 'OKP', crv: 'Ed25519', x: 'x' };
+const _dpopOptions: DpopFetchOptions = { privateKey: _jwk, alg: _alg };
+const _dpopFetch: FetchLike = createDpopFetch(_dpopOptions);
+const _clientOptions: AgentPayMcpClientOptions = {
+  asid: 'ASID-AGT-0123456789AB',
+  privateKey: _jwk,
+  alg: _alg,
+  endpoint: AGENT_PAY_MCP_ENDPOINT,
+};
+const _connect: (o: AgentPayMcpClientOptions) => Promise<AgentPayMcpClient> =
+  createAgentPayMcpClient;
+const _sign: (i: DpopProofInput) => Promise<string> = signDpopProof;
+const _import: (k: string | Jwk, a: AgentKeyAlgorithm) => Promise<CryptoKey> =
+  importAgentPrivateKey;
+const _htu: string = proofUrl(AGENT_PAY_MCP_ENDPOINT);
+const _scope: string = AGENT_PAY_SCOPE;
+
+void _dpopFetch;
+void _clientOptions;
+void _connect;
+void _sign;
+void _import;
+void _htu;
+void _scope;
