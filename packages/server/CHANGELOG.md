@@ -1,5 +1,12 @@
 # @deepidv/server
 
+## 1.3.0
+
+### Minor Changes
+
+- 2e5e804: New `@deepidv/server/agentPay` entry point for AI agents calling the getai.id Agent Pay MCP endpoint (DIDV-915): `createAgentPayMcpClient` connects an MCP client authenticated with `private_key_jwt` and, by default when a public JWK is given, DPoP-bound tokens; `createDpopFetch` adds DPoP proofs to any MCP SDK transport. `@modelcontextprotocol/sdk` (^1.32) is an optional peer dependency used only by this entry point, which needs Node 20+ (or any runtime with global WebCrypto).
+- de7aa1b: `sessions.create()` no longer requires `firstName` or `lastName` (DIDV-961). Each is optional on its own: sending one name (a mononym) creates a normal session. When both are omitted the applicant's name is read from their ID document, the name-matches-ID check is skipped, and the workflow must include an ID verification step. Retrieved sessions created without names carry `namesProvided: false`, and the user's `firstName`/`lastName` are typed as possibly `null` or absent until a name is known.
+
 ## 1.2.0
 
 ### Minor Changes
